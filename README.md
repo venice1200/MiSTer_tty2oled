@@ -76,10 +76,10 @@ If the Corename is unknown just the corename is shown.
   
 The used font for the Text can be chosen from a [list of fonts](https://github.com/olikraus/u8g2/wiki/fntlistall).  
   
-The following Corenames are known and show an dedicated or generic Picture:  
-**Arcade** llander, mooncrgx ,mpatrol  
-**Computers** AO486, APPLE-I, Apple-II, AtariST, C64, Minimig, PET2001, VIC20  
-**Console** ATARI2600, Genesis, NEOGEO, NES, SMS, SNES, TGFX16  
+The following Corenames are known and showing an dedicated or generic Picture:  
+**Arcade:** llander, mooncrgx ,mpatrol  
+**Computers:** AO486, APPLE-I, Apple-II, AtariST, C64, Minimig, PET2001, VIC20  
+**Console:** ATARI2600, Genesis, NEOGEO, NES, SMS, SNES, TGFX16  
   
   
   

@@ -94,7 +94,10 @@ The following Text-Commands have special functions:
 | :--- | :--- |
 | MiSTer_SSD1322 | The Arduino Project containing the `.ino` and `.h` file(s) |
 | Pictures | Just Pictures :smile: |
-  
+
+**Ideas**  
+Use an second serial port to free up the MCU's programmer port  
+Use an ESP32 with an SD Micro Slot for the Pictures
   
 **Links**  
 MiSTer on Github: https://github.com/MiSTer-devel  

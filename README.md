@@ -1,21 +1,21 @@
-# tty2oled [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+## tty2oled [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 Add-On for the [MiSTer FPGA](https://github.com/MiSTer-devel) showing Text or Pictures on a Display driven by an Arduino which is connected via USB-Serial.<br>
   
 ![tty2oled connection](https://github.com/venice1200/MiSTer_tty2oled/blob/main/Pictures/OLED_Connection.jpg?raw=true)
   
-  
+#### The Idea
 At first I had the idea to add an Display which shows only the MiSTer Logo.  
-![MiSTer_OLED](https://github.com/venice1200/MiSTer_tty2oled/blob/main/Pictures/MiSTer_OLED.jpg?raw=true))  
 After a bit of searching I found the possibilty to get information about the actual loaded Core out of the file `/tmp/CORENAME`.  
 I tried `tail -F /tmp/CORENAME` which results in error messages so I choose `cat /tmp/CORENAME` in a timed loop.  
   
-I tried an USB-Serial connection between an Arduino and the MiSTer  
+#### Realizing
+I tested an USB-Serial connection between an Arduino and the MiSTer  
 as this is an standard communication feature on Arduino's and easy to use.  
 And USB Ports are available for most of the MiSTer users is some way.  
 My ATMega 1284 with an FTDI Serial Adapter was sucessfully detected as `/dev/ttyUSB0` by the MiSTer.  
 Later I used an ESP32 with an CP21xx Chip because of storage and speed.  
 My actual Display is an 3.12" SSD1322O-OLED with 256x64 Pixel connected via SPI to the ESP32 MCU.  
-
+  
 **Arduino**  
 For the Arduino Code you need to add this Library https://github.com/olikraus/u8g2 to your Arduino System.  
 This Library needs the pictures in [XBM](https://en.wikipedia.org/wiki/X_BitMap) Format. I use [Krita](https://krita.org/) for converting.  
@@ -29,12 +29,11 @@ On the MiSTer you need two scripts.
 The first script `S60tty2oled` is an starter script for the second script `tty2oled`  
 which handles the communication to the Arduino via the USB-Serial tty device.  
   
-**Demo Videos**  
+#### Demo Videos
 Video Part 1: https://imgur.com/a/JOnaKPq  
 Video Part 2: https://imgur.com/gallery/Ek9oFN1  
   
-**How does it work?**  
-  
+#### How does it work?  
 **MiSTer**  
 When the MiSTer boots up the Script `/etc/init.d/S60tty2oled` is called.  
 This script does nothing more than calling another script `/usr/bin/tty2oled` and sent the task to background.  
@@ -65,15 +64,15 @@ If the Corename is unknown just the Corename is shown.
 The used font for the Text can be changed within the Arduino Code.  
 See the [list of fonts](https://github.com/olikraus/u8g2/wiki/fntlistall) for all in the Library included fonts.  
 **To prevent Display flickering the Text or Picture is only updated if the received Corename has changed.**  
-  
+
+#### Known Corenames
 The following Corenames are (currently) identified and an dedicated or generic Picture is shown.  
 **Arcade:** llander, mooncrgx ,mpatrol  
 **Computers:** AO486, APPLE-I, Apple-II, AtariST, C64, Minimig, PET2001, VIC20  
 **Console:** ATARI2600, Genesis, NEOGEO, NES, SMS, SNES, TGFX16  
-**MENU** as Corename shows the MiSTer Logo fading in with an particle effect.  
-**QWERTZ** received does nothing. It's the text for the **first transmission**.  
+**Other:** MEMTEST, MENU (shows the MiSTer Logo fading in with an particle effect), QWERTZ (does nothing, it's **first transmission**).  
   
-**Testing**  
+#### Testing
 You can easily test your Display by sending text from the Arduino's Serial console set to 9600 baud and LineFeed `\n` activated.  
 The following Text-Commands have special functions:  
 | Text | Function |
@@ -83,8 +82,7 @@ The following Text-Commands have special functions:
 | bye | Show Sorgelig's Icon :smile:|
   
   
-**Files and Folders in this Repository**  
-
+#### Files and Folders in this Repository
 | File | Description |
 | :--- | :--- |
 | S60tty2oled | Starter Script, must be placed on **MiSTer** in folder `/etc/init.d/`  |

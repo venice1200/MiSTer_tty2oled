@@ -47,10 +47,11 @@ During my tests I got somtimes weird startup behavior on power-up's with differe
 Sometimes the text **MENU** was written instead of the MiSTer Picture shown.  
 *Maybe some sleeping bits in the serial channel :smirk:*.  
 After I added the **first transmission** the problem was gone.  
-Now the main loop starts and checks the existence of the file `/tmp/CORENAME`.  
+The main loop is started and checks the existence of the file `/tmp/CORENAME`.  
 If this file doesn't exist the script waits for 2 secs and tried the next loop.  
-If the file exists the file's content is read using `cat /tmp/CORENAME`, stored to the variable `newcore` and send to the tty Device.  
-Now the script waits for 2 secs and runs the next loop.  
+If the file exists the file's content is read using `cat /tmp/CORENAME`,  
+stored into the variable `newcore` and send the data to the tty Device.  
+At the end of the main loop the script waits for 2 secs and starts the next loop.  
 Every loop the Corename is checked **but the data are sent only if the Corename has changed**.  
   
 **Arduino**  

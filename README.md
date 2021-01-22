@@ -3,4 +3,4 @@ Add-On for the [MiSTer](https://github.com/MiSTer-devel) showing Text or Picture
    
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)   
    
-...work ins progress
+...work in progress

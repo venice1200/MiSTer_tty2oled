@@ -16,11 +16,11 @@ Files and Folders in this Repository
 | MiSTer_SSD1322 | The Arduino Project |
 | Pictures | Pictures :-) |
 
-  
-At first I had the idea to add an Display only showing the MiSTer Logo.  
-After a bit of searching I found the possibilty to get information about the actual loaded Core out of the file `/tmp/CORENAME`.  
-I tried `tail -F /tmp/CORENAME` which results in error messages so I choose `cat /tmp/CORENAME` in a timed loop.  
-  
+\
+At first I had the idea to add an Display only showing the MiSTer Logo.\
+After a bit of searching I found the possibilty to get information about the actual loaded Core out of the file `/tmp/CORENAME`.\
+I tried `tail -F /tmp/CORENAME` which results in error messages so I choose `cat /tmp/CORENAME` in a timed loop.\
+\
 I tried an USB-Serial connection between an Arduino and the MiSTer as this is an standard communication feature on Arduino's and easy to use.  
 And USB Ports are available for most of the MiSTer users is some way.  
 My ATMega 1284 with an FTDI Serial Adapter was sucessfully detected as `/dev/ttyUSB0` by the MiSTer.  

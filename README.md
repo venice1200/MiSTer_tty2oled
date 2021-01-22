@@ -1,10 +1,11 @@
 # MiSTer_tty2oled [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-Add-On for the [MiSTer](https://github.com/MiSTer-devel) showing Text or Pictures on a Display driven by an Arduino which is connected via USB-Serial.<br>
+Add-On for the [MiSTer FPGA](https://github.com/MiSTer-devel) showing Text or Pictures on a Display driven by an Arduino which is connected via USB-Serial.<br>
   
 ![tty2oled connection](https://github.com/venice1200/MiSTer_tty2oled/blob/main/Pictures/OLED_Connection.jpg?raw=true)
   
   
-At first I had the idea to add an Display which should show only MiSTer Logo.  
+At first I had the idea to add an Display which shows only the MiSTer Logo.  
+![MiSTer_OLED](https://github.com/venice1200/MiSTer_tty2oled/blob/main/Pictures/MiSTer_OLED.jpg?raw=true))  
 After a bit of searching I found the possibilty to get information about the actual loaded Core out of the file `/tmp/CORENAME`.  
 I tried `tail -F /tmp/CORENAME` which results in error messages so I choose `cat /tmp/CORENAME` in a timed loop.  
   
@@ -54,13 +55,14 @@ Every loop the Corename is checked **but the data are sent only if the Corename 
   
 **Arduino**
 The Arduino receives the transfered Corename.  
-If the Corename is within a list of known Names the correspondig picture is shown.  
+If the Corename is within a list of known Names the corresponding picture is shown.  
 ![TGFX16](https://github.com/venice1200/MiSTer_tty2oled/blob/main/Pictures/TGFX16.jpg?raw=true)
   
-If the Corename is unknown just the corename is shown.  
+If the Corename is unknown just the Corename is shown.  
 ![Astrocade](https://github.com/venice1200/MiSTer_tty2oled/blob/main/Pictures/Astrocade.jpg?raw=true)
   
-The used font for the Text can be chosen from a [list of fonts](https://github.com/olikraus/u8g2/wiki/fntlistall).  
+The used font for the Text can be changed.  
+See [list of fonts](https://github.com/olikraus/u8g2/wiki/fntlistall) for all in the Library included fonts.  
 The Text or Picture on the Display is only updated if the received Corename has changed.  
   
 The following Corenames are (currently) identified and an dedicated or generic Picture is shown.  
@@ -69,13 +71,14 @@ The following Corenames are (currently) identified and an dedicated or generic P
 **Console:** ATARI2600, Genesis, NEOGEO, NES, SMS, SNES, TGFX16  
 **MENU** as Corename shows the MiSTer Logo with an particle effect.  
 **QWERTZ** received does nothing. It's the **first transmission** Text.  
-You can easily test your Display by sending text within the Arduino's Serial console set to 9600 baud and LineFeed `\n` activated.  
   
+**Testing**  
+You can easily test your Display by sending text from the Arduino's Serial console set to 9600 baud and LineFeed `\n` activated.  
 The following Text-Commands have special functions:  
 | Text | Function |
 | :--- | :--- |
 | cls | Clear Display |
-| sorg | Show MiSTer Logo |
+| sorg | Show Display's Power-On Text |
 | bye | Show Sorgelig's Icon |
   
   
@@ -90,6 +93,12 @@ Files and Folders in this Repository
 | :--- | :--- |
 | MiSTer_SSD1322 | The Arduino Project containing the `.ino` and `.h` file(s) |
 | Pictures | Pictures :-) |
-
+  
+  
+**Links**  
+MiSTer on Github: https://github.com/MiSTer-devel  
+MiSTer Forum: https://misterfpga.org  
+This Add-On Forum-Thread : https://misterfpga.org/viewtopic.php?f=9&t=1887  
+  
 ...work in progress  
   

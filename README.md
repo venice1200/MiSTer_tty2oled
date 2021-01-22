@@ -4,7 +4,7 @@ Add-On for the [MiSTer](https://github.com/MiSTer-devel) showing Text or Picture
 ![tty2oled connection](https://github.com/venice1200/MiSTer_tty2oled/blob/main/Pictures/OLED_Connection.jpg?raw=true)
   
   
-At first I had the idea to add an Display only showing the MiSTer Logo.  
+At first I had the idea to add an Display which should show only MiSTer Logo.  
 After a bit of searching I found the possibilty to get information about the actual loaded Core out of the file `/tmp/CORENAME`.  
 I tried `tail -F /tmp/CORENAME` which results in error messages so I choose `cat /tmp/CORENAME` in a timed loop.  
   
@@ -18,7 +18,7 @@ My actual Display is an SSD1322-OLED with 256x64 Pixel connected via SPI to the 
 **Arduino**  
 For the Arduino Code you need to add this Library https://github.com/olikraus/u8g2 to your Arduino System.  
 This Library needs the pictures in [XBM](https://en.wikipedia.org/wiki/X_BitMap) Format. I use [Krita](https://krita.org/) for converting.  
-Just open your **B/W Picture** file and save it as XBM. See the Arduino Code `logo.h` file for details.  
+Just open your **B/W Picture** file and save it as XBM. See the Arduino Code [`logo.h`](https://github.com/venice1200/MiSTer_tty2oled/blob/main/MiSTer_SSD1322/logo.h) file for details.  
 The included XBM Pictures are converted to an max Size of 256x64 Pixel.  
 The Arduino Code can be easily adapted to other Displays, Display-Libraries or Arduino's.  
 There is a lot of commented code in the files. I will clean it up step by step.  

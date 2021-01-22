@@ -6,10 +6,10 @@ driven by an Arduino which is connected via USB-Serial.<br/>
 <br/>
 Files and Folders in this Repository <br/>
 
-| File | Location | Description |
-| :--- | :--- | :--- |
-| S60tty2oled | /etc/init.d/ | Starter Script |
-| tty2oled | /usr/bin/ | Communications Script |
+| File | Description |
+| :--- | :--- |
+| S60tty2oled | Starter Script, must be placed on **MiSTer** in folder **/etc/init.d/**  |
+| tty2oled | Communications Script, must be placed on **MiSTer** in folder **/usr/bin/** |
 
 | Folder | Description |
 | :--- | :--- |

@@ -82,7 +82,7 @@ The following Text-Commands have special functions:
 | bye | Show Sorgelig's Icon |
   
   
-Files and Folders in this Repository  
+**Files and Folders in this Repository**  
 
 | File | Description |
 | :--- | :--- |

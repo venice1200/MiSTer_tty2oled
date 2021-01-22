@@ -62,8 +62,8 @@ If the Corename is unknown just the Corename is shown.
 ![Astrocade](https://github.com/venice1200/MiSTer_tty2oled/blob/main/Pictures/Astrocade.jpg?raw=true)
   
 The used font for the Text can be changed.  
-See [list of fonts](https://github.com/olikraus/u8g2/wiki/fntlistall) for all in the Library included fonts.  
-The Text or Picture on the Display is only updated if the received Corename has changed.  
+See the [list of fonts](https://github.com/olikraus/u8g2/wiki/fntlistall) for all in the Library included fonts.  
+**Hint** The Text or Picture on the Display is only updated if the received Corename has changed.  
   
 The following Corenames are (currently) identified and an dedicated or generic Picture is shown.  
 **Arcade:** llander, mooncrgx ,mpatrol  

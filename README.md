@@ -36,7 +36,8 @@ Video Part 2: https://imgur.com/gallery/Ek9oFN1
 ### How does it work?
 **MiSTer**  
 When the MiSTer boots up the Script `/etc/init.d/S60tty2oled` is called.  
-This script does nothing more than calling another script `/usr/bin/tty2oled` and sent the task to background.  
+This script does nothing than calling the script `/usr/bin/tty2oled` and sent the task to the background.  
+But only if `tty2oled` is found in `/usr/bin/` and executable.
   
 The script `tty2oled` checks at first for the device `/dev/ttyUSB0`.  
 If the device is not found the scripts ends here.  

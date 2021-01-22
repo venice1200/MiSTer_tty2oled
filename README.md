@@ -12,7 +12,7 @@ Files and Folders in this Repository
 
 | Folder | Description |
 | :--- | :--- |
-| MiSTer_SSD1322 | The Arduino Project |
+| MiSTer_SSD1322 | The Arduino Project containing the `.ino` and `.h file(s)` |
 | Pictures | Pictures :-) |
 
   

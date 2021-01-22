@@ -92,13 +92,13 @@ The following Text-Commands have special functions:
 | Folder | Description |
 | :--- | :--- |
 | MiSTer_SSD1322 | The Arduino Project containing the `.ino` and `.h` file(s) |
-| Pictures | Pictures :-) |
+| Pictures | Just Pictures :smile: |
   
   
 **Links**  
 MiSTer on Github: https://github.com/MiSTer-devel  
 MiSTer Forum: https://misterfpga.org  
-This Add-On Forum-Thread : https://misterfpga.org/viewtopic.php?f=9&t=1887  
+Add-On Thread : https://misterfpga.org/viewtopic.php?f=9&t=1887  
   
 ...work in progress  
   

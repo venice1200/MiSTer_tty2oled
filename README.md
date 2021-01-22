@@ -3,18 +3,6 @@ Add-On for the [MiSTer](https://github.com/MiSTer-devel) showing Text or Picture
   
 ![tty2oled connection](https://github.com/venice1200/MiSTer_tty2oled/blob/main/Pictures/OLED_Connection.jpg?raw=true)
   
-Files and Folders in this Repository  
-
-| File | Description |
-| :--- | :--- |
-| S60tty2oled | Starter Script, must be placed on **MiSTer** in folder `/etc/init.d/`  |
-| tty2oled | Communications Script, must be placed on **MiSTer** in folder `/usr/bin/` |
-
-| Folder | Description |
-| :--- | :--- |
-| MiSTer_SSD1322 | The Arduino Project containing the `.ino` and `.h` file(s) |
-| Pictures | Pictures :-) |
-
   
 At first I had the idea to add an Display only showing the MiSTer Logo.  
 After a bit of searching I found the possibilty to get information about the actual loaded Core out of the file `/tmp/CORENAME`.  
@@ -48,11 +36,11 @@ Video Part 2: https://imgur.com/gallery/Ek9oFN1
   
 **MiSTer**  
 When the MiSTer boots up the Script `/etc/init.d/S60tty2oled` is called.  
-This script does nothing more than calling another script `/usr/bin/tty2oled` and sent it to background.  
+This script does nothing more than calling another script `/usr/bin/tty2oled` and sent the task to background.  
   
-The script `tty2oled` checks at first the device `/dev/ttyUSB0`.  
-If it's not found the scripts ends here.  
-If it's found the tty-device parameter are set with the [`stty`](https://man7.org/linux/man-pages/man1/stty.1.html) command.  
+The script `tty2oled` checks at first for the device `/dev/ttyUSB0`.  
+If the device is not found the scripts ends here.  
+If the device is found the tty-device parameter are set with the [`stty`](https://man7.org/linux/man-pages/man1/stty.1.html) command.  
 Then a **first transmission** is send.  
 During my tests I got somtimes weird startup behavior on power-ups with different lenghth of downtimes.  
 Sometimes the text **Menu** was written instead of the MiSTer Picture shown.  
@@ -66,8 +54,6 @@ Every loop the Corename is checked **but the data are sent only if the Corename 
   
 **Arduino**
 The Arduino receives the transfered Corename.  
-The Text or Picture on the Display is only updated if the received Corename has changed.  
-  
 If the Corename is within a list of known Names the correspondig picture is shown.  
 ![TGFX16](https://github.com/venice1200/MiSTer_tty2oled/blob/main/Pictures/TGFX16.jpg?raw=true)
   
@@ -75,13 +61,35 @@ If the Corename is unknown just the corename is shown.
 ![Astrocade](https://github.com/venice1200/MiSTer_tty2oled/blob/main/Pictures/Astrocade.jpg?raw=true)
   
 The used font for the Text can be chosen from a [list of fonts](https://github.com/olikraus/u8g2/wiki/fntlistall).  
+The Text or Picture on the Display is only updated if the received Corename has changed.  
   
-The following Corenames are known and showing an dedicated or generic Picture:  
+The following Corenames are (currently) identified and an dedicated or generic Picture is shown.  
 **Arcade:** llander, mooncrgx ,mpatrol  
 **Computers:** AO486, APPLE-I, Apple-II, AtariST, C64, Minimig, PET2001, VIC20  
 **Console:** ATARI2600, Genesis, NEOGEO, NES, SMS, SNES, TGFX16  
+**MENU** as Corename shows the MiSTer Logo with an particle effect.  
+**QWERTZ** received does nothing. It's the **first transmission** Text.  
+You can easily test your Display by sending text within the Arduino's Serial console set to 9600 baud and LineFeed `\n` activated.  
+  
+The following Text-Commands have special functions:  
+| Text | Function |
+| :--- | :--- |
+| cls | Clear Display |
+| sorg | Show MiSTer Logo |
+| bye | Show Sorgelig's Icon |
   
   
-  
+Files and Folders in this Repository  
+
+| File | Description |
+| :--- | :--- |
+| S60tty2oled | Starter Script, must be placed on **MiSTer** in folder `/etc/init.d/`  |
+| tty2oled | Communications Script, must be placed on **MiSTer** in folder `/usr/bin/` |
+
+| Folder | Description |
+| :--- | :--- |
+| MiSTer_SSD1322 | The Arduino Project containing the `.ino` and `.h` file(s) |
+| Pictures | Pictures :-) |
+
 ...work in progress  
   

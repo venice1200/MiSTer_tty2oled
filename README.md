@@ -69,8 +69,8 @@ The following Corenames are (currently) identified and an dedicated or generic P
 **Arcade:** llander, mooncrgx ,mpatrol  
 **Computers:** AO486, APPLE-I, Apple-II, AtariST, C64, Minimig, PET2001, VIC20  
 **Console:** ATARI2600, Genesis, NEOGEO, NES, SMS, SNES, TGFX16  
-**MENU** as Corename shows the MiSTer Logo with an particle effect.  
-**QWERTZ** received does nothing. It's the **first transmission** Text.  
+**MENU** as Corename shows the MiSTer Logo fading in with an particle effect.  
+**QWERTZ** received does nothing. It's the text for the **first transmission**.  
   
 **Testing**  
 You can easily test your Display by sending text from the Arduino's Serial console set to 9600 baud and LineFeed `\n` activated.  
@@ -79,7 +79,7 @@ The following Text-Commands have special functions:
 | :--- | :--- |
 | cls | Clear Display |
 | sorg | Show Display's Power-On Text |
-| bye | Show Sorgelig's Icon |
+| bye | Show Sorgelig's Icon :smile:|
   
   
 **Files and Folders in this Repository**  

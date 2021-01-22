@@ -51,9 +51,9 @@ Now the main loop starts and checks the existence of the file `/tmp/CORENAME`.
 If this file doesn't exist the script waits for 2 secs and tried the next loop.  
 If the file exists the file's content is read using `cat /tmp/CORENAME`, stored to the variable `newcore` and send to the tty Device.  
 Now the script waits for 2 secs and runs the next loop.  
-Every loop the Corename is checked **but the data are sent only if the Corename in** `/tmp/CORENAME` **has changed**.  
+Every loop the Corename is checked **but the data are sent only if the Corename has changed**.  
   
-**Arduino**
+**Arduino**  
 The Arduino receives the transfered Corename.  
 If the Corename is within a list of known Names the corresponding picture is shown.  
 ![TGFX16](https://github.com/venice1200/MiSTer_tty2oled/blob/main/Pictures/TGFX16.jpg?raw=true)

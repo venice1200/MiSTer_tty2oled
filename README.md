@@ -43,13 +43,13 @@ The script `tty2oled` checks at first for the device `/dev/ttyUSB0`.
 If the device is not found the scripts ends here.  
 If the device is found the tty-device parameter are set with the [`stty`](https://man7.org/linux/man-pages/man1/stty.1.html) command.  
 Then a **first transmission** is send.  
-During my tests I got somtimes weird startup behavior on power-ups with different lenghth of downtimes.  
-Sometimes the text **Menu** was written instead of the MiSTer Picture shown.  
-*Maybe some strange bits in the serial channel :smirk:*.  
+During my tests I got somtimes weird startup behavior on power-up's with different lenghth of downtimes.  
+Sometimes the text **MENU** was written instead of the MiSTer Picture shown.  
+*Maybe some sleeping bits in the serial channel :smirk:*.  
 After I added the **first transmission** the problem was gone.  
-Then the main loop starts and checks the existence of the file `/tmp/CORENAME`.  
+Now the main loop starts and checks the existence of the file `/tmp/CORENAME`.  
 If this file doesn't exist the script waits for 2 secs and tried the next loop.  
-If the file exists the content is read using `cat /tmp/CORENAME` to an variable and send to the tty Device.  
+If the file exists the file's content is read using `cat /tmp/CORENAME`, stored to the variable `newcore` and send to the tty Device.  
 Now the script waits for 2 secs and runs the next loop.  
 Every loop the Corename is checked **but the data are sent only if the Corename in** `/tmp/CORENAME` **has changed**.  
   

@@ -14,7 +14,7 @@ as this is an standard communication feature on Arduino's and easy to use.
 And USB Ports are available for most of the MiSTer users is some way.  
 My ATMega 1284 with an FTDI Serial Adapter was sucessfully detected as `/dev/ttyUSB0` by the MiSTer.  
 Later I used an ESP32 with an CP21xx Chip because of storage and speed.  
-My actual Display is an SSD1322-OLED with 256x64 Pixel connected via SPI to the ESP32 MCU.  
+My actual Display is an 3.12" SSD1322O-OLED with 256x64 Pixel connected via SPI to the ESP32 MCU.  
 
 **Arduino**  
 For the Arduino Code you need to add this Library https://github.com/olikraus/u8g2 to your Arduino System.  

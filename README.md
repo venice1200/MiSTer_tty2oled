@@ -1,4 +1,4 @@
-# MiSTer_tty2oled [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+# tty2oled [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 Add-On for the [MiSTer FPGA](https://github.com/MiSTer-devel) showing Text or Pictures on a Display driven by an Arduino which is connected via USB-Serial.<br>
   
 ![tty2oled connection](https://github.com/venice1200/MiSTer_tty2oled/blob/main/Pictures/OLED_Connection.jpg?raw=true)

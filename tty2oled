@@ -10,19 +10,12 @@
 #            Feels more responsive as Serial Read on Arduino is not waitung for the timeout (1000ms)
 #            Add "raw" to tty Parameter (see stty manpage)
 # 2021-01-17 Add check for readable file "/tmp/CORENAME"
-# 2021-01-19 Add "First Transmission" to clear send buffer (Preventing first transmission weird issues after PowerOn)
-#
-#
-#
-# Things to keep for the Moment
-#echo -n $newcore > $TTYDEV              # echo -n sends text without new line (Arduino: Serial.readString();)
-#echo -ne $newcore > $TTYDEV             # echo -ne sends text without new line (Arduino: Serial.readString();)
-#echo $newcore > $TTYDEV                 # echo sends text with new line (Arduino: Serial.readStringUntil('\n')
+# 2021-01-19 Add "First Transmission" to clear send buffer (Preventing  weird issues after PowerOn)
 #
 #
 
 
-# Define vars
+# Define Variables
 TTYDEV="/dev/ttyUSB0"
 TTYPARAM="9600 cs8 raw -parenb -cstopb -hupcl" # see manpage stty
 WAITSECS=2

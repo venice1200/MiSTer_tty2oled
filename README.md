@@ -8,8 +8,8 @@ Files and Folders in this Repository
 
 | File | Description |
 | :--- | :--- |
-| S60tty2oled | Starter Script, must be placed on **MiSTer** in folder **/etc/init.d/**  |
-| tty2oled | Communications Script, must be placed on **MiSTer** in folder **/usr/bin/** |
+| S60tty2oled | Starter Script, must be placed on **MiSTer** in folder `/etc/init.d/`  |
+| tty2oled | Communications Script, must be placed on **MiSTer** in folder `/usr/bin/` |
 
 | Folder | Description |
 | :--- | :--- |

@@ -63,7 +63,7 @@ If the Corename is unknown just the Corename is shown.
   
 The used font for the Text can be changed.  
 See the [list of fonts](https://github.com/olikraus/u8g2/wiki/fntlistall) for all in the Library included fonts.  
-**Hint** The Text or Picture on the Display is only updated if the received Corename has changed.  
+**Info:** The Text or Picture on the Display is only updated if the received Corename has changed.  
   
 The following Corenames are (currently) identified and an dedicated or generic Picture is shown.  
 **Arcade:** llander, mooncrgx ,mpatrol  

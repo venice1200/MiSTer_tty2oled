@@ -1,0 +1,34 @@
+#!/bin/sh
+
+# Start
+start() {
+    echo "Starting tty2oled..."
+    /usr/bin/tty2oled &
+    #/usr/bin/tty2oled
+}
+
+# Stop
+stop() {
+    echo "Stopping tty2oled..."
+    killall tty2oled
+}
+
+case "$1" in
+  start)
+        start
+        ;;
+  stop) 
+        stop
+        ;;
+  restart)
+        stop
+        start
+        ;;
+#  reload)
+#       reload
+#       ;;
+  *)
+#        echo "Usage: $0 {start|stop|restart|reload}"
+        echo "Usage: $0 {start|stop|restart}"
+        exit 1
+esac

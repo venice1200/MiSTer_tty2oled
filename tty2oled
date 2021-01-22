@@ -1,0 +1,77 @@
+#!/bin/sh
+
+# 
+#
+# By venice
+# 2021-01-12 First release
+# 2021-01-15 Adding debug to /tmp/tty2oled, device check else part
+# 2021-01-16 Change send command "echo -ne $newcore >" to "echo $newcore >" without -ne to send "\n" (newline)
+#            Arduino uses now "Serial.readStringUntil('\n');"
+#            Feels more responsive as Serial Read on Arduino is not waitung for the timeout (1000ms)
+#            Add "raw" to tty Parameter (see stty manpage)
+# 2021-01-17 Add check for readable file "/tmp/CORENAME"
+# 2021-01-19 Add "First Transmission" to clear send buffer (Preventing first transmission weird issues after PowerOn)
+#
+#
+#
+# Things to keep for the Moment
+#echo -n $newcore > $TTYDEV              # echo -n sends text without new line (Arduino: Serial.readString();)
+#echo -ne $newcore > $TTYDEV             # echo -ne sends text without new line (Arduino: Serial.readString();)
+#echo $newcore > $TTYDEV                 # echo sends text with new line (Arduino: Serial.readStringUntil('\n')
+#
+#
+
+
+# Define vars
+TTYDEV="/dev/ttyUSB0"
+TTYPARAM="9600 cs8 raw -parenb -cstopb -hupcl" # see manpage stty
+WAITSECS=2
+newcore=""
+oldcore=""
+
+# Debugging
+#debug="true"
+debug="false"
+
+# Debug function
+dbug() {
+  if [ "$debug" = "true" ]; then
+    if [[ ! -e /tmp/tty2oled ]]; then          # log file not (!) exists (-e) create it
+      echo "---------- tty2oled Debuglog ----------" > /tmp/tty2oled
+    fi 
+    echo "$1" >> /tmp/tty2oled                 # output debug text
+  fi
+}
+
+
+# ** Main **
+if [[ -c "$TTYDEV" ]]; then                      # check for tty device
+  echo "$TTYDEV detected, setting Parameter."    # some output
+  dbug "$TTYDEV detected, setting Parameter."    # some debug output
+  stty -F $TTYDEV $TTYPARAM                      # set tty parameter
+  #sleep 1                                       # sleep needed ?!
+  echo "QWERTZ" > $TTYDEV                        # First Transmission to clear serial send buffer
+  dbug "Send QWERTZ as first transmission"       # some debug output
+  #sleep 1                                       # sleep a bit
+  while true; do                                 # main loop
+    if [[ -r /tmp/CORENAME ]]; then              # proceed if file exists and is readable (-r)
+      newcore=$(cat /tmp/CORENAME)               # get CORENAME
+      echo "Read CORENAME: -$newcore-"           # some output
+      dbug "Read CORENAME: -$newcore-"           # some debug output
+      if [ "$newcore" != "$oldcore" ]; then      # proceed only if Core has changed
+        echo "Send -$newcore- to $TTYDEV."       # some output
+        dbug "Send -$newcore- to $TTYDEV."       # some debug output
+        echo $newcore > $TTYDEV                  # echo sends text with newline "\n", Arduino use "Serial.readStringUntil('\n');"
+        oldcore=$newcore                         # update oldcore variable
+      fi                                         # end if core check
+      sleep $WAITSECS                            # wait x secs
+    else                                         # CORENAME file not found
+      echo "File /tmp/CORENAME not found!"       # some output
+      dbug "File /tmp/CORENAME not found!"       # some debug output
+    fi                                           # end if /tmp/CORENAME check
+  done                                           # end while
+else                                             # no tty detected
+  echo "No $TTYDEV Device detected, abort."      # some output
+  dbug "No $TTYDEV Device detected, abort."      # some debug output
+fi                                               # end if tty check
+# ** End Main **

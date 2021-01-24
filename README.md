@@ -1,5 +1,5 @@
 ## tty2oled [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-Add-On for the [MiSTer FPGA](https://github.com/MiSTer-devel) showing Text or Pictures based on the loaded core on a Display driven by from Arduino which is connected via USB-Serial.<br>
+Add-On for the [MiSTer FPGA](https://github.com/MiSTer-devel) showing Text or Pictures based on the loaded core on a Display driven by an Arduino which is connected via USB-Serial.<br>
   
 ![tty2oled connection](https://github.com/venice1200/MiSTer_tty2oled/blob/main/Pictures/OLED_Connection.jpg?raw=true)
   
@@ -35,23 +35,24 @@ Video Part 2: https://imgur.com/gallery/Ek9oFN1
   
 ### How does it work?
 **MiSTer**  
-When the MiSTer boots up the Script `/etc/init.d/S60tty2oled` is called.  
-This Script does nothing more than calling the Script `/usr/bin/tty2oled` and sent it to the background,  
+When the MiSTer boots up the script `/etc/init.d/S60tty2oled` is called.  
+This script does nothing more than calling the script `/usr/bin/tty2oled` and sent it to the background,  
 but only if `tty2oled` is found in `/usr/bin/` and is executable.
   
-The script `/usr/bin/tty2oled` checks at first for the device `/dev/ttyUSB0`.  
-If the device is not found the scripts ends here.  
-If the device is found the tty-device parameter are set with the [`stty`](https://man7.org/linux/man-pages/man1/stty.1.html) command.  
-At next the Script sends an **first transmission**.  
-During my tests I got somtimes weird startup behavior on MiSTer power-up's caused by different lenghth of downtimes.  
+The script `/usr/bin/tty2oled` checks at first the system for the device `/dev/ttyUSB0`.  
+If the device is not found, the scripts ends here.  
+If the device is found, the tty-device parameter are set with the [`stty`](https://man7.org/linux/man-pages/man1/stty.1.html) command.  
+Next the script sends an **first transmission**.  
+First Transmission?  
+During my tests I got sometimes weird display startup behavior at MiSTers power on caused by different lenghth of power-off times.    
 Sometimes the text **MENU** was written instead of the MiSTer Picture shown.  
 *Maybe some sleeping bits in the serial channel :smirk:*.  
-After I added the **first transmission** to the Script the problem was gone :smile:.  
+After I added the **first transmission** to the script the problem was gone :smile:.  
 The main loop is started and checks the existence of the file `/tmp/CORENAME`.  
-If this file doesn't exist the Script waits for 2 secs and tried the next loop.  
-If the file exists the file's content is read using `cat /tmp/CORENAME`,  
-stored into the variable `newcore` and send the data to the tty Device.  
-At the end of the main loop the Script waits for 2 secs and starts the next loop.  
+If this file doesn't exist, the script waits for 2 secs and tried the next loop.  
+If the file exists, the file's content is read using `cat /tmp/CORENAME`,  
+stored into the variable `newcore` and send to the tty Device.  
+At the end of the main loop the script waits for 2 secs and starts the next loop.  
 Every loop the Corename is checked **but the data are sent only if the Corename has changed**.  
   
 **Arduino**  

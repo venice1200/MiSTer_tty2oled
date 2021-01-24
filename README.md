@@ -44,7 +44,7 @@ If the device is not found, the scripts ends here.
 If the device is found, the tty-device parameter are set with the [`stty`](https://man7.org/linux/man-pages/man1/stty.1.html) command.  
 Next the script sends an **first transmission**.  
 First Transmission?  
-During my tests I got sometimes weird display startup behavior at MiSTers power on caused by different lenghth of power-off times.    
+During my tests I got sometimes weird display startup behavior at MiSTers power on.  
 Sometimes the text **MENU** was written instead of the MiSTer Picture shown.  
 *Maybe some sleeping bits in the serial channel :smirk:*.  
 After I added the **first transmission** to the script the problem was gone :smile:.  

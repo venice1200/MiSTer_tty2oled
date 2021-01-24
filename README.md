@@ -26,7 +26,7 @@ There is a lot of commented code in the files. I will clean it up step by step.
 
 **MiSTer**  
 On the MiSTer you need two scripts.  
-The first script `S60tty2oled` is an starter script for the second script `tty2oled`  
+The first script `/etc/init.d/S60tty2oled` is an starter script for the second script `/usr/bin/tty2oled`  
 which handles the communication to the Arduino via the USB-Serial tty device.  
   
 ### Demo Videos

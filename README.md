@@ -40,11 +40,11 @@ This script does nothing more than calling the script `/usr/bin/tty2oled` and se
 but only if `tty2oled` is found in `/usr/bin/` and is executable.
   
 The script `/usr/bin/tty2oled` checks at first the system for the device `/dev/ttyUSB0`.  
-If the device is not found, the scripts ends here.  
-If the device is found, the tty-device parameter are set with the [`stty`](https://man7.org/linux/man-pages/man1/stty.1.html) command.  
-Next the script sends an **first transmission**.  
-First Transmission?  
-During my tests I got sometimes weird display startup behavior at MiSTers power on.  
+If the device is not found the scripts ends here.  
+If the device is found the tty-device parameter are set with the [`stty`](https://man7.org/linux/man-pages/man1/stty.1.html) command.  
+Now the script sends an **first transmission**.  
+*First Transmission?*  
+During my tests I got sometimes weird display startup behavior at MiSTer's power on.  
 Sometimes the text **MENU** was written instead of the MiSTer Picture shown.  
 *Maybe some sleeping bits in the serial channel :smirk:*.  
 After I added the **first transmission** to the script the problem was gone :smile:.  

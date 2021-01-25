@@ -14,7 +14,7 @@ as this is an standard communication feature on Arduino's and easy to use.
 And USB Ports are available for most of the MiSTer users is some way.  
 My ATMega 1284 with an FTDI Serial Adapter was sucessfully detected as `/dev/ttyUSB0` by the MiSTer.  
 Later I used an ESP32 with an CP21xx Chip because of storage and speed.  
-My actual Display is an 3.12" SSD1322O-OLED with 256x64 Pixel connected via SPI to the ESP32 MCU.  
+My actual Display is an 3.12" SSD1322-OLED with 256x64 Pixel connected via SPI to the ESP32 MCU.  
   
 **Arduino**  
 For the Arduino Code you need to add this Library https://github.com/olikraus/u8g2 to your Arduino System.  
@@ -37,7 +37,7 @@ Video Part 2: https://imgur.com/gallery/Ek9oFN1
 **MiSTer**  
 When the MiSTer boots up the script `/etc/init.d/S60tty2oled` is called.  
 This script does nothing more than calling the script `/usr/bin/tty2oled` and sent it to the background,  
-but only if `tty2oled` is found in `/usr/bin/` and is executable.
+but only if `/usr/bin/tty2oled` is found and is executable.
   
 The script `/usr/bin/tty2oled` checks at first the system for the device `/dev/ttyUSB0`.  
 If the device is not found the scripts ends here.  

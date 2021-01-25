@@ -42,13 +42,13 @@ but only if `/usr/bin/tty2oled` is found and is executable.
 The script `/usr/bin/tty2oled` checks at first the system for the device `/dev/ttyUSB0`.  
 If the device is not found the scripts ends here.  
 If the device is found the tty-device parameter are set with the [`stty`](https://man7.org/linux/man-pages/man1/stty.1.html) command.  
-Now the script sends an **first transmission**.  
+Now the script sends an **First Transmission**.  
 *First Transmission?*  
-During my tests I got sometimes weird display startup behavior at MiSTer's power on.  
+During my tests I got sometimes weird display startup behavior when the MiSTer's was powerred on.  
 Sometimes the text **MENU** was written instead of the MiSTer Picture shown.  
 *Maybe some sleeping bits in the serial channel :smirk:*.  
-After I added the **first transmission** to the script the problem was gone :smile:.  
-The main loop is started and checks the existence of the file `/tmp/CORENAME`.  
+After I added the **First Transmission** to the script the problem was gone :smile:.  
+Now the main loop is started and checks the existence of the file `/tmp/CORENAME`.  
 If this file doesn't exist, the script waits for 2 secs and tried the next loop.  
 If the file exists, the file's content is read using `cat /tmp/CORENAME`,  
 stored into the variable `newcore` and send to the tty Device.  
@@ -56,7 +56,7 @@ At the end of the main loop the script waits for 2 secs and starts the next loop
 Every loop the Corename is checked **but the data are sent only if the Corename has changed**.  
   
 **Arduino**  
-The Arduino receives the transfered Corename.  
+The Arduino receives the transferred Corename.  
 If the Corename is within a list of known Names the corresponding picture is shown.  
 ![TGFX16](https://github.com/venice1200/MiSTer_tty2oled/blob/main/Pictures/TGFX16.jpg?raw=true)
   

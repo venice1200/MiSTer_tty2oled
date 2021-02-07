@@ -1,5 +1,7 @@
 ## tty2oled [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-Add-On for the [MiSTer FPGA](https://github.com/MiSTer-devel) showing Text or Pictures based on the loaded core on a Display driven by an Arduino which is connected via USB-Serial.<br>
+Add-On for the [MiSTer FPGA](https://github.com/MiSTer-devel) showing Text or Pictures based on the loaded core on a Display driven by an Arduino which is connected via USB-Serial.  
+  
+**NEW** Arduino Sketch with SD Support!
   
 ![tty2oled connection](https://github.com/venice1200/MiSTer_tty2oled/blob/main/Pictures/OLED_Connection.jpg?raw=true)
   
@@ -55,7 +57,7 @@ stored into the variable `newcore` and send to the tty Device.
 At the end of the main loop the script waits for 2 secs and starts the next loop.  
 Every loop the Corename is checked **but the data are sent only if the Corename has changed**.  
   
-**Arduino**  
+**Arduino** (non SD Version)  
 The Arduino receives the transferred Corename.  
 If the Corename is within a list of known Names the corresponding picture is shown.  
 ![TGFX16](https://github.com/venice1200/MiSTer_tty2oled/blob/main/Pictures/TGFX16.jpg?raw=true)
@@ -67,11 +69,26 @@ The used font for the Text can be changed within the Arduino Code.
 See the [list of fonts](https://github.com/olikraus/u8g2/wiki/fntlistall) for all in the Library included fonts.  
 **To prevent Display flickering the Text or Picture is only updated if the received Corename has changed.**  
 
-### Known Corenames
+### Known Corenames (non SD Version)  
 The following Corenames are (currently) identified and an dedicated or generic Picture is shown.  
 **Arcade:** llander, mooncrgx ,mpatrol  
 **Computers:** AO486, APPLE-I, Apple-II, AtariST, C64, Minimig, PET2001, VIC20  
 **Console:** ATARI2600, Genesis, NEOGEO, NES, SMS, SNES, TGFX16  
+**Other:** MEMTEST, MENU (shows the MiSTer Logo fading in with an particle effect), QWERTZ (does nothing, it's **first transmission**).  
+  
+**Arduino** (SD Version)  
+The SD Version needs the converted XBM files stored on the root folder of the SD Card.  
+The Pictures need to have the size of 256x64 Pixel for the SSD1322 Display.  
+The filename must be the name of the core plus .xbm as extension.
+The Arduino receives the transferred Corename and check the SD Card for an corresponding file.
+Example: The Arcade Lunar Lander has the corename **llander**,  
+means the filename need to be **llander.xbm**.  
+If the file is found it's loaded and shown on the Display.  
+If the file is not found just the Corename is shown.  
+So it's easy to add and update the Pictures by adding or changing the files on the SD.  
+
+### Known Corenames (SD Version)  
+The following Corenames are (currently) identified and an dedicated or generic Picture is shown.  
 **Other:** MEMTEST, MENU (shows the MiSTer Logo fading in with an particle effect), QWERTZ (does nothing, it's **first transmission**).  
   
 ### Testing
@@ -82,7 +99,11 @@ The following Text-Commands have special functions:
 | cls | Clear Display |
 | sorg | Show Display's Power-On Text |
 | bye | Show Sorgelig's Icon :smile:|
-  
+| MENU | Show MiSTer Logo with Particle Effect |
+| MENU2 | Show MiSTer Logo with Effect 2 (SD Version only) |
+| MENU3 | Show MiSTer Logo with Effect 3 (SD Version only) |
+| MENU4 | Show MiSTer Logo with Effect 4 (SD Version only) |
+
   
 ### Files and Folders in this Repository
 | File | Description |
@@ -93,11 +114,15 @@ The following Text-Commands have special functions:
 | Folder | Description |
 | :--- | :--- |
 | MiSTer_SSD1322 | The Arduino Project containing the `.ino` and `.h` file(s) |
+| MiSTer_SSD1322_SD | The Arduino Project with SD Support containing the `.ino` and `.h` file(s) |
 | Pictures | Just Pictures :smile: |
+| Pictures/xbm | Some XBM Pictures |
+| Pictures/xbm_sd | Pictures for the SD Version |
+
 
 ### Ideas
-Use an second serial port to free up the MCU's programmer port  
-Use an ESP32 with an SD Micro Slot for the Pictures
+Use an second serial port to free up the MCU's programmer port.  
+~~Use an ESP32 with an SD Micro Slot for the Pictures~~ DONE.  
   
 ### Links
 MiSTer on Github: https://github.com/MiSTer-devel  

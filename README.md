@@ -36,7 +36,7 @@ Video Part 1: https://imgur.com/a/JOnaKPq
 Video Part 2: https://imgur.com/gallery/Ek9oFN1  
   
 ### How does it work?
-**MiSTer**  
+### MiSTer**  
 When the MiSTer boots up the script `/etc/init.d/S60tty2oled` is called.  
 This script does nothing more than calling the script `/usr/bin/tty2oled` and sent it to the background,  
 but only if `/usr/bin/tty2oled` is found and is executable.
@@ -57,7 +57,7 @@ stored into the variable `newcore` and send to the tty Device.
 At the end of the main loop the script waits for 2 secs and starts the next loop.  
 Every loop the Corename is checked **but the data are sent only if the Corename has changed**.  
   
-**Arduino** (non SD Version)  
+### Arduino (non SD Version)  
 The Arduino receives the transferred Corename.  
 If the Corename is within a list of known Names the corresponding picture is shown.  
 ![TGFX16](https://github.com/venice1200/MiSTer_tty2oled/blob/main/Pictures/TGFX16.jpg?raw=true)
@@ -69,14 +69,14 @@ The used font for the Text can be changed within the Arduino Code.
 See the [list of fonts](https://github.com/olikraus/u8g2/wiki/fntlistall) for all in the Library included fonts.  
 **To prevent Display flickering the Text or Picture is only updated if the received Corename has changed.**  
 
-### Known Corenames (non SD Version)  
+**Known Corenames** (non SD Version)  
 The following Corenames are (currently) identified and an dedicated or generic Picture is shown.  
 **Arcade:** llander, mooncrgx ,mpatrol  
 **Computers:** AO486, APPLE-I, Apple-II, AtariST, C64, Minimig, PET2001, VIC20  
 **Console:** ATARI2600, Genesis, NEOGEO, NES, SMS, SNES, TGFX16  
 **Other:** MEMTEST, MENU (shows the MiSTer Logo fading in with an particle effect), QWERTZ (does nothing, it's **first transmission**).  
   
-**Arduino** (SD Version)  
+### Arduino (SD Version)  
 The SD Version needs the converted XBM files stored on the root folder of the SD Card.  
 The Pictures need to have the size of 256x64 Pixel for the SSD1322 Display.  
 The filename must be the name of the core plus .xbm as extension.
@@ -87,7 +87,7 @@ If the file is found it's loaded and shown on the Display.
 If the file is not found just the Corename is shown.  
 So it's easy to add and update the Pictures by adding or changing the files on the SD.  
 
-### Known Corenames (SD Version)  
+**Known Corenames** (SD Version)  
 The following Corenames are (currently) identified and an dedicated or generic Picture is shown.  
 **Other:** MEMTEST, MENU (shows the MiSTer Logo fading in with an particle effect), QWERTZ (does nothing, it's **first transmission**).  
   

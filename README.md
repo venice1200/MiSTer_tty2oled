@@ -85,6 +85,7 @@ Example: The Arcade Lunar Lander has the corename `llander`, means the filename 
 If the file is found it's loaded and shown on the Display.  
 If the file is not found just the Corename is shown.  
 So it's easy to add and update the Pictures by adding or changing the files on the SD Card.  
+If the SD Card was found an **DOT** is shown in the left lower edge on the start Screen of the Display.  
 
 **Known Corenames** (SD Version)  
 The following Corenames are (currently) identified and an dedicated or generic Picture is shown.  

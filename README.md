@@ -92,9 +92,6 @@ If the file is found it's loaded and shown on the Display.
 If the file or the SD card is not found just the Corename is shown as Text.  
 With the SD Card it's easy to add or update the Pictures by adding or changing the files on the SD Card.  
 
-**Known Corenames** (SD Version)  
-The following Corenames are (currently) identified and an dedicated or generic Picture is shown.  
-MEMTEST, MENU (shows the MiSTer Logo fading in with an particle effect), QWERTZ (does nothing, it's **first transmission**).  
 
 **Core with Picture**  
 ![TGFX16](https://github.com/venice1200/MiSTer_tty2oled/blob/main/Pictures/TGFX16.jpg?raw=true)

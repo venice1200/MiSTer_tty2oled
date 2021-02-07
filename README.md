@@ -79,7 +79,7 @@ The Arduino Sketch searches for the XBM converted files in the root folder of th
 The Pictures must have the size of 256x64 Pixel for the used SSD1322 Display.  
 The filename must be the **name of the core** plus **.xbm** as extension.  
 **Example:** The Arcade Lunar Lander has the corename `llander` means the filename needs to be `llander.xbm`.  
-See https://github.com/venice1200/MiSTer_tty2oled/tree/main/Pictures/xbm_sd for more examples.
+See https://github.com/venice1200/MiSTer_tty2oled/tree/main/Pictures/xbm_sd for more examples.  
 The Arduino receives the transferred Corename and checks the SD Card for an corresponding file.  
 If the file is found it's loaded and shown on the Display.  
 If the file is not found just the Corename is shown as Text.  

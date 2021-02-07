@@ -11,13 +11,14 @@
 #            Add "raw" to tty Parameter (see stty manpage)
 # 2021-01-17 Add check for readable file "/tmp/CORENAME"
 # 2021-01-19 Add "First Transmission" to clear send buffer (Preventing  weird issues after PowerOn)
-#
+# 2021-02-07 Changed Speed from 9600 to 57600
 #
 
 
 # Define Variables
 TTYDEV="/dev/ttyUSB0"
-TTYPARAM="9600 cs8 raw -parenb -cstopb -hupcl" # see manpage stty
+#TTYPARAM="9600 cs8 raw -parenb -cstopb -hupcl" # see manpage stty
+TTYPARAM="57600 cs8 raw -parenb -cstopb -hupcl" # see manpage stty
 WAITSECS=2
 newcore=""
 oldcore=""

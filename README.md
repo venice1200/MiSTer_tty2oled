@@ -80,12 +80,11 @@ The following Corenames are (currently) identified and an dedicated or generic P
 The SD Version needs the converted XBM files stored on the root folder of the SD Card.  
 The Pictures need to have the size of 256x64 Pixel for the SSD1322 Display.  
 The filename must be the name of the core plus .xbm as extension.
-The Arduino receives the transferred Corename and check the SD Card for an corresponding file.
-Example: The Arcade Lunar Lander has the corename **llander**,  
-means the filename need to be **llander.xbm**.  
+The Arduino receives the transferred Corename and check the SD Card for an corresponding file.  
+Example: The Arcade Lunar Lander has the corename `llander`, means the filename need to be `llander.xbm`.  
 If the file is found it's loaded and shown on the Display.  
 If the file is not found just the Corename is shown.  
-So it's easy to add and update the Pictures by adding or changing the files on the SD.  
+So it's easy to add and update the Pictures by adding or changing the files on the SD Card.  
 
 **Known Corenames** (SD Version)  
 The following Corenames are (currently) identified and an dedicated or generic Picture is shown.  

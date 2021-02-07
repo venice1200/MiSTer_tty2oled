@@ -1,7 +1,7 @@
 ## tty2oled [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 Add-On for the [MiSTer FPGA](https://github.com/MiSTer-devel) showing Text or Pictures based on the loaded core on a Display driven by an Arduino which is connected via USB-Serial.  
   
-**NEW** Arduino Sketch with SD Support!
+**NEW** Arduino SD Support (see below for more details).
   
 ![tty2oled connection](https://github.com/venice1200/MiSTer_tty2oled/blob/main/Pictures/OLED_Connection.jpg?raw=true)
   
@@ -60,11 +60,7 @@ Every loop the Corename is checked **but the data are sent only if the Corename 
 **Arduino** (non SD Version)  
 The Arduino receives the transferred Corename.  
 If the Corename is within a list of known Names the corresponding picture is shown.  
-![TGFX16](https://github.com/venice1200/MiSTer_tty2oled/blob/main/Pictures/TGFX16.jpg?raw=true)
-  
 If the Corename is unknown just the Corename is shown.  
-![Astrocade](https://github.com/venice1200/MiSTer_tty2oled/blob/main/Pictures/Astrocade.jpg?raw=true)
-  
 The used font for the Text can be changed within the Arduino Code.  
 See the [list of fonts](https://github.com/olikraus/u8g2/wiki/fntlistall) for all in the Library included fonts.  
 **To prevent Display flickering the Text or Picture is only updated if the received Corename has changed.**  
@@ -77,20 +73,29 @@ The following Corenames are (currently) identified and an dedicated or generic P
 **Other:** MEMTEST, MENU (shows the MiSTer Logo fading in with an particle effect), QWERTZ (does nothing, it's **first transmission**).  
   
 **Arduino** (SD Version)  
-The SD Version needs the converted XBM files stored on the root folder of the SD Card.  
-The Pictures need to have the size of 256x64 Pixel for the SSD1322 Display.  
-The filename must be the name of the core plus .xbm as extension.
-The Arduino receives the transferred Corename and check the SD Card for an corresponding file.  
-Example: The Arcade Lunar Lander has the corename `llander`, means the filename need to be `llander.xbm`.  
-If the file is found it's loaded and shown on the Display.  
-If the file is not found just the Corename is shown.  
-So it's easy to add and update the Pictures by adding or changing the files on the SD Card.  
+The SD Card must be formatted with FAT or FAT32.  
 If the SD Card was found an **DOT** is shown in the left lower edge on the start Screen of the Display.  
+The Arduino Sketch searches for the XBM converted files in the root folder of the SD Card.  
+The Pictures must have the size of 256x64 Pixel for the used SSD1322 Display.  
+The filename must be the **name of the core** plus **.xbm** as extension.  
+**Example:** The Arcade Lunar Lander has the corename `llander` means the filename needs to be `llander.xbm`.  
+See https://github.com/venice1200/MiSTer_tty2oled/tree/main/Pictures/xbm_sd for more examples.
+The Arduino receives the transferred Corename and checks the SD Card for an corresponding file.  
+If the file is found it's loaded and shown on the Display.  
+If the file is not found just the Corename is shown as Text.  
+With the SD Card it's easy to add or update the Pictures by adding or changing the files on the SD Card.  
 
 **Known Corenames** (SD Version)  
 The following Corenames are (currently) identified and an dedicated or generic Picture is shown.  
-**Other:** MEMTEST, MENU (shows the MiSTer Logo fading in with an particle effect), QWERTZ (does nothing, it's **first transmission**).  
-  
+MEMTEST, MENU (shows the MiSTer Logo fading in with an particle effect), QWERTZ (does nothing, it's **first transmission**).  
+
+**Core with Picture**  
+![TGFX16](https://github.com/venice1200/MiSTer_tty2oled/blob/main/Pictures/TGFX16.jpg?raw=true)
+
+**Core shown by name**  
+![Astrocade](https://github.com/venice1200/MiSTer_tty2oled/blob/main/Pictures/Astrocade.jpg?raw=true)
+
+
 ### Testing
 You can easily test your Display by sending text from the Arduino's Serial console set to 9600 baud and LineFeed `\n` activated.  
 The following Text-Commands have special functions:  

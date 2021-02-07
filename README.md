@@ -78,6 +78,8 @@ The following Corenames are (currently) identified and an dedicated or generic P
 **Other:** MEMTEST, MENU (shows the MiSTer Logo fading in with an particle effect), QWERTZ (does nothing, it's **first transmission**).  
   
 **Arduino** (SD Version)  
+You need and Arduino compatible Hardware plus/with an SD Slot.  
+I use an ESP32 TTGO-T8 v1.7 with an integrated SD Slot and 16MB Flash bought via AliExpress.  
 The SD Card must be formatted with FAT or FAT32.  
 If the SD Card was found an **DOT** is shown in the left lower edge on the start Screen of the Display.  
 The Arduino Sketch searches for the XBM converted files in the root folder of the SD Card.  

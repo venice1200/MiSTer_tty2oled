@@ -78,18 +78,18 @@ The following Corenames are (currently) identified and an dedicated or generic P
 **Other:** MEMTEST, MENU (shows the MiSTer Logo fading in with an particle effect), QWERTZ (does nothing, it's **first transmission**).  
   
 **Arduino** (SD Version)  
-You need and Arduino compatible Hardware plus/with an SD Slot.  
+You need an Arduino compatible Hardware plus/with an SD Slot/Breakout.  
 I use an ESP32 TTGO-T8 v1.7 with an integrated SD Slot and 16MB Flash.  
 The SD Card must be formatted with FAT or FAT32.  
 If the SD Card was found an **DOT** is shown in the left lower edge on the start Screen of the Display.  
-The Arduino Sketch searches for the XBM converted files in the root folder of the SD Card.  
+The Arduino Sketch searches for the XBM converted in the root folder of the SD Card.  
 The Pictures must have the size of 256x64 Pixel for the used SSD1322 Display.  
-The filename must be the **name of the core** plus **.xbm** as extension.  
+The filename must be the **name of the core** with **.xbm** as extension.  
 **Example:** The Arcade Lunar Lander has the corename `llander` means the filename needs to be `llander.xbm`.  
 See https://github.com/venice1200/MiSTer_tty2oled/tree/main/Pictures/xbm_sd for more examples.  
 The Arduino receives the transferred Corename and checks the SD Card for an corresponding file.  
 If the file is found it's loaded and shown on the Display.  
-If the file is not found just the Corename is shown as Text.  
+If the file or the SD card is not found just the Corename is shown as Text.  
 With the SD Card it's easy to add or update the Pictures by adding or changing the files on the SD Card.  
 
 **Known Corenames** (SD Version)  
@@ -129,7 +129,7 @@ The following Text-Commands have special functions:
 | MiSTer_SSD1322_SD | The Arduino Project with SD Support containing the `.ino` and `.h` file(s) |
 | Pictures | Just Pictures :smile: |
 | Pictures/xbm | Some XBM Pictures |
-| Pictures/xbm_sd | Pictures for the SD Version |
+| Pictures/xbm_sd | XBM Pictures for the SD Version |
 
 
 ### Ideas

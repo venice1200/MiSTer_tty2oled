@@ -108,10 +108,11 @@ The following Text-Commands have special functions:
 | cls | Clear Display |
 | sorg | Show Display's Power-On Text |
 | bye | Show Sorgelig's Icon :smile:|
-| MENU | Show MiSTer Logo with Particle Effect |
+| MENU | Show MiSTer Logo with randomly picked Effect |
+| MENU0 | Show MiSTer Logo with Particle Effect |
+| MENU1 | Show MiSTer Logo with Effect 1 (SD Version only) |
 | MENU2 | Show MiSTer Logo with Effect 2 (SD Version only) |
 | MENU3 | Show MiSTer Logo with Effect 3 (SD Version only) |
-| MENU4 | Show MiSTer Logo with Effect 4 (SD Version only) |
 
   
 ### Files and Folders in this Repository

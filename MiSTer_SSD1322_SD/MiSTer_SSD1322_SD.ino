@@ -156,10 +156,11 @@ void loop(void) {
     }                    
 
     // -- Menu Core(s) --
-    else if (newCore=="MENU")         oled_misterlogo1();  // MiSTer Logo Particle Effect
-    else if (newCore=="MENU2")        oled_misterlogo2();  // MiSTer Logo draw from left to right
-    else if (newCore=="MENU3")        oled_misterlogo3();  // MiSTer Logo draw from top to bottom
-    else if (newCore=="MENU4")        oled_misterlogo4();  // MiSTer Logo draw from left to right but diagonally
+    else if (newCore=="MENU")         oled_misterlogo(random(0,4));  // MiSTer Logo Effects 0-3
+    else if (newCore=="MENU0")        oled_misterlogo(0);  // MiSTer Logo show Particle Effect
+    else if (newCore=="MENU1")        oled_misterlogo(1);  // MiSTer Logo draw from left to right
+    else if (newCore=="MENU2")        oled_misterlogo(2);  // MiSTer Logo draw from top to bottom
+    else if (newCore=="MENU3")        oled_misterlogo(3);  // MiSTer Logo draw from left to right but diagonally
     
     // -- Test Commands --
     else if (newCore=="cls")          u8g2.clear();
@@ -208,136 +209,119 @@ void oled_mistertext(void) {
   u8g2.sendBuffer();
 }
 
-
-void oled_misterlogo1(void) {
-  // Particle Effect Random Based
-  // A Loop of 10000 is enough for Arduino
-  // An ESP32 works much faster
-  // For Particle effect
+void oled_misterlogo(int effect) {
   const int logoBytes = 2048; // 0..2047
   int logoByte;
   unsigned char logoByteValue;
-  int a,i,x,y;
-  //u8g2.clearBuffer();
-  for (a=0; a<20000; a++) {
-    logoByte = random(logoBytes); // Value 2048 => Get 0..2047
-    logoByteValue = mister_logo[logoByte];
-    x = (logoByte % 32) * 8;
-    y = logoByte / 32;
-    if (logoByteValue > 0) {
-      for (i=0; i <= 7; i++){
-        if (bitRead(logoByteValue, i)) {
-          // Set Pixel
-          u8g2.drawPixel(x+i,y);
+  int a,i,x,y,x2;
+  //u8g2.clearBuffer();  // Over-Write the actual Picture or Text
+  switch (effect) {
+    case 1:
+      for (x=0; x<32; x++) {
+        for (y=0; y<64; y++) {
+          logoByteValue = mister_logo[x+y*32];
+          for (i=0; i <= 7; i++){
+            if (bitRead(logoByteValue, i)) {
+              // Set Pixel
+              u8g2.drawPixel(x*8+i,y);
+            }
+            else {
+              // Clear Pixel
+              u8g2.setDrawColor(0);
+              u8g2.drawPixel(x*8+i,y);
+              u8g2.setDrawColor(1);        
+            }  // end bit read
+          }  // end for i
+        }  // end for y
+        u8g2.sendBuffer();
+      }  // end for x
+      break;  // end case 1
+    case 2:
+      for (y=0; y<64; y++) {
+        for (x=0; x<32; x++) {
+          logoByteValue = mister_logo[x+y*32];
+          for (i=0; i <= 7; i++){
+            if (bitRead(logoByteValue, i)) {
+              // Set Pixel
+              u8g2.drawPixel(x*8+i,y);
+            }
+            else {
+              // Clear Pixel
+              u8g2.setDrawColor(0);
+              u8g2.drawPixel(x*8+i,y);
+              u8g2.setDrawColor(1);        
+            }  // end bit read
+          }  // end for i
+        }  // end for y
+        u8g2.sendBuffer();
+      }  // end for x
+      break;  // end case 2
+    case 3:
+      for (x=0; x<96; x++) {
+        for (y=0; y<64; y++) {
+          // x2 calculation = Angle
+          //x2=x-y;
+          //x2=x-y/2;
+          x2=x-y/4;
+          if ((x2>=0) && (x2<32)) {
+            logoByteValue = mister_logo[x2+y*32];
+            for (i=0; i <= 7; i++){
+              if (bitRead(logoByteValue, i)) {
+                // Set Pixel
+                u8g2.drawPixel(x2*8+i,y);
+              }
+              else {
+                // Clear Pixel
+                u8g2.setDrawColor(0);
+                u8g2.drawPixel(x2*8+i,y);
+                u8g2.setDrawColor(1);        
+              }  // end bit read
+            }  // end if x2
+          }  // end for i
+        }  // end for y
+        u8g2.sendBuffer();
+      }  // end for x
+      break;  // end case 3 3
+    default:
+      for (a=0; a<20000; a++) {
+        logoByte = random(logoBytes); // Value 2048 => Get 0..2047
+        logoByteValue = mister_logo[logoByte];
+        x = (logoByte % 32) * 8;
+        y = logoByte / 32;
+        if (logoByteValue > 0) {
+          for (i=0; i <= 7; i++){
+            if (bitRead(logoByteValue, i)) {
+              // Set Pixel
+              u8g2.drawPixel(x+i,y);
+            }
+            else {
+              // Clear Pixel
+              u8g2.setDrawColor(0);
+              u8g2.drawPixel(x+i,y);
+             u8g2.setDrawColor(1);        
+            }
+          }  // end for
         }
-        else {
-          // Clear Pixel
-          u8g2.setDrawColor(0);
-          u8g2.drawPixel(x+i,y);
-          u8g2.setDrawColor(1);        
+        // For different speed 
+        if (a<=1000) {
+          if ((a % 25)==0) u8g2.sendBuffer();
         }
-      }  // end for
-    }
-    // For different speed 
-    if (a<=1000) {
-      if ((a % 25)==0) u8g2.sendBuffer();
-    }
-    if ((a>1000) && (a<=5000)) {
+        if ((a>1000) && (a<=5000)) {
       if ((a % 100)==0) u8g2.sendBuffer();
-    }
-    if ((a>5000) && (a<=10000)) { 
-      if ((a % 200)==0) u8g2.sendBuffer();
-    }
-    if (a>10000) { 
-      if ((a % 400)==0) u8g2.sendBuffer();
-    }
-
-  }
-  // Finally overwrite the Screen with fill Size Picture
-  u8g2.drawXBM(0, 0, mister_logo_width, mister_logo_height, mister_logo);
-  u8g2.sendBuffer();
-} // end oled_misterlogo1
-
-
-void oled_misterlogo2(void) {
-  // Side Override Effect Left->Right
-  unsigned char logoByteValue;
-  int i,x,y;
-  //u8g2.clearBuffer();
-  for (x=0; x<32; x++) {
-    for (y=0; y<64; y++) {
-      logoByteValue = mister_logo[x+y*32];
-      for (i=0; i <= 7; i++){
-        if (bitRead(logoByteValue, i)) {
-          // Set Pixel
-          u8g2.drawPixel(x*8+i,y);
         }
-        else {
-          // Clear Pixel
-          u8g2.setDrawColor(0);
-          u8g2.drawPixel(x*8+i,y);
-          u8g2.setDrawColor(1);        
-        }  // end bit read
-      }  // end for i
-    }  // end for y
-    u8g2.sendBuffer();
-  }  // end for x
-}  // end oled_misterlogo2
-
-
-void oled_misterlogo3(void) {
-  // Side Override Effect Left->Right
-  unsigned char logoByteValue;
-  int i,x,y;
-  //u8g2.clearBuffer();
-  for (y=0; y<64; y++) {
-    for (x=0; x<32; x++) {
-      logoByteValue = mister_logo[x+y*32];
-      for (i=0; i <= 7; i++){
-        if (bitRead(logoByteValue, i)) {
-          // Set Pixel
-          u8g2.drawPixel(x*8+i,y);
+        if ((a>5000) && (a<=10000)) { 
+          if ((a % 200)==0) u8g2.sendBuffer();
         }
-        else {
-          // Clear Pixel
-          u8g2.setDrawColor(0);
-          u8g2.drawPixel(x*8+i,y);
-          u8g2.setDrawColor(1);        
-        }  // end bit read
-      }  // end for i
-    }  // end for y
-    u8g2.sendBuffer();
-  }  // end for x
-}  // end oled_misterlogo3
-
-
-void oled_misterlogo4(void) {
-  // XXX Effect
-  unsigned char logoByteValue;
-  int i,x,y,x2;
-  //u8g2.clearBuffer();
-  for (x=0; x<96; x++) {
-    for (y=0; y<64; y++) {
-      x2=x-y;
-      if ((x2>=0) && (x2<32)) {
-        logoByteValue = mister_logo[x2+y*32];
-        for (i=0; i <= 7; i++){
-          if (bitRead(logoByteValue, i)) {
-            // Set Pixel
-            u8g2.drawPixel(x2*8+i,y);
-          }
-          else {
-            // Clear Pixel
-            u8g2.setDrawColor(0);
-            u8g2.drawPixel(x2*8+i,y);
-            u8g2.setDrawColor(1);        
-          }  // end bit read
-        }  // end if x2
-      }  // end for i
-    }  // end for y
-    u8g2.sendBuffer();
-  }  // end for x
-}  // end oled_misterlogo2
+        if (a>10000) { 
+          if ((a % 400)==0) u8g2.sendBuffer();
+        }
+      }
+      // Finally overwrite the Screen with fill Size Picture
+      u8g2.drawXBM(0, 0, mister_logo_width, mister_logo_height, mister_logo);
+      u8g2.sendBuffer();
+      break;  // endcase default
+  }  // end switch
+}  // end oled_misterlogo
 
 
 // Draw Pictures with an height of 64 Pixel centerred

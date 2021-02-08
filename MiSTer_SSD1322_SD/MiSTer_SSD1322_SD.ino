@@ -260,9 +260,9 @@ void oled_misterlogo(int effect) {
       for (x=0; x<96; x++) {
         for (y=0; y<64; y++) {
           // x2 calculation = Angle
-          //x2=x-y;
+          x2=x-y;
           //x2=x-y/2;
-          x2=x-y/4;
+          //x2=x-y/4;
           if ((x2>=0) && (x2<32)) {
             logoByteValue = mister_logo[x2+y*32];
             for (i=0; i <= 7; i++){

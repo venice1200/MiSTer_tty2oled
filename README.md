@@ -78,8 +78,9 @@ The following Corenames are (currently) identified and an dedicated or generic P
 **Other:** MEMTEST, MENU (shows the MiSTer Logo fading in with an particle effect), QWERTZ (does nothing, it's **first transmission**).  
   
 **Arduino** (SD Version)  
+The SD Version supports the **live** download of the Pictures from SD Card. No need to keep the Pictures in Code.  
 You need an Arduino compatible Hardware plus/with an SD Slot/Breakout.  
-I use an ESP32 TTGO-T8 v1.7 with an integrated SD Slot and 16MB Flash.  
+I use an ESP32 TTGO-T8 v1.7 with an integrated SD Slot.  
 The SD Card must be formatted with FAT or FAT32.  
 If the SD Card was found an **DOT** is shown in the left lower edge on the start Screen of the Display.  
 The Arduino Sketch searches for the XBM converted in the root folder of the SD Card.  
@@ -89,7 +90,7 @@ The filename must be the **name of the core** with **.xbm** as extension.
 See https://github.com/venice1200/MiSTer_tty2oled/tree/main/Pictures/xbm_sd for more examples.  
 The Arduino receives the transferred Corename and checks the SD Card for an corresponding file.  
 If the file is found it's loaded and shown on the Display.  
-If the file or the SD card is not found just the Corename is shown as Text.  
+If the file **or** the SD card is not found just the Corename is shown as Text.  
 With the SD Card it's easy to add or update the Pictures by adding or changing the files on the SD Card.  
 
 

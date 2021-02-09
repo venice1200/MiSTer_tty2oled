@@ -41,7 +41,7 @@ Video Part 1: https://imgur.com/a/JOnaKPq
 Video Part 2: https://imgur.com/gallery/Ek9oFN1  
   
 ### How does it work?
-###MiSTer  
+### MiSTer
 When the MiSTer boots up the script `/etc/init.d/S60tty2oled` is called.  
 This script does nothing more than calling the script `/usr/bin/tty2oled` and sent it to the background,  
 but only if `/usr/bin/tty2oled` is found and is executable.
@@ -62,7 +62,7 @@ stored into the variable `newcore` and send to the tty Device.
 At the end of the main loop the script waits for 2 secs and starts the next loop.  
 Every loop the Corename is checked **but the data are sent only if the Corename has changed**.  
   
-###Arduino (non SD Version)  
+### Arduino (non SD Version)
 The Arduino receives the transferred Corename.  
 If the Corename is within a list of known Names the corresponding picture is shown.  
 If the Corename is unknown just the Corename is shown.  
@@ -77,7 +77,7 @@ The following Corenames are (currently) identified and an dedicated or generic P
 **Console:** ATARI2600, Genesis, NEOGEO, NES, SMS, SNES, TGFX16  
 **Other:** MEMTEST, MENU (shows the MiSTer Logo fading in with an particle effect), QWERTZ (does nothing, it's **first transmission**).  
   
-###Arduino (SD Version)  
+### Arduino (SD Version)
 The SD Version supports the **live** download of the Pictures from SD Card. No need to keep the Pictures in Code.  
 You need an Arduino compatible Hardware plus/with an SD Slot/Breakout.  
 I use an ESP32 TTGO-T8 v1.7 with an integrated SD Slot.  

@@ -1,5 +1,5 @@
 ## tty2oled [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-Add-On for the [MiSTer FPGA](https://github.com/MiSTer-devel) showing Text or Pictures based on the loaded core on a Display driven by an Arduino which is connected via USB-Serial.  
+Add-On for the [MiSTer FPGA](https://github.com/MiSTer-devel) showing Text or Pictures based on the loaded core on a (OLED) Display driven by an Arduino which is connected via USB-Serial.  
   
 **NEW!**  
 SD Version with **live** download of Pictures from SD Card (see [below](https://github.com/venice1200/MiSTer_tty2oled/blob/main/README.md#arduino-sd-version) for more details).  
@@ -135,7 +135,7 @@ The following Text-Commands have special functions:
 
 ### Ideas
 Use an second serial port to free up the MCU's programmer port.  
-~~Use an ESP32 with an SD Micro Slot for the Pictures~~ DONE.  
+~~Use an ESP32 with an SD Micro Slot for the Pictures~~ **DONE**.  
   
 ### Links
 MiSTer on Github: https://github.com/MiSTer-devel  

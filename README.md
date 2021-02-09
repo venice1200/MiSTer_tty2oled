@@ -129,7 +129,7 @@ The following Text-Commands have special functions:
 | MiSTer_SSD1322 | The Arduino Project containing the `.ino` and `.h` file(s) |
 | MiSTer_SSD1322_SD | The Arduino Project with SD Support containing the `.ino` and `.h` file(s) |
 | Pictures | Just Pictures :smile: |
-| Pictures/bmp | Logos/Pictures in BMP Format |
+| Pictures/BMP | Logos/Pictures in BMP Format |
 | Pictures/xbm_sd | XBM Logos/Pictures for the SD Version |
 
 

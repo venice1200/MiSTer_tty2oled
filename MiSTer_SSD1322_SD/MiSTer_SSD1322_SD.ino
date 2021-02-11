@@ -79,7 +79,7 @@ void setup(void) {
   //Serial.begin(115200);          // 115200 for MiSTer ttyUSBx Device CP2102 Chip on ESP32
   
   //Init Random Generator
-  randomSeed(analogRead(0));
+  randomSeed(analogRead(34));
 
   // Init Display
   u8g2.begin();
@@ -283,36 +283,35 @@ void oled_misterlogo(int effect) {
       }  // end for x
       break;  // end case 3 3
     default:
-      for (a=0; a<20000; a++) {
+      for (a=0; a<10000; a++) {
         logoByte = random(logoBytes); // Value 2048 => Get 0..2047
         logoByteValue = mister_logo[logoByte];
         x = (logoByte % 32) * 8;
         y = logoByte / 32;
-        if (logoByteValue > 0) {
-          for (i=0; i <= 7; i++){
-            if (bitRead(logoByteValue, i)) {
-              // Set Pixel
-              u8g2.drawPixel(x+i,y);
-            }
-            else {
-              // Clear Pixel
-              u8g2.setDrawColor(0);
-              u8g2.drawPixel(x+i,y);
-             u8g2.setDrawColor(1);        
-            }
-          }  // end for
-        }
-        // For different speed 
+        for (i=0; i <= 7; i++){
+          if (bitRead(logoByteValue, i)) {
+            // Set Pixel
+            u8g2.drawPixel(x+i,y);
+          }
+          else {
+            // Clear Pixel
+            u8g2.setDrawColor(0);
+            u8g2.drawPixel(x+i,y);
+           u8g2.setDrawColor(1);        
+          }
+        }  // end for
+        // For different speed
+        // if ((a % (a/10)) == 0) u8g2.sendBuffer();
         if (a<=1000) {
           if ((a % 25)==0) u8g2.sendBuffer();
         }
-        if ((a>1000) && (a<=5000)) {
-      if ((a % 100)==0) u8g2.sendBuffer();
+        if ((a>1000) && (a<=2000)) {
+          if ((a % 50)==0) u8g2.sendBuffer();
         }
-        if ((a>5000) && (a<=10000)) { 
+        if ((a>2000) && (a<=5000)) { 
           if ((a % 200)==0) u8g2.sendBuffer();
         }
-        if (a>10000) { 
+        if (a>5000) { 
           if ((a % 400)==0) u8g2.sendBuffer();
         }
       }

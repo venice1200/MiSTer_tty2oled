@@ -104,7 +104,9 @@ The SD Version uses an dedicated SPI Interface because of issues using an OLED a
 
 
 ### Testing
-You can easily test your Display by sending text from the Arduino's Serial console set to 9600 baud and LineFeed `\n` activated.  
+You can easily test your Display by sending text from the Arduino's Serial console  
+set to 57600 baud with LineFeed `\n` activated.  
+  
 The following Text-Commands have special functions:  
 | Text | Function |
 | :--- | :--- |

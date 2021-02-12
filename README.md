@@ -105,7 +105,7 @@ The SD Version uses an dedicated SPI Interface because of issues using an OLED a
 
 ### Testing
 You can easily test your Display by sending text from the Arduino's Serial console  
-set to 57600 baud with LineFeed `\n` activated.  
+set to ~~9600~~ 57600 baud with LineFeed `\n` activated.  
   
 The following Text-Commands have special functions:  
 | Text | Function |
@@ -118,16 +118,13 @@ The following Text-Commands have special functions:
 | MENU1 | Show MiSTer Logo with Effect 1 (SD Version only) |
 | MENU2 | Show MiSTer Logo with Effect 2 (SD Version only) |
 | MENU3 | Show MiSTer Logo with Effect 3 (SD Version only) |
-
+  
   
 ### Files and Folders in this Repository
-| File | Description |
+| File/Folder | Description |
 | :--- | :--- |
 | S60tty2oled | Starter Script, must be placed on **MiSTer** in folder `/etc/init.d/`  |
 | tty2oled | Communications Script, must be placed on **MiSTer** in folder `/usr/bin/` |
-
-| Folder | Description |
-| :--- | :--- |
 | MiSTer_SSD1322 | The Arduino Project containing the `.ino` and `.h` file(s) |
 | MiSTer_SSD1322_SD | The Arduino Project with SD Support containing the `.ino` and `.h` file(s) |
 | Pictures | Just Pictures :smile: |

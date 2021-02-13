@@ -83,7 +83,7 @@ You need an Arduino compatible Hardware plus/with an SD Slot/Breakout.
 I use an ESP32 TTGO-T8 v1.7.1 with an integrated SD Slot.  
 The SD Card must be formatted with FAT or FAT32.  
 If the SD Card was found an **DOT** is shown in the left lower edge on the start Screen of the Display.  
-The Arduino Sketch searches for the XBM converted in the root folder of the SD Card.  
+The Arduino Sketch searches for the XBM converted pictures in the root folder of the SD Card.  
 The Pictures must have the size of 256x64 Pixel for the used SSD1322 Display.  
 The filename must be the **name of the core** with **.xbm** as extension.  
 **Example:** The Arcade Lunar Lander has the corename `llander` means the filename needs to be `llander.xbm`.  

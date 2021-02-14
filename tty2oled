@@ -12,6 +12,8 @@
 # 2021-01-17 Add check for readable file "/tmp/CORENAME"
 # 2021-01-19 Add "First Transmission" to clear send buffer (Preventing  weird issues after PowerOn)
 # 2021-02-07 Changed Speed from 9600 to 57600
+# 2021-02-14 Change Timed Loop to " inotifywait -e modify "/tmp/CORENAME" ".
+#            Makes it much more responsive :-)
 #
 
 
@@ -43,10 +45,10 @@ if [[ -c "$TTYDEV" ]]; then                      # check for tty device
   echo "$TTYDEV detected, setting Parameter."    # some output
   dbug "$TTYDEV detected, setting Parameter."    # some debug output
   stty -F $TTYDEV $TTYPARAM                      # set tty parameter
-  #sleep 1                                       # sleep needed ?!
+  #sleep 1                                       # sleep needed here ?!
   echo "QWERTZ" > $TTYDEV                        # First Transmission to clear serial send buffer
   dbug "Send QWERTZ as first transmission"       # some debug output
-  #sleep 1                                       # sleep a bit
+  #sleep 1                                       # sleep needed here ?!
   while true; do                                 # main loop
     if [[ -r /tmp/CORENAME ]]; then              # proceed if file exists and is readable (-r)
       newcore=$(cat /tmp/CORENAME)               # get CORENAME
@@ -58,10 +60,10 @@ if [[ -c "$TTYDEV" ]]; then                      # check for tty device
         echo $newcore > $TTYDEV                  # echo sends text with newline "\n", Arduino use "Serial.readStringUntil('\n');"
         oldcore=$newcore                         # update oldcore variable
       fi                                         # end if core check
-      sleep $WAITSECS                            # wait x secs
+      inotifywait -e modify "/tmp/CORENAME"      # wait here for next change of corename
     else                                         # CORENAME file not found
-      echo "File /tmp/CORENAME not found!"       # some output
-      dbug "File /tmp/CORENAME not found!"       # some debug output
+     echo "File /tmp/CORENAME not found!"        # some output
+     dbug "File /tmp/CORENAME not found!"        # some debug output
     fi                                           # end if /tmp/CORENAME check
   done                                           # end while
 else                                             # no tty detected

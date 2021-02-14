@@ -1,5 +1,5 @@
 ## tty2oled [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-Software Add-On for the [MiSTer FPGA](https://github.com/MiSTer-devel) showing Text or Pictures based on the loaded core on a (OLED) Display driven by an Arduino which is connected via USB-Serial to the MiSTer.    
+Software Add-On for the [MiSTer FPGA](https://github.com/MiSTer-devel) showing Text or Pictures based on the loaded core on a (OLED) Display driven by an Arduino which is connected via USB (-Serial) to the MiSTer.    
   
 **NEW!**  
 SD Version with **live** download of Pictures from SD Card (see [below](https://github.com/venice1200/MiSTer_tty2oled/blob/main/README.md#arduino-sd-version) for more details).  

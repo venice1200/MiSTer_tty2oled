@@ -11,10 +11,16 @@
   -Change serial Speed to 57600
   -Adding SD Support for ESP32 using an dedicated SPI Interface
    Use now an TTGO-T8  ESP32 with integrated SD Micro Slot https://github.com/LilyGO/TTGO-T8-ESP32 .
-   All Logos or Picture have to be 256x64 Pixel (Diosplay Size) in XBM Format.
-   Place the Pictures to the root of the FAT or FAT32 formatted SD Card an give them the name like the core is named (Lunar Lander = llander).
-   Use "XBM Read from FS" Code from https://github.com/lbernstone/eyes
-  -Add "#define XDEBUG" for Debugging
+   All Logos or Picture have to be 256x64 Pixel (Display Size) in XBM Format.
+   Place the Pictures to the root of the FAT or FAT32 formatted SD Card an give them the name like the core is named with extension (Lunar Lander = llander.xbm).
+   Use Code from "XBM Read from FS" from https://github.com/lbernstone/eyes
+  -Add "#define XDEBUG" for Debugging, can be Uncommented for more Infos over Serial
+
+  2021-02-11
+  -Trying to make it more universal in case of used display sizes. Using more "DispHeight" and "DispWidth" instead of fixed values.
+
+  2021-02-12
+  -Adding Menu Effects
   
 */
 
@@ -29,7 +35,7 @@
 #include "SD.h"
 #include "SPI.h"
 
-// TTGO-T8 v1.7 Pins for SD SPI Port
+// TTGO-T8 v1.7 Pins for SD Port SPI Instance
 SPIClass SDSPI(HSPI);
 #define SDSPI_SCLK 14
 #define SDSPI_MISO 2
@@ -156,18 +162,23 @@ void loop(void) {
     }                    
 
     // -- Menu Core(s) --
-    else if (newCore=="MENU")         oled_misterlogo(random(0,4));  // MiSTer Logo Effects 0-3
+    else if (newCore=="MENU")         oled_misterlogo(random(0,7));  // MiSTer Logo Effects 0-3
+    
+    // Show Menu Effects manually
     else if (newCore=="MENU0")        oled_misterlogo(0);  // MiSTer Logo show Particle Effect
     else if (newCore=="MENU1")        oled_misterlogo(1);  // MiSTer Logo draw from left to right
     else if (newCore=="MENU2")        oled_misterlogo(2);  // MiSTer Logo draw from top to bottom
     else if (newCore=="MENU3")        oled_misterlogo(3);  // MiSTer Logo draw from left to right but diagonally
+    else if (newCore=="MENU4")        oled_misterlogo(4);  // MiSTer Logo draw even line left to right / odd line 
+    else if (newCore=="MENU5")        oled_misterlogo(5);  // MiSTer Logo draw top part left to right / bottom part right to left 
+    else if (newCore=="MENU6")        oled_misterlogo(6);  // MiSTer Logo draw four parts left to right to left to right...
     
     // -- Test Commands --
     else if (newCore=="cls")          u8g2.clear();
     else if (newCore=="sorg")         oled_mistertext();
     else if (newCore=="bye")          oled_drawlogo64h(sorgelig_icon64_width, sorgelig_icon64);
     
-    // -- Unidentified Core Name --
+    // -- Unidentified Core Name , search SD  --
     else {
       if (sdCardOK) {
         sdPicShown = sd2oled_drawlogo64h(newCore);
@@ -187,13 +198,13 @@ void loop(void) {
         u8g2.setFont(old_font);
       } // end if !sdCardOK
     }  // end ifs
-    // Update Buffer
-    oldCore=newCore;
+    oldCore=newCore;         // Update Buffer
   } // end newCore!=oldCore
 } // End Main Loop
 
 //=================== Functions =========================
 
+// ---- oled_mistertext -- Show the Start-Up Text ----
 void oled_mistertext(void) {
   //u8g2.setFont(u8g2_font_tenfatguys_tr); // 10 Pixel Font
   u8g2.clearBuffer();
@@ -209,14 +220,16 @@ void oled_mistertext(void) {
   u8g2.sendBuffer();
 }
 
+// ---- oled_misterlogo -- Show the MiSTer Logo with some effect  ----
 void oled_misterlogo(int effect) {
-  const int logoBytes = 2048; // 0..2047
+  //const int logoBytes = 2048; // 0..2047
+  const int logoBytes = DispWidth * DispHeight / 8; // Make it more universal
   int logoByte;
   unsigned char logoByteValue;
   int a,i,x,y,x2;
-  //u8g2.clearBuffer();  // Over-Write the actual Picture or Text
+  //u8g2.clearBuffer();                          // Over-Write the actual Picture or Text
   switch (effect) {
-    case 1:
+    case 1:                                        // Left to Right
       for (x=0; x<32; x++) {
         for (y=0; y<64; y++) {
           logoByteValue = mister_logo[x+y*32];
@@ -236,7 +249,7 @@ void oled_misterlogo(int effect) {
         u8g2.sendBuffer();
       }  // end for x
       break;  // end case 1
-    case 2:
+    case 2:                                       // Top to Bottom
       for (y=0; y<64; y++) {
         for (x=0; x<32; x++) {
           logoByteValue = mister_logo[x+y*32];
@@ -256,7 +269,7 @@ void oled_misterlogo(int effect) {
         u8g2.sendBuffer();
       }  // end for x
       break;  // end case 2
-    case 3:
+    case 3:                                        // Left to Right Diagonally
       for (x=0; x<96; x++) {
         for (y=0; y<64; y++) {
           // x2 calculation = Angle
@@ -281,7 +294,87 @@ void oled_misterlogo(int effect) {
         }  // end for y
         u8g2.sendBuffer();
       }  // end for x
-      break;  // end case 3 3
+      break;  // end case 3
+    case 4:                                     // Even Line Left to Right / Odd Line Right to Left
+      for (x=0; x<=31; x++) {
+        for (y=0; y<=63; y++) {
+          if ((y % 2) == 0) {
+            x2 = x;
+          }
+          else {
+            x2 = x*-1 + 31;
+          }
+          logoByteValue = mister_logo[x2+y*32];
+          for (i=0; i <= 7; i++){
+            if (bitRead(logoByteValue, i)) {
+              // Set Pixel
+              u8g2.drawPixel(x2*8+i,y);
+            }
+            else {
+              // Clear Pixel
+              u8g2.setDrawColor(0);
+              u8g2.drawPixel(x2*8+i,y);
+              u8g2.setDrawColor(1);        
+            }  // end bit read
+          }  // end for i
+        }  // end for y
+        u8g2.sendBuffer();
+      }  // end for x
+      break;
+    case 5:                                     // Top Part Left to Right / Bottom Part Right to Left
+      for (x=0; x<=31; x++) {
+        for (y=0; y<=63; y++) {
+          if (y < 32) {
+            x2 = x;
+          }
+          else {
+            x2 = x*-1 + 31;
+          }
+          logoByteValue = mister_logo[x2+y*32];
+          for (i=0; i <= 7; i++){
+            if (bitRead(logoByteValue, i)) {
+              // Set Pixel
+              u8g2.drawPixel(x2*8+i,y);
+            }
+            else {
+              // Clear Pixel
+              u8g2.setDrawColor(0);
+              u8g2.drawPixel(x2*8+i,y);
+              u8g2.setDrawColor(1);        
+            }  // end bit read
+          }  // end for i
+        }  // end for y
+        u8g2.sendBuffer();
+      }  // end for x
+      break;
+    case 6:                                     // Four Parts Left to Right to Left to Right...
+      for (a=0; a<=3; a++) {
+        for (x=0; x<=31; x++) {
+          for (y=0; y<=15; y++) {
+            if ((a%2) == 0) {
+              x2 = x;
+            }
+            else {
+              x2 = x*-1 + 31;
+            }
+            logoByteValue = mister_logo[x2+(y+a*16)*32];
+            for (i=0; i <= 7; i++){
+              if (bitRead(logoByteValue, i)) {
+                // Set Pixel
+                u8g2.drawPixel(x2*8+i,y+a*16);
+              }
+              else {
+                // Clear Pixel
+                u8g2.setDrawColor(0);
+                u8g2.drawPixel(x2*8+i,y+a*16);
+                u8g2.setDrawColor(1);        
+              }  // end bit read
+            }  // end for i
+          }  // end for y
+          u8g2.sendBuffer();
+        }  // end for x
+      }
+      break;
     default:
       for (a=0; a<10000; a++) {
         logoByte = random(logoBytes); // Value 2048 => Get 0..2047
@@ -323,7 +416,7 @@ void oled_misterlogo(int effect) {
 }  // end oled_misterlogo
 
 
-// Draw Pictures with an height of 64 Pixel centerred
+// ---- oled_drawlogo64h -- Draw Pictures with an height of 64 Pixel centerred ----
 void oled_drawlogo64h(u8g2_uint_t w, const uint8_t *bitmap) {
   u8g2.clearBuffer();
   u8g2.drawXBMP(DispWidth/2-w/2, 0, w, 64, bitmap);
@@ -331,19 +424,20 @@ void oled_drawlogo64h(u8g2_uint_t w, const uint8_t *bitmap) {
 } // end oled_drawlogo64h
 
 
-// Draw XBM Pictures from SD, Picture must be 256x64 Pixel
+// --- sd2oled_drawlogo64h -- Draw XBM Pictures from SD, Picture must be 256x64 Pixel ----
 int sd2oled_drawlogo64h(String corename) {
   // Use Code from https://github.com/lbernstone/eyes
   // Returns 1 if OK or 0 in case of an Error
   u8g2.clearBuffer();
-  String xbmFile = String("/" + corename + ".xbm");
+  String xbmFile = String("/" + corename + ".xbm");  // => "lander.xbm"
+  //String xbmFile = String("/" + corename + "_" + String(DispWidth) + "x" + String(DispHeight)+ ".xbm");  // => "llander_256x64.xbm"
   char *filename = (char*)xbmFile.c_str();
-  if (!filename) return 0;
+  if (!filename) return 0;                     // No Filename given function end here
 #ifdef XDEBUG
   Serial.print("Reading ");
   Serial.println(filename);
 #endif
-  if (!SD.exists(filename)) {
+  if (!SD.exists(filename)) {                  // No File found on SD function end here
 #ifdef XDEBUG
     Serial.println("File not found");
 #endif
@@ -353,7 +447,8 @@ int sd2oled_drawlogo64h(String corename) {
   String xbm;
   char next;
   u8g2_uint_t imageWidth=0, imageHeight=0;
-  uint8_t imageBits[2048];                 // 256/8 * 64
+  //uint8_t imageBits[2048];                 // 256/8 * 64
+  uint8_t imageBits[DispWidth * DispHeight / 8];  // Make it more universal
   uint16_t pos = 0;
   const char CR = 10;
   const char comma = 44;
@@ -387,12 +482,10 @@ int sd2oled_drawlogo64h(String corename) {
       xbm = "";
     }  // end if (next == CR)
     else if ((next == comma) || (next == curly)) {
-#ifdef XDEBUG
       //Serial.print("Pos: ");
       //Serial.print(pos);
       //Serial.print("  => xbm: ");
       //Serial.println(xbm);
-#endif
       imageBits[pos++] = (uint8_t) strtol(xbm.c_str(), NULL, 16);
       xbm = "";
     }  // end else if (next == CR)
@@ -404,7 +497,7 @@ int sd2oled_drawlogo64h(String corename) {
   u8g2.drawXBM(0, 0, imageWidth, imageHeight, imageBits);
   u8g2.sendBuffer();
   imagefile.close();
-  return 1;  // Everything OK
+  return 1;                      // Everything OK
 }  // end sd2oled_drawlogo64h
 
 //========================== The end ================================

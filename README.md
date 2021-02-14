@@ -128,7 +128,7 @@ The following Text-Commands have special functions:
 | File/Folder | Description |
 | :--- | :--- |
 | S60tty2oled | Starter Script, must be placed on **MiSTer** in folder `/etc/init.d/`  |
-| tty2oled | Communications Script, must be placed on **MiSTer** in folder `/usr/bin/` |
+| tty2oled | Communication Script, must be placed on **MiSTer** in folder `/usr/bin/` |
 | MiSTer_SSD1322 | The Arduino Project containing the `.ino` and `.h` file(s) |
 | MiSTer_SSD1322_SD | The Arduino Project with SD Support containing the `.ino` and `.h` file(s) |
 | Pictures | Just Pictures :smile: |

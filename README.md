@@ -82,7 +82,7 @@ The following Corenames are (currently) identified and an dedicated or generic P
 **Other:** MEMTEST, MENU (shows the MiSTer Logo fading in with an particle effect), QWERTZ (does nothing, it's **first transmission**).  
   
 ### Arduino (SD Version)
-The SD Version supports the **live** download of the Pictures from SD Card. No need to keep the Pictures in Code.  
+The SD Version supports the **live** download of Pictures from SD Card. No need to keep the Pictures in Code.  
 You need an Arduino compatible Hardware plus/with an SD Slot/Breakout.  
 I use an ESP32 TTGO-T8 v1.7.1 with an integrated SD Slot.  
 The SD Card must be formatted with FAT or FAT32.  
@@ -91,7 +91,7 @@ The Arduino Sketch searches for the XBM converted pictures in the root folder of
 The Pictures must have the size of 256x64 Pixel for the used SSD1322 Display.  
 The filename must be the **name of the core** with **.xbm** as extension.  
 **Example:** The Arcade Lunar Lander has the corename `llander` means the filename needs to be `llander.xbm`.  
-See https://github.com/venice1200/MiSTer_tty2oled/tree/main/Pictures/xbm_sd for more examples.  
+See https://github.com/venice1200/MiSTer_tty2oled/tree/main/Pictures/xbm_sd for examples.  
 The Arduino receives the transferred Corename and checks the SD Card for an corresponding file.  
 If the file is found it's loaded and shown on the Display.  
 If the file **or** the SD card is not found just the Corename is shown as Text.  

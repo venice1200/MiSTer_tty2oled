@@ -1,5 +1,5 @@
 ## tty2oled [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-Software Add-On for the [MiSTer FPGA](https://github.com/MiSTer-devel) showing Text or Pictures based on the loaded core on a (OLED) Display driven by an Arduino which is connected via USB (Not MiSTer's [User Port](https://github.com/MiSTer-devel/Main_MiSTer/wiki/User-Port-(Serial-IO))) to the MiSTer.    
+Software Add-On for the [MiSTer FPGA](https://github.com/MiSTer-devel) showing Text or Pictures based on the loaded core on a (OLED) Display driven by an Arduino which is connected via USB to the MiSTer.    
   
 **NEW**  
 SD Version with **live** download of Pictures from SD Card (see [below](https://github.com/venice1200/MiSTer_tty2oled/blob/main/README.md#arduino-sd-version) for more details).  
@@ -20,7 +20,7 @@ After a bit of searching I found the possibilty to get information about the act
 I tried `tail -F /tmp/CORENAME` which results in error messages so I choose `cat /tmp/CORENAME` in a timed loop.  
   
 ### Realizing
-I tested an USB-Serial connection between an Arduino and the MiSTer  
+I tested an USB-Serial connection (not MiSTer's [User Port (Serial IO)](https://github.com/MiSTer-devel/Main_MiSTer/wiki/User-Port-(Serial-IO))) between an Arduino and the MiSTer  
 as this is an standard communication feature on Arduino's and easy to use.  
 And USB Ports are available for most of the MiSTer users is some way.  
 My ATMega 1284 with an FTDI Serial Adapter was sucessfully detected as `/dev/ttyUSB0` by the MiSTer.  

@@ -1,10 +1,10 @@
 ## tty2oled [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 Software Add-On for the [MiSTer FPGA](https://github.com/MiSTer-devel) showing Text or Pictures based on the loaded core on a (OLED) Display driven by an Arduino which is connected via USB to the MiSTer.    
   
-**NEW**  
+**NEW!**  
 SD Version with **live** download of Pictures from SD Card (see [below](https://github.com/venice1200/MiSTer_tty2oled/blob/main/README.md#arduino-sd-version) for more details).  
   
-**IMPORTANT**  
+**IMPORTANT!**  
 Both Arduino Versions uses now (2021-02-07) the Serial Speed of 57600 baud.  
 You need the change/replace the `tty2oled` file on the MiSTer as well to support this.  
   

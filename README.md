@@ -20,7 +20,7 @@ After a bit of searching I found the possibilty to get information about the act
 I tried `tail -F /tmp/CORENAME` which results in error messages so I choose `cat /tmp/CORENAME` in a timed loop.  
   
 ### Realizing
-I tested an USB-Serial connection (not MiSTer's [User Port (Serial IO)](https://github.com/MiSTer-devel/Main_MiSTer/wiki/User-Port-(Serial-IO))) between an Arduino and the MiSTer  
+I tested an USB (-Serial) connection between an Arduino and the MiSTer (not MiSTer's [User Port (Serial IO)](https://github.com/MiSTer-devel/Main_MiSTer/wiki/User-Port-(Serial-IO)))  
 as this is an standard communication feature on Arduino's and easy to use.  
 And USB Ports are available for most of the MiSTer users is some way.  
 My ATMega 1284 with an FTDI Serial Adapter was sucessfully detected as `/dev/ttyUSB0` by the MiSTer.  

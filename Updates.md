@@ -1,4 +1,4 @@
-2021-01-23/23  
+2021-01-22/23  
 Release of the MiSTer Scripts  
 Release of "Standard" (Non SD) Version  
   

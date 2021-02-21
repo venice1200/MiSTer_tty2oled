@@ -14,5 +14,12 @@ Release of SD Version
 This makes the system more reactive as the scripts waits for an Core change instead of polling.  
 **SD Version:** Adding more Home Menu Effects (just for fun)  
   
+2021-02-20/21  
+**SD & Standard Version**  
+Using the Effects for all Picture/Logo Transistions (not only for the Menu)  
+"MENU" Picture moved from Code to the SD, makes it easier to change (if you like).  
+Modified Text Position calculation (See Arduino File for Details).  
+Show a small "SD-Icon" on Startup Screen instead of the "dot" if SD Card was detected.  
+  
 Adding/Changing Pictures (BMP/XBM) files from time to time  
 ....work in progress  

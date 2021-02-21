@@ -24,11 +24,11 @@
 
   2021-02-20/21
   -Using the Effects for all Picture/Logo Transistions (not only for the Menu)
-  -"MENU" Picture moved to the SD, makes it easier to change (if you like).
+  -"MENU" Picture moved from Code to the SD, makes it easier to change (if you like).
   -Modified Text Position calculation (see U8G2 Documentation for Details). 
    Change text reference position from TOP to BASELINE.
    Using now "getAscent" instead of "getMaxCharHeight" for Text Y-Position calculation (see U8G2 Documentation).
-  -Show a small "SD-Icon" on Startup Screen if SD Card was detected instead of the "dot".
+  -Show a small "SD-Icon" on Startup Screen instead of the "dot" if SD Card was detected.
   
 */
 

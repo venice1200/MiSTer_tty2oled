@@ -18,6 +18,7 @@ See https://github.com/venice1200/MiSTer_tty2oled/blob/main/Updates.md
 At first I had the idea to add an Display which shows only the MiSTer Logo.  
 After a bit of searching I found the possibilty to get information about the actual loaded Core out of the file `/tmp/CORENAME`.  
 I tried `tail -F /tmp/CORENAME` which results in error messages so I choose `cat /tmp/CORENAME` in a timed loop.  
+Later the timed loop was replaced by an **inotifywait -e modify "/tmp/CORENAME"** which makes the system more reactive.  
   
 ### Realizing
 I tested an USB (-Serial) connection between an Arduino and the MiSTer (not MiSTer's [User Port (Serial IO)](https://github.com/MiSTer-devel/Main_MiSTer/wiki/User-Port-(Serial-IO)))  

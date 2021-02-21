@@ -15,7 +15,7 @@ This makes the system more reactive as the scripts waits for an Core change inst
 **SD Version:** Adding more Home Menu Effects (just for fun)  
   
 2021-02-20/21  
-**SD & Standard Version**  
+**SD Version**  
 Using the Effects for all Picture/Logo Transistions (not only for the Menu)  
 "MENU" Picture moved from Code to the SD, makes it easier to change (if you like).  
 Modified Text Position calculation (See Arduino File for Details).  

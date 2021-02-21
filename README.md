@@ -86,7 +86,7 @@ The SD Version supports the **live** download of Pictures from SD Card. No need 
 You need an Arduino compatible Hardware plus/with an SD Slot/Breakout.  
 I use an ESP32 TTGO-T8 v1.7.1 with an integrated SD Slot.  
 The SD Card must be formatted with FAT or FAT32.  
-If the SD Card was found an **DOT** is shown in the left lower edge on the start Screen of the Display.  
+If the SD Card was found an SD-Card Icon is shown on the Startup Screen.  
 The Arduino Sketch searches for the XBM converted pictures in the root folder of the SD Card.  
 The Pictures must have the size of 256x64 Pixel for the used SSD1322 Display.  
 The filename must be the **name of the core** with **.xbm** as extension.  
@@ -118,7 +118,7 @@ The following Text-Commands have special functions:
 | sorg | Show Display's Power-On Text |
 | bye | Show Sorgelig's Icon :smile:|
 | MENU | Show MiSTer Logo with randomly picked Effect |
-| MENU0..MENU6 | Show MiSTer Logo with some Effect |
+| MENU0..MENU7 | Show the MiSTer Logo with some Effect |
   
   
 ### Files and Folders in this Repository

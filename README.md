@@ -6,7 +6,7 @@ SD Version with **live** download of Pictures from SD Card (see [below](https://
   
 **IMPORTANT!**  
 Both Arduino Versions uses now (2021-02-07) the Serial Speed of 57600 baud.  
-You need the change/replace the `tty2oled` file on the MiSTer as well to support this.  
+You need to change/replace the `tty2oled` file on the MiSTer as well to support this.  
   
 **Updates**  
 See https://github.com/venice1200/MiSTer_tty2oled/blob/main/Updates.md  
@@ -21,7 +21,8 @@ I tried `tail -F /tmp/CORENAME` which results in error messages so I choose `cat
 Later the timed loop was replaced by an **inotifywait -e modify "/tmp/CORENAME"** which makes the system more reactive.  
   
 ### Realizing
-I tested an USB (-Serial) connection between an Arduino and the MiSTer (not MiSTer's [User Port (Serial IO)](https://github.com/MiSTer-devel/Main_MiSTer/wiki/User-Port-(Serial-IO)))  
+I tested an USB (-Serial) connection between an Arduino  
+and the MiSTer (not MiSTer's [User Port (Serial IO)](https://github.com/MiSTer-devel/Main_MiSTer/wiki/User-Port-(Serial-IO)))  
 as this is an standard communication feature on Arduino's and easy to use.  
 And USB Ports are available for most of the MiSTer users is some way.  
 My ATMega 1284 with an FTDI Serial Adapter was sucessfully detected as `/dev/ttyUSB0` by the MiSTer.  
@@ -61,10 +62,10 @@ Sometimes the text **MENU** was written instead of the MiSTer Picture shown.
 *Maybe some sleeping bits in the serial channel :smirk:*.  
 After I added the **First Transmission** to the script the problem was gone :smile:.  
 Now the main loop is started and checks the existence of the file `/tmp/CORENAME`.  
-If this file doesn't exist, the script waits for 2 secs and tried the next loop.  
+If the file doesn't exist the script tries again and again and ...  
 If the file exists, the file's content is read using `cat /tmp/CORENAME`,  
 stored into the variable `newcore` and send to the tty Device.  
-At the end of the main loop the script waits for ~~2 secs~~ the next change and re-starts the loop.  
+At the end of the main loop the script waits for the next change and re-starts the loop.  
 Every loop the Corename is checked **but the data are sent only if the Corename has changed**.  
   
 ### Arduino (non SD Version)

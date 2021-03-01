@@ -163,6 +163,11 @@ void oled_misterlogo(void) {
   // A Loop of 10000 is enough for Arduino
   // An ESP32 works much faster
   int a,i,x,y;
+  for (a=0; a<20000; a++) {
+    logoByte = random(logoBytes); // Value 2048 => Get 0..2047
+    logoByteValue = mister_logo[logoByte];
+    x = (logoByte % 32) * 8;
+    y = logoByte / 32;
     for (i=0; i <= 7; i++){
       if (bitRead(logoByteValue, i)) {
         // Set Pixel

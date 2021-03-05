@@ -27,11 +27,25 @@
 | Minimig.xbm | Amiga System (OCS, ECS, AGA) |  | X |  |  |  |
 | NEOGEO.xbm | SNK NEO GEO/MVS system |  |  | X |  |  |
 | NES.xbm | Nintendo Entertainment System |  |  | X |  |  |
+| ODYSSEY2.xbm | Magnavox Odyssey2/Videopac G700 |  |  | X |  |  |
+| PET2001.xbm  | Commodore PET2001 |  | X |  |  |  |
+| SG1000.xbm | Colecovision and Sega SG-1000 (alternative) |  |  | X |  |  |
+| SMS.xbm  | Sega Master System and Game Gear |  |  | X |  |  |
+| SNES.xbm | Super Nintendo Entertainment System |  |  | X |  |  |
+| TGFX16.xbm | TurboGrafx 16 / PC Engine |  |  | X |  |  |
+| VECTREX.xbm |  |  |  |  |  |  |
+| VIC20.xbm  |  |  |  |  |  |  |
+| VIDEOPAC.xbm |  |  |  |  |  |  |
 |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |
+| asteroid.xbm |  |  |  |  |  |  |
+| frogger.xbm  |  |  |  |  |  |  |
+| gng.xbm |  |  |  |  |  |  |
+| llander.xbm |  |  |  |  |  |  |
+| mooncrgx.xbm |  |  |  |  |  |  |
+| mpatrol.xbm |  |  |  |  |  |  |
+| pooyan.xbm  |  |  |  |  |  |  |
+| sbrkout.xbm  |  |  |  |  |  |  |
+| zaxxon.xbm |  |  |  |  |  |  |
 |  |  |  |  |  |  |  |
 |  |  |  |  |  |  |  |
 |  |  |  |  |  |  |  |

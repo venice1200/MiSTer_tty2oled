@@ -95,15 +95,18 @@ void loop(void) {
     else if (newCore=="MENU")         oled_misterlogo();     // TESTING! Sometimes after Power On "MENU" is written instead of the logo shown. Maybe one character in the serial buffer?
     
     // -- Arcade Cores --
+    else if (newCore=="asteroid")     oled_drawlogo64h(asteroids_logo_width, asteroids_logo);
+    else if (newCore=="frogger")      oled_drawlogo64h(frogger_logo_width, frogger_logo);
     else if (newCore=="llander")      oled_drawlogo64h(llander_logo_width, llander_logo);
     else if (newCore=="mooncrgx")     oled_drawlogo64h(mooncrgx_logo_width, mooncrgx_logo);
     else if (newCore=="mpatrol")      oled_drawlogo64h(mpatrol_logo_width, mpatrol_logo);
-    else if (newCore=="asteroid")     oled_drawlogo64h(asteroids_logo_width, asteroids_logo);
-    else if (newCore=="frogger")      oled_drawlogo64h(frogger_logo_width, frogger_logo);
-    
+    else if (newCore=="pooyan")       oled_drawlogo64h(pooyan_logo_width, pooyan_logo);
+    else if (newCore=="sbrkout")      oled_drawlogo64h(sbrkout_logo_width, sbrkout_logo);
+    else if (newCore=="zaxxon")       oled_drawlogo64h(zaxxon_logo_width, zaxxon_logo);
+
     // -- Computer Cores --
-    else if (newCore=="AO486")        oled_drawlogo64h(ao486_logo_width, ao486_logo);
     else if (newCore=="AcornAtom")    oled_drawlogo64h(acornatom_logo_width, acornatom_logo);
+    else if (newCore=="AO486")        oled_drawlogo64h(ao486_logo_width, ao486_logo);
     else if (newCore=="APPLE-I")      oled_drawlogo64h(apple_logo_width, apple_logo);
     else if (newCore=="Apple-II")     oled_drawlogo64h(apple2_logo_width, apple2_logo);
     else if (newCore=="ARCHIE")       oled_drawlogo64h(archimedes_logo_width, archimedes_logo);
@@ -111,22 +114,33 @@ void loop(void) {
     else if (newCore=="ATARI800")     oled_drawlogo64h(atarixl_logo_width, atarixl_logo);
     else if (newCore=="C64")          oled_drawlogo64h(c64_logo_width, c64_logo);
     else if (newCore=="Minimig")      oled_drawlogo64h(amiga_logo_width, amiga_logo);
+    else if (newCore=="MSX")          oled_drawlogo64h(msx_logo_width, msx_logo);
     else if (newCore=="PET2001")      oled_drawlogo64h(pet2001_logo_width, pet2001_logo);
     else if (newCore=="VIC20")        oled_drawlogo64h(vic20_logo_width, vic20_logo);
-    else if (newCore=="MSX")          oled_drawlogo64h(msx_logo_width, msx_logo);
 
     // -- Console Cores --
     else if (newCore=="ATARI2600")    oled_drawlogo64h(atari2600_logo_width, atari2600_logo);
     else if (newCore=="ATARI5200")    oled_drawlogo64h(atari5200_logo_width, atari5200_logo);
     else if (newCore=="ATARI7800")    oled_drawlogo64h(atari7800_logo_width, atari7800_logo);
     else if (newCore=="Astrocade")    oled_drawlogo64h(astrocade_logo_width, astrocade_logo);
+    else if (newCore=="ChannelF")       oled_drawlogo64h(channelf_logo_width, channelf_logo);
     else if (newCore=="Coleco")       oled_drawlogo64h(coleco_logo_width, coleco_logo);
+    // else if (newCore=="Coleco")       oled_drawlogo64h(sg1000_logo_width, sg1000_logo);
+    else if (newCore=="GAMEBOY")      oled_drawlogo64h(gameboy_logo_width, gameboy_logo);
+    else if (newCore=="GBA")          oled_drawlogo64h(gba_logo_width, gba_logo);
     else if (newCore=="Genesis")      oled_drawlogo64h(genesis_logo_width, genesis_logo);
+    else if (newCore=="MEGACD")       oled_drawlogo64h(megacd_logo_width, megacd_logo);
     else if (newCore=="NEOGEO")       oled_drawlogo64h(neogeo_logo_width, neogeo_logo);
     else if (newCore=="NES")          oled_drawlogo64h(nes_logo_width, nes_logo);
+    else if (newCore=="ODYSSEY")      oled_drawlogo64h(odyssey_logo_width, odyssey_logo);
+    // else if (newCore=="ODYSSEY")      oled_drawlogo64h(videopac_logo_width, videopac_logo);
     else if (newCore=="SMS")          oled_drawlogo64h(sms_logo_width, sms_logo);
     else if (newCore=="SNES")         oled_drawlogo64h(snes_logo_width, snes_logo);
     else if (newCore=="TGFX16")       oled_drawlogo64h(pcengine_logo_width, pcengine_logo);
+    else if (newCore=="VECTREX")      oled_drawlogo64h(vectrex_logo_width, vectrex_logo);
+
+    // -- Other Cores --
+    else if (newCore=="Chess")        oled_drawlogo64h(chess_logo_width, chess_logo);
 
     // -- Other --
     else if (newCore=="MEMTEST")      oled_drawlogo64h(memtest_logo_width, memtest_logo);

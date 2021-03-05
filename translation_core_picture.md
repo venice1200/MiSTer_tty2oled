@@ -27,25 +27,25 @@
 | Minimig.xbm | Amiga System (OCS, ECS, AGA) |  | X |  |  |  |
 | NEOGEO.xbm | SNK NEO GEO/MVS system |  |  | X |  |  |
 | NES.xbm | Nintendo Entertainment System |  |  | X |  |  |
-| ODYSSEY2.xbm | Magnavox Odyssey2/Videopac G700 |  |  | X |  |  |
+| ODYSSEY2.xbm | Magnavox Odyssey2/Videopac G700 (alternative) |  |  | X |  |  |
 | PET2001.xbm  | Commodore PET2001 |  | X |  |  |  |
 | SG1000.xbm | Colecovision and Sega SG-1000 (alternative) |  |  | X |  |  |
 | SMS.xbm  | Sega Master System and Game Gear |  |  | X |  |  |
 | SNES.xbm | Super Nintendo Entertainment System |  |  | X |  |  |
 | TGFX16.xbm | TurboGrafx 16 / PC Engine |  |  | X |  |  |
-| VECTREX.xbm |  |  |  |  |  |  |
-| VIC20.xbm  |  |  |  |  |  |  |
-| VIDEOPAC.xbm |  |  |  |  |  |  |
+| VECTREX.xbm | Vectrex |  |  | X |  |  |
+| VIC20.xbm  | Commodore VIC20 |  | X |  |  |  |
+| VIDEOPAC.xbm | Magnavox Odyssey2/Videopac G700 |  |  |  |  |  |
 |  |  |  |  |  |  |  |
-| asteroid.xbm |  |  |  |  |  |  |
-| frogger.xbm  |  |  |  |  |  |  |
-| gng.xbm |  |  |  |  |  |  |
-| llander.xbm |  |  |  |  |  |  |
-| mooncrgx.xbm |  |  |  |  |  |  |
-| mpatrol.xbm |  |  |  |  |  |  |
-| pooyan.xbm  |  |  |  |  |  |  |
-| sbrkout.xbm  |  |  |  |  |  |  |
-| zaxxon.xbm |  |  |  |  |  |  |
+| asteroid.xbm | Astreroids | X |  |  |  |  |
+| frogger.xbm  | Frogger | X |  |  |  |  |
+| gng.xbm | Ghost'n Goblins | X |  |  |  |  |
+| llander.xbm | Lunar Lander | X |  |  |  |  |
+| mooncrgx.xbm | Moon Cresta | X |  |  |  |  |
+| mpatrol.xbm | Moon Patrol | X |  |  |  |  |
+| pooyan.xbm  | Pooyan | X |  |  |  |  |
+| sbrkout.xbm  | Super Breakout | X |  |  |  |  |
+| zaxxon.xbm | Zaxxon | X |  |  |  |  |
 |  |  |  |  |  |  |  |
 |  |  |  |  |  |  |  |
 |  |  |  |  |  |  |  |

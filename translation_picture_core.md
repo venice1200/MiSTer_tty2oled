@@ -36,7 +36,7 @@ The Arcade-Table is below this List
 | TGFX16.xbm | TurboGrafx 16 / PC Engine |  |  | X |  |  |
 | VECTREX.xbm | Vectrex |  |  | X |  |  |
 | VIC20.xbm  | Commodore VIC20 |  | X |  |  |  |
-| VIDEOPAC.xbm | Magnavox Odyssey2/Videopac G700 |  |  |  |  |  |
+| VIDEOPAC.xbm | Magnavox Odyssey2/Videopac G700 |  |  | X |  |  |
 |  |  |  |  |  |  |  |
 |  |  |  |  |  |  |  |
   

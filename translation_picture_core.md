@@ -40,7 +40,7 @@ The Arcade-Table is below this List
 |  |  |  |  |  |  |
 |  |  |  |  |  |  |
   
-| XBM/Core Name | System |
+| XBM/Core Name | Arcade-System |
 | :--- | :--- |
 | asteroid.xbm | Astreroids |
 | centiped3.xbm | Centipede |

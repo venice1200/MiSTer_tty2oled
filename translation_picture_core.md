@@ -1,6 +1,6 @@
 **Translation**  
   
-| XBM Name | Core/System | Arcade | Computer | Console | Other | Utility |
+| XBM/Core Name | System | Arcade | Computer | Console | Other | Utility |
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: |
 | AO486.xbm | 486DX33 PC System |  | X |  |  |  |
 | APPLE-I.xbm | Apple I Computer System|  | X |  |  |  |

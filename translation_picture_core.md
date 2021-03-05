@@ -22,7 +22,7 @@ The Arcade-Table is below this List
 | GBA.xbm  | Gameboy Advance |  |  | X |  |  |
 | Genesis.xbm | SEGA Megadrive/Genesis |  |  | X |  |  |
 | MEMTEST.xbm | SD Ram Test |  |  |  |  | X |
-| MENU.xbm | Pcture for Main Menu |  |  |  |  |  |
+| MENU.xbm | Picture for Main Menu |  |  |  |  |  |
 | MSX.xbm | MSX2/Plus/3 Computer Systems |  | X |  |  |  |
 | MegaCD.xbm | Sega MegaCD |  |  | X |  |  |
 | Minimig.xbm | Amiga System (OCS, ECS, AGA) |  | X |  |  |  |

@@ -96,6 +96,7 @@ void loop(void) {
     
     // -- Arcade Cores --
     else if (newCore=="asteroid")     oled_drawlogo64h(asteroids_logo_width, asteroids_logo);
+    else if (newCore=="centipede")    oled_drawlogo64h(centipede_logo_width, centipede_logo);
     else if (newCore=="frogger")      oled_drawlogo64h(frogger_logo_width, frogger_logo);
     else if (newCore=="llander")      oled_drawlogo64h(llander_logo_width, llander_logo);
     else if (newCore=="mooncrgx")     oled_drawlogo64h(mooncrgx_logo_width, mooncrgx_logo);

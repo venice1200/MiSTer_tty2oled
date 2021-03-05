@@ -43,6 +43,7 @@ The Arcade-Table is below this List
 | XBM/Core Name | System | Arcade | Computer | Console | Other | Utility |
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: |
 | asteroid.xbm | Astreroids | X |  |  |  |  |
+| centipede.xbm | Astreroids | X |  |  |  |  |
 | frogger.xbm  | Frogger | X |  |  |  |  |
 | gng.xbm | Ghost'n Goblins | X |  |  |  |  |
 | llander.xbm | Lunar Lander | X |  |  |  |  |

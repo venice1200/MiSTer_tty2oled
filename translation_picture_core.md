@@ -10,7 +10,7 @@
 | ATARI7800.xbm | Atari 7800 Console (released?) |  |  | X |  |  |
 | ATARI800.xbm | Atari 800/800XL/65XE/130XE and Atari 5200 |  | X | X |  |  |
 | AcornAtom.xbm  | Acron Atom |  | X |  |  |  |
-| Apple-II.xbm | Apple IIe Computer System | X |  |  |  |  |
+| Apple-II.xbm | Apple IIe Computer System |  | X |  |  |  |
 | Astrocade.xbm | Bally Astrocade Console |  |  | X |  |  |
 | AtariST.xbm | Atari ST/STe |  | X |  |  |  |
 | C64.xbm  | Commodore C64 |  | X |  |  |  |
@@ -37,6 +37,10 @@
 | VIC20.xbm  | Commodore VIC20 |  | X |  |  |  |
 | VIDEOPAC.xbm | Magnavox Odyssey2/Videopac G700 |  |  |  |  |  |
 |  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |
+  
+| XBM/Core Name | System | Arcade | Computer | Console | Other | Utility |
+| :--- | :--- | :---: | :---: | :---: | :---: | :---: |
 | asteroid.xbm | Astreroids | X |  |  |  |  |
 | frogger.xbm  | Frogger | X |  |  |  |  |
 | gng.xbm | Ghost'n Goblins | X |  |  |  |  |
@@ -46,6 +50,5 @@
 | pooyan.xbm  | Pooyan | X |  |  |  |  |
 | sbrkout.xbm  | Super Breakout | X |  |  |  |  |
 | zaxxon.xbm | Zaxxon | X |  |  |  |  |
-|  |  |  |  |  |  |  |
 |  |  |  |  |  |  |  |
 |  |  |  |  |  |  |  |

@@ -1,4 +1,5 @@
 **Translation**  
+The Arcade-Table is below this List  
   
 | XBM/Core Name | System | Arcade | Computer | Console | Other | Utility |
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: |

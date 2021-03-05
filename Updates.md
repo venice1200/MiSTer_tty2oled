@@ -21,5 +21,11 @@ Using the Effects for all Picture/Logo Transistions (not only for the Menu)
 Modified Text Position calculation (See Arduino File for Details).  
 Show a small "SD-Icon" on Startup Screen instead of the "dot" if SD Card was detected.  
   
+2021-03-01..04
+**Standard Version**  
+Update by **ojaksch**: New Pictures added to the Arduino Code  
+He uploaded the XBM Files as well so they can be used with the SD Version.  
+  
+  
 Adding/Changing Pictures (BMP/XBM) files from time to time  
 ....work in progress  

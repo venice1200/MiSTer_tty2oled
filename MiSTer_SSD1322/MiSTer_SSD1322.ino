@@ -96,7 +96,12 @@ void loop(void) {
     
     // -- Arcade Cores --
     else if (newCore=="asteroid")     oled_drawlogo64h(asteroids_logo_width, asteroids_logo);
-    else if (newCore=="centipede")    oled_drawlogo64h(centipede_logo_width, centipede_logo);
+    else if (newCore=="centiped")     oled_drawlogo64h(centiped3_logo_width, centiped3_logo);
+    else if (newCore=="centiped3")    oled_drawlogo64h(centiped3_logo_width, centiped3_logo);
+    else if (newCore=="dkong")        oled_drawlogo64h(dkong_logo_width, dkong_logo);
+    else if (newCore=="ckongdks")     oled_drawlogo64h(dkong_logo_width, dkong_logo);
+    else if (newCore=="dkong3")       oled_drawlogo64h(dkong3_logo_width, dkong3_logo);
+    else if (newCore=="dkong3b")      oled_drawlogo64h(dkong3_logo_width, dkong3_logo);
     else if (newCore=="frogger")      oled_drawlogo64h(frogger_logo_width, frogger_logo);
     else if (newCore=="llander")      oled_drawlogo64h(llander_logo_width, llander_logo);
     else if (newCore=="mooncrgx")     oled_drawlogo64h(mooncrgx_logo_width, mooncrgx_logo);

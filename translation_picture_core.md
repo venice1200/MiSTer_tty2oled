@@ -43,7 +43,9 @@ The Arcade-Table is below this List
 | XBM/Core Name | System | Arcade | Computer | Console | Other | Utility |
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: |
 | asteroid.xbm | Astreroids | X |  |  |  |  |
-| centipede.xbm | Astreroids | X |  |  |  |  |
+| centiped3.xbm | Centipede | X |  |  |  |  |
+| dkong.xbm  | Donkey Kong | X |  |  |  |  |
+| dkong3.xbm  | Donkey Kong 3 | X |  |  |  |  |
 | frogger.xbm  | Frogger | X |  |  |  |  |
 | gng.xbm | Ghost'n Goblins | X |  |  |  |  |
 | llander.xbm | Lunar Lander | X |  |  |  |  |

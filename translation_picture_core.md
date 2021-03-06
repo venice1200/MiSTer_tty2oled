@@ -28,7 +28,7 @@ The Arcade-Table is below this List
 | Minimig.xbm | Amiga System (OCS, ECS, AGA) | X |  |  |  |
 | NEOGEO.xbm | SNK NEO GEO/MVS system |  | X |  |  |
 | NES.xbm | Nintendo Entertainment System |  | X |  |  |
-| ODYSSEY2.xbm | Alternative for VIDEOPAC.xbm |  | X |  |  |
+| ODYSSEY2.xbm | Magnavox Odyssey2/Videopac G700 |  | X |  |  |
 | PET2001.xbm  | Commodore PET2001 | X |  |  |  |
 | SG1000.xbm | Alternative for Coleco.xbm |  | X |  |  |
 | SMS.xbm  | Sega Master System and Game Gear |  | X |  |  |
@@ -36,7 +36,7 @@ The Arcade-Table is below this List
 | TGFX16.xbm | TurboGrafx 16 / PC Engine |  | X |  |  |
 | VECTREX.xbm | Vectrex |  | X |  |  |
 | VIC20.xbm  | Commodore VIC20 | X |  |  |  |
-| VIDEOPAC.xbm | Magnavox Odyssey2/Videopac G700 |  | X |  |  |
+| VIDEOPAC.xbm | Alternative for ODYSSEY2.xbm |  | X |  |  |
 |  |  |  |  |  |  |
 |  |  |  |  |  |  |
   

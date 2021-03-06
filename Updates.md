@@ -26,6 +26,10 @@ Show a small "SD-Icon" on Startup Screen instead of the "dot" if SD Card was det
 Update by **ojaksch**: New Pictures added to the Arduino Code  
 He uploaded the XBM Files as well so they can be used with the SD Version.  
   
+2021-03-06  
+**SD Version**  
+Code Cleanup and 2 more Effects  
+  
   
 Adding/Changing Pictures (BMP/XBM) files from time to time  
 ....work in progress  

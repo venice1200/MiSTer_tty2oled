@@ -27,8 +27,16 @@
   -"MENU" Picture moved from Code to the SD, makes it easier to change (if you like).
   -Modified Text Position calculation (see U8G2 Documentation for Details). 
    Change text reference position from TOP to BASELINE.
-   Using now "getAscent" instead of "getMaxCharHeight" for Text Y-Position calculation (see U8G2 Documentation).
+   Using now "getAscent" instead of "getMaxCharHeight" for Text Y-Position calculation.
   -Show a small "SD-Icon" on Startup Screen instead of the "dot" if SD Card was detected.
+
+  2021-02-16
+  -Make it more Universal 
+   Add DispLineBytes , using more DispHeight & DispWidth instead of fixed Values
+
+  2021-03-06
+  -Adding some Menu Effects
+  -Code cleanup
   
 */
 
@@ -54,16 +62,16 @@ SPIClass SDSPI(HSPI);
 
 // ------------ Objects -----------------
 // Display Constructor HW-SPI ESP32-Board (TTGO T8 OLED & SD Card) 180° Rotation => U8G2_R2
-U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 26, /* dc=*/ 25, /* reset=*/ 27);  // Enable U8G2_16BIT in u8g2.h <= !! W I C H T I G !!
+U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 26, /* dc=*/ 25, /* reset=*/ 27);  // Enable U8G2_16BIT in u8g2.h <= !! I M P O R T A N T !!
 
 // Display Constructor HW-SPI ESP32-Board (Lolin32) 180° Rotation => U8G2_R2
-// U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 12, /* dc=*/ 13, /* reset=*/ 14);  // Enable U8G2_16BIT in u8g2.h <= !! W I C H T I G !!
+// U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 12, /* dc=*/ 13, /* reset=*/ 14);  // Enable U8G2_16BIT in u8g2.h <= !! I M P O R T A N T !!
 
 // Display Constructor HW-SPI Lolin32 0° Rotation => U8G2_R0
-//U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R0, /* cs=*/ 12, /* dc=*/ 13, /* reset=*/ 14);  // Enable U8G2_16BIT in u8g2.h <= !! W I C H T I G !!
+//U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R0, /* cs=*/ 12, /* dc=*/ 13, /* reset=*/ 14);  // Enable U8G2_16BIT in u8g2.h <= !! I M P O R T A N T !!
 
 // Display Constructor HW-SPI Mighty Core ATMega 1284 0° Rotation => U8G2_R0
-//U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R0, /* cs=*/ 17, /* dc=*/ 16, /* reset=*/ 18);  // Enable U8G2_16BIT in u8g2.h <= !! W I C H T I G !!
+//U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R0, /* cs=*/ 17, /* dc=*/ 16, /* reset=*/ 18);  // Enable U8G2_16BIT in u8g2.h <= !! I M P O R T A N T !!
 
 // ------------ Variables ----------------
 
@@ -74,7 +82,7 @@ String oldCore = "";             // Buffer String for Text change detection
 char *newCoreChar;
 
 // Display Vars
-u8g2_uint_t DispWidth, DispHeight;
+u8g2_uint_t DispWidth, DispHeight, DispLineBytes;
 
 // SD Vars
 uint8_t sdCardType;
@@ -102,7 +110,8 @@ void setup(void) {
   // Get Display Dimensions
   DispWidth = u8g2.getDisplayWidth();
   DispHeight = u8g2.getDisplayHeight();
-
+  DispLineBytes = DispWidth / 8;             // How many Bytes each Dipslay Line (SSD1322: 256Pixel/8Bit = 32Bytes each Line)
+  
   // SD Init TTGO-T8 v1.7 specific
   // Create SPI Instance for SD Card
   SDSPI.begin(SDSPI_SCLK, SDSPI_MISO, SDSPI_MOSI, SDSPI_SS);     // Pins: SCLK, MISO, MOSI, SS(CS)
@@ -175,10 +184,12 @@ void loop(void) {
     else if (newCore=="MENU1")        sd2oled_readndrawlogo("MENU",1);  // Show MiSTer MENU Logo with Particle Effect
     else if (newCore=="MENU2")        sd2oled_readndrawlogo("MENU",2);  // Show MiSTer MENU Logo drawn from left to right
     else if (newCore=="MENU3")        sd2oled_readndrawlogo("MENU",3);  // Show MiSTer MENU Logo drawn from top to bottom
-    else if (newCore=="MENU4")        sd2oled_readndrawlogo("MENU",4);  // Show MiSTer MENU Logo drawn from left to right but diagonally
-    else if (newCore=="MENU5")        sd2oled_readndrawlogo("MENU",5);  // Show MiSTer MENU Logo drawn even line left to right / odd line right to left
-    else if (newCore=="MENU6")        sd2oled_readndrawlogo("MENU",6);  // Show MiSTer MENU Logo drawn top part left to right / bottom part right to left 
-    else if (newCore=="MENU7")        sd2oled_readndrawlogo("MENU",7);  // Show MiSTer MENU Logo drawn four parts left to right to left to right
+    else if (newCore=="MENU4")        sd2oled_readndrawlogo("MENU",4);  // Show MiSTer MENU Logo drawn from right to left
+    else if (newCore=="MENU5")        sd2oled_readndrawlogo("MENU",5);  // Show MiSTer MENU Logo drawn from bottom to top
+    else if (newCore=="MENU6")        sd2oled_readndrawlogo("MENU",6);  // Show MiSTer MENU Logo drawn from left to right but diagonally
+    else if (newCore=="MENU7")        sd2oled_readndrawlogo("MENU",7);  // Show MiSTer MENU Logo drawn even line left to right / odd line right to left
+    else if (newCore=="MENU8")        sd2oled_readndrawlogo("MENU",8);  // Show MiSTer MENU Logo drawn top part left to right / bottom part right to left 
+    else if (newCore=="MENU9")        sd2oled_readndrawlogo("MENU",9);  // Show MiSTer MENU Logo drawn four parts left to right to left to right
     
     // -- Test Commands --
     else if (newCore=="cls")          u8g2.clear();
@@ -188,7 +199,7 @@ void loop(void) {
     // -- Unidentified Core Name , search SD  --
     else {
       if (sdCardOK) {
-        sdPicShown = sd2oled_readndrawlogo(newCore, random(1,8));
+        sdPicShown = sd2oled_readndrawlogo(newCore, random(1,10));  // => 1..9
       } // end if sdCardOK
       
       if (!sdCardOK || !sdPicShown) {
@@ -223,7 +234,7 @@ void oled_mistertext(void) {
 
   // If SD Card detected print "."
   if (sdCardOK) {
-    u8g2.drawXBMP(239,0, sdcard_icon16_width, sdcard_icon16_height, sdcard_icon16);
+    u8g2.drawXBMP(DispWidth-sdcard_icon16_width-1, 0, sdcard_icon16_width, sdcard_icon16_height, sdcard_icon16);
   }
   u8g2.sendBuffer();
 }
@@ -232,7 +243,7 @@ void oled_mistertext(void) {
 // ---- oled_drawlogo64h -- Draw Pictures with an height of 64 Pixel centerred ----
 void oled_drawlogo64h(u8g2_uint_t w, const uint8_t *bitmap) {
   u8g2.clearBuffer();
-  u8g2.drawXBMP(DispWidth/2-w/2, 0, w, 64, bitmap);
+  u8g2.drawXBMP(DispWidth/2-w/2, 0, w, DispHeight, bitmap);
   u8g2.sendBuffer();
 } // end oled_drawlogo64h
 
@@ -241,7 +252,7 @@ void oled_drawlogo64h(u8g2_uint_t w, const uint8_t *bitmap) {
 int sd2oled_readndrawlogo(String corename, int effect) {
   // Returns 1 if OK or 0 in case of an Error
   // Let's try to Read the Picture first
-  //u8g2.clearBuffer();
+  // u8g2.clearBuffer();                       // Line commented = Overwrite the Pixels
   String xbmFile = String("/" + corename + ".xbm");  // => "lander.xbm"
   char *filename = (char*)xbmFile.c_str();
   if (!filename) return 0;                     // No Filename given function end here
@@ -261,9 +272,9 @@ int sd2oled_readndrawlogo(String corename, int effect) {
   u8g2_uint_t imageWidth=0, imageHeight=0;
   uint8_t imageBits[DispWidth * DispHeight / 8];  // Make it more universal
   uint16_t pos = 0;
-  const char CR = 10;
-  const char comma = 44;
-  const char curly = 125;
+  const char CR = 10;                             // "\CR"
+  const char comma = 44;                          // ","
+  const char curly = 125;                         // "}"
   
   while(imagefile.available()) {
     next = imagefile.read();
@@ -306,27 +317,18 @@ int sd2oled_readndrawlogo(String corename, int effect) {
   const int logoBytes = DispWidth * DispHeight / 8; // Make it more universal
   int logoByte;
   unsigned char logoByteValue;
-  int a,i,x,y,x2;
-  //u8g2.clearBuffer();                          // Over-Write the actual Picture or Text
+  //int a,i,x,y,x2;
+  int a,x,y,x2;
+
+  // -------------------- Effects -----------------------
   switch (effect) {
-    case 1:
+    case 1:                                      // Particle Effect
       for (a=0; a<10000; a++) {
         logoByte = random(logoBytes); // Value 2048 => Get 0..2047
         logoByteValue = imageBits[logoByte];
-        x = (logoByte % 32) * 8;
-        y = logoByte / 32;
-        for (i=0; i <= 7; i++){
-          if (bitRead(logoByteValue, i)) {
-            // Set Pixel
-            u8g2.drawPixel(x+i,y);
-          }
-          else {
-            // Clear Pixel
-            u8g2.setDrawColor(0);
-            u8g2.drawPixel(x+i,y);
-           u8g2.setDrawColor(1);        
-          }
-        }  // end for
+        x = (logoByte % DispLineBytes) * 8;
+        y = logoByte / DispLineBytes;
+        drawEightBit(x, y, logoByteValue);
         // For different speed
         // if ((a % (a/10)) == 0) u8g2.sendBuffer();
         if (a<=1000) {
@@ -346,152 +348,113 @@ int sd2oled_readndrawlogo(String corename, int effect) {
       u8g2.drawXBM(0, 0, imageWidth, imageHeight, imageBits);
       u8g2.sendBuffer();
 	  break;  // end case 1
+  
     case 2:                                        // Left to Right
-      for (x=0; x<32; x++) {
-        for (y=0; y<64; y++) {
-          logoByteValue = imageBits[x+y*32];
-          for (i=0; i <= 7; i++){
-            if (bitRead(logoByteValue, i)) {
-              // Set Pixel
-              u8g2.drawPixel(x*8+i,y);
-            }
-            else {
-              // Clear Pixel
-              u8g2.setDrawColor(0);
-              u8g2.drawPixel(x*8+i,y);
-              u8g2.setDrawColor(1);        
-            }  // end bit read
-          }  // end for i
+      for (x=0; x<DispLineBytes; x++) {
+        for (y=0; y<DispHeight; y++) {
+          logoByteValue = imageBits[x+y*DispLineBytes];
+          drawEightBit(x*8, y, logoByteValue);
         }  // end for y
         u8g2.sendBuffer();
       }  // end for x
       break;  // end case 2
+    
     case 3:                                       // Top to Bottom
-      for (y=0; y<64; y++) {
-        for (x=0; x<32; x++) {
-          logoByteValue = imageBits[x+y*32];
-          for (i=0; i <= 7; i++){
-            if (bitRead(logoByteValue, i)) {
-              // Set Pixel
-              u8g2.drawPixel(x*8+i,y);
-            }
-            else {
-              // Clear Pixel
-              u8g2.setDrawColor(0);
-              u8g2.drawPixel(x*8+i,y);
-              u8g2.setDrawColor(1);        
-            }  // end bit read
-          }  // end for i
+      for (y=0; y<DispHeight; y++) {
+        for (x=0; x<DispLineBytes; x++) {
+          logoByteValue = imageBits[x+y*DispLineBytes];
+          drawEightBit(x*8, y, logoByteValue);
         }  // end for y
         u8g2.sendBuffer();
       }  // end for x
       break;  // end case 3
-    case 4:                                        // Left to Right Diagonally
-      for (x=0; x<96; x++) {
-        for (y=0; y<64; y++) {
-          // x2 calculation = Angle
-          x2=x-y;
-          //x2=x-y/2;
-          //x2=x-y/4;
-          if ((x2>=0) && (x2<32)) {
-            logoByteValue = imageBits[x2+y*32];
-            for (i=0; i <= 7; i++){
-              if (bitRead(logoByteValue, i)) {
-                // Set Pixel
-                u8g2.drawPixel(x2*8+i,y);
-              }
-              else {
-                // Clear Pixel
-                u8g2.setDrawColor(0);
-                u8g2.drawPixel(x2*8+i,y);
-                u8g2.setDrawColor(1);        
-              }  // end bit read
-            }  // end if x2
-          }  // end for i
+
+    case 4:                                        // Right to Left
+      for (x=DispLineBytes-1; x>=0; x--) {
+        for (y=0; y<DispHeight; y++) {
+          logoByteValue = imageBits[x+y*DispLineBytes];
+          drawEightBit(x*8, y, logoByteValue);
         }  // end for y
         u8g2.sendBuffer();
       }  // end for x
       break;  // end case 4
-    case 5:                                     // Even Line Left to Right / Odd Line Right to Left
-      for (x=0; x<=31; x++) {
-        for (y=0; y<=63; y++) {
-          if ((y % 2) == 0) {
-            x2 = x;
-          }
-          else {
-            x2 = x*-1 + 31;
-          }
-          logoByteValue = imageBits[x2+y*32];
-          for (i=0; i <= 7; i++){
-            if (bitRead(logoByteValue, i)) {
-              // Set Pixel
-              u8g2.drawPixel(x2*8+i,y);
-            }
-            else {
-              // Clear Pixel
-              u8g2.setDrawColor(0);
-              u8g2.drawPixel(x2*8+i,y);
-              u8g2.setDrawColor(1);        
-            }  // end bit read
-          }  // end for i
+
+    case 5:                                       // Bottom to Top
+      for (y=DispHeight-1; y>=0; y--) {
+        for (x=0; x<DispLineBytes; x++) {
+          logoByteValue = imageBits[x+y*DispLineBytes];
+          drawEightBit(x*8, y, logoByteValue);
         }  // end for y
         u8g2.sendBuffer();
       }  // end for x
       break;  // end case 5
-    case 6:                                     // Top Part Left to Right / Bottom Part Right to Left
-      for (x=0; x<=31; x++) {
-        for (y=0; y<=63; y++) {
-          if (y < 32) {
-            x2 = x;
-          }
-          else {
-            x2 = x*-1 + 31;
-          }
-          logoByteValue = imageBits[x2+y*32];
-          for (i=0; i <= 7; i++){
-            if (bitRead(logoByteValue, i)) {
-              // Set Pixel
-              u8g2.drawPixel(x2*8+i,y);
-            }
-            else {
-              // Clear Pixel
-              u8g2.setDrawColor(0);
-              u8g2.drawPixel(x2*8+i,y);
-              u8g2.setDrawColor(1);        
-            }  // end bit read
-          }  // end for i
+
+    case 6:                                        // Left to Right Diagonally
+      for (x=0; x<DispWidth+DispHeight; x++) {
+        for (y=0; y<DispHeight; y++) {
+          // x2 calculation = Angle
+          //x2=x-y;                                // Long Diagonal
+          //x2=x-y/2;                              // Middle Diagonal
+          x2=x-y/4;                                // Short Diagonal
+          if ((x2>=0) && (x2<DispLineBytes)) {
+            logoByteValue = imageBits[x2+y*DispLineBytes];
+            drawEightBit(x2*8, y, logoByteValue);
+          }  // end for x2
         }  // end for y
         u8g2.sendBuffer();
       }  // end for x
       break;  // end case 6
-    case 7:                                     // Four Parts Left to Right to Left to Right...
-      for (a=0; a<=3; a++) {
-        for (x=0; x<=31; x++) {
-          for (y=0; y<=15; y++) {
+    
+    case 7:                                     // Even Line Left to Right / Odd Line Right to Left
+      for (x=0; x<DispLineBytes; x++) {
+        for (y=0; y<DispHeight; y++) {
+          if ((y % 2) == 0) {
+            x2 = x;
+          }
+          else {
+            x2 = x*-1 + DispLineBytes -1;
+          }
+          logoByteValue = imageBits[x2+y*DispLineBytes];
+          drawEightBit(x2*8, y, logoByteValue);
+        }  // end for y
+        u8g2.sendBuffer();
+      }  // end for x
+      break;  // end case 7
+    
+    case 8:                                     // Top Part Left to Right / Bottom Part Right to Left
+      for (x=0; x<DispLineBytes; x++) {
+        for (y=0; y<=63; y++) {
+          if (y < DispLineBytes) {
+            x2 = x;
+          }
+          else {
+            x2 = x*-1 + DispLineBytes -1;
+          }
+          logoByteValue = imageBits[x2+y*DispLineBytes];
+          drawEightBit(x2*8, y, logoByteValue);
+        }  // end for y
+        u8g2.sendBuffer();
+      }  // end for x
+      break;  // end case 8
+    
+    case 9:                                     // Four Parts Left to Right to Left to Right...
+      for (a=0; a<4; a++) {
+        for (x=0; x<DispLineBytes; x++) {
+          for (y=0; y<16; y++) {
             if ((a%2) == 0) {
               x2 = x;
             }
             else {
-              x2 = x*-1 + 31;
+              x2 = x*-1 + DispLineBytes -1;
             }
-            logoByteValue = imageBits[x2+(y+a*16)*32];
-            for (i=0; i <= 7; i++){
-              if (bitRead(logoByteValue, i)) {
-                // Set Pixel
-                u8g2.drawPixel(x2*8+i,y+a*16);
-              }
-              else {
-                // Clear Pixel
-                u8g2.setDrawColor(0);
-                u8g2.drawPixel(x2*8+i,y+a*16);
-                u8g2.setDrawColor(1);        
-              }  // end bit read
-            }  // end for i
+            logoByteValue = imageBits[x2+(y+a*16)*DispLineBytes];
+            drawEightBit(x2*8, y+a*16, logoByteValue);
           }  // end for y
           u8g2.sendBuffer();
         }  // end for x
       }
-      break;  // end case 7
+      break;  // end case 9
+    
     default:                                     // Just overwrite the whole screen
 	    //u8g2.clearBuffer();
       u8g2.drawXBM(0, 0, imageWidth, imageHeight, imageBits);
@@ -501,5 +464,21 @@ int sd2oled_readndrawlogo(String corename, int effect) {
   
   return 1;                      // Everything OK
 }  // end sd2oled_readndrawlogo
+
+// Draw one XBM Byte, called from the Effects in funtion sd2oled_readndrawlogo
+void drawEightBit(int x, int y, unsigned char b) {
+  for (int i=0; i<8; i++){
+    if (bitRead(b, i)) {
+      // Set Pixel
+      u8g2.drawPixel(x+i,y);
+    }
+    else {
+      // Clear Pixel
+      u8g2.setDrawColor(0);
+      u8g2.drawPixel(x+i,y);
+      u8g2.setDrawColor(1);        
+    }  // end bit read
+  }  // end for j
+}
 
 //========================== The end ================================

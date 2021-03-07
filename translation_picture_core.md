@@ -40,9 +40,11 @@ The Arcade-Table is below this List
 |  |  |  |  |  |  |
 |  |  |  |  |  |  |
   
+Make a copy of the picture with new name to support other versions of the game.  
+Example: Copy dkong3.xbm to dkong3b.xbm or dkong.xbm to ckongdks.xbm.  
 | XBM/Core Name | Arcade-System |
 | :--- | :--- |
-| asteroid.xbm | Astreroids |
+| asteroid.xbm | Asteroids |
 | centiped3.xbm | Centipede |
 | dkong.xbm  | Donkey Kong |
 | dkong3.xbm  | Donkey Kong 3 |

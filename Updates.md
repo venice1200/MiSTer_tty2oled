@@ -35,7 +35,9 @@ Code Cleanup and 2 more Effects
 Update SD Access from SPI to SD Bus Mode (SD_MMC)
 Depending on the used hardware 1 or 4 Bit Bus Mode is possible.  
 Code Cleanup & More Debug Code added  
-2 new Pictures by **ojaksch**  
+**Standard Version**  
+Update by ojaksch: New Pictures added to the Arduino Code  
+2 new Pictures added  
   
 Adding/Changing Pictures (BMP/XBM) files from time to time  
 ....work in progress  

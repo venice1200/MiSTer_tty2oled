@@ -38,14 +38,39 @@
   -Adding some Menu Effects
   -Code cleanup
 
-  2021-03-07..12
+  2021-03-07
   -Adding some Menu Effects
   -Code cleanup
-  
+
+  2021-03-14
+  -Using/Testing SD_MMC Mode (Should not matter in case of SD Access speed because of too small files. 
+   Board 1: Lolin32 Board with Adafruit Micro SD SPI/SDIO Adapter. SD Access possible using SPI or 1/4.Bit SD Bus Mode.
+   Board 2: TTGO_T8 v1.7.1 with integrated SD Slot. SD Access possible using SPI or 1.Bit SD Bus Mode.
+   
+   SD Adapter Excample Connections:
+   SD Card | ESP32 4-Bit | ESP32 1-Bit (TTGO-T8)
+   ----------------------------------------------
+     D0       2              2
+     D1       4              
+     D2       12             
+     D3       13             13
+     CLK      14             14
+     CMD      15             15
+     VSS      GND            GND
+     VDD      3.3V           3.3V
+
+  -Using #ifdef...#endif for my different HW-Configs (LOLIN32/TTGOT8)
+   Choose ONLY one USE_xxxx Board definition at the beggining of the Sketch
+  -Adding more Debug Infos
+
 */
 
+// Uncomment to get some Debugging Infos over Serial especially for SD Debugging
+//#define XDEBUG
 
-//#define XDEBUG          // Uncomment to get some Debugging Infos over Serial especially for SD Debugging
+// Uncomment ONLY one Board !!
+//#define USE_LOLIN32           // LOLIN32, Arduino: WEMOS LOLIN32
+#define USE_TTGOT8          // TTGO-T8, Arduino: ESP32 Dev Module, xx MB Flash, def. Part. Schema
 
 #include <Arduino.h>
 #include <U8g2lib.h>    // Display Library
@@ -53,28 +78,20 @@
 
 // SD Stuff 
 #include "FS.h"
-#include "SD.h"
-#include "SPI.h"
-
-// TTGO-T8 v1.7 Pins for SD Port SPI Instance
-SPIClass SDSPI(HSPI);
-#define SDSPI_SCLK 14
-#define SDSPI_MISO 2
-#define SDSPI_MOSI 15
-#define SDSPI_SS   13
-#define SDSPI_SPEED 80000000    // 80MHz
+#include "SD_MMC.h"
 
 // ------------ Objects -----------------
-// Display Constructor HW-SPI ESP32-Board (TTGO T8 OLED & SD Card) 180° Rotation => U8G2_R2
-// Using VSPI SCLK = 18, MISO = 19, MOSI = 23, CS = 26 (SS = 5 unused)
-// See SPI Using Multiple Buses fopr more details
+// Display Constructor HW-SPI ESP32-Board (Lolin32) with Adafruit SD_MMC Adapter, 180° Rotation => U8G2_R2
+// Using VSPI SCLK = 18, MISO = 19, MOSI = 23 and...
+#ifdef USE_LOLIN32
+U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 17, /* dc=*/ 16, /* reset=*/ 5);  // Enable U8G2_16BIT in u8g2.h <= !! I M P O R T A N T !!
+#endif
+
+// Display Constructor HW-SPI ESP32-Board (TTGO T8 OLED & integrated SD Card) 180° Rotation => U8G2_R2
+// Using VSPI SCLK = 18, MISO = 19, MOSI = 23 and...
+#ifdef USE_TTGOT8
 U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 26, /* dc=*/ 25, /* reset=*/ 27);  // Enable U8G2_16BIT in u8g2.h <= !! I M P O R T A N T !!
-
-// Display Constructor HW-SPI ESP32-Board (Lolin32) 180° Rotation => U8G2_R2
-// U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 12, /* dc=*/ 13, /* reset=*/ 14);  // Enable U8G2_16BIT in u8g2.h <= !! I M P O R T A N T !!
-
-// Display Constructor HW-SPI Lolin32 0° Rotation => U8G2_R0
-//U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R0, /* cs=*/ 12, /* dc=*/ 13, /* reset=*/ 14);  // Enable U8G2_16BIT in u8g2.h <= !! I M P O R T A N T !!
+#endif
 
 // Display Constructor HW-SPI Mighty Core ATMega 1284 0° Rotation => U8G2_R0
 //U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R0, /* cs=*/ 17, /* dc=*/ 16, /* reset=*/ 18);  // Enable U8G2_16BIT in u8g2.h <= !! I M P O R T A N T !!
@@ -84,7 +101,7 @@ U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 26, /* dc=*/ 25, /* r
 // Strings
 String newCore = "";             // Received Text, from MiSTer without "\n\r" currently (2021-01-11)
 String oldCore = "";             // Buffer String for Text change detection
-char *newCoreChar;
+char *newCoreChar;               
 
 // Display Vars
 u8g2_uint_t DispWidth, DispHeight, DispLineBytes;
@@ -100,7 +117,7 @@ void setup(void) {
   //Serial.begin(9600);              // 9600 for MiSTer ttyUSBx Device FTDI Chip or manual set Speed
   Serial.begin(57600);           // 57600 Common Modem Speed :-)
   //Serial.begin(115200);          // 115200 for MiSTer ttyUSBx Device CP2102 Chip on ESP32
-  
+
   //Init Random Generator with empty Analog Port value
   randomSeed(analogRead(34));
 
@@ -116,29 +133,63 @@ void setup(void) {
   DispWidth = u8g2.getDisplayWidth();
   DispHeight = u8g2.getDisplayHeight();
   DispLineBytes = DispWidth / 8;             // How many Bytes each Dipslay Line (SSD1322: 256Pixel/8Bit = 32Bytes each Line)
-  
-  // SD Init TTGO-T8 v1.7 specific
-  // Create SPI-Class/Instance for SD Card
-  SDSPI.begin(SDSPI_SCLK, SDSPI_MISO, SDSPI_MOSI, SDSPI_SS);     // Pins: SCLK, MISO, MOSI, SS(CS)
 
-  //if(SD.begin(SDSPI_SS, SDSPI)){                               // CS(SS) Pin, SPI Instance
-  if(SD.begin(SDSPI_SS, SDSPI, SDSPI_SPEED)){                    // CS(SS) Pin, SPI Instance, Speed
-    sdCardOK = true;
+// LOLIN32 SD Bus Init
+#ifdef USE_LOLIN32
+  // SD_MMC Init
+  if(!SD_MMC.begin()) {                      // 4 Bit SD Bus Mode works for Lolin32 with Adafruit SD Breakout Board
+    sdCardOK = false;
+#ifdef XDEBUG
+    Serial.println("4-Bit SD Bus Mode Start failed");
+#endif
   }
   else {
-    sdCardOK = false;
+    sdCardOK = true;
+#ifdef XDEBUG
+    Serial.println("4-Bit SD Bus Mode Start OK");
+#endif
   }
+#endif
 
+// TTGO-T8 SD Bus Init
+#ifdef USE_TTGOT8
+  if (!SD_MMC.begin("/sdcard", true)) {              // 1 Bit SD Bus Mode for TTGO_T8 v1.7.1
+  // SD_MMC Init
+#ifdef XDEBUG
+    Serial.println("First 1-Bit SD Bus-Mode Start failed, trying second run.");
+#endif
+    if(!SD_MMC.begin("/sdcard", true)) {         // ... but need 2x SD_MMC.begins
+      sdCardOK = false;
+#ifdef XDEBUG
+      Serial.println("Second 1-Bit SD Bus-Mode Start failed");
+#endif
+    }
+    else {
+      sdCardOK = true;
+#ifdef XDEBUG
+      Serial.println("Second 1-Bit SD Bus-Mode Start OK");
+#endif
+    }
+  }
+  else {
+    sdCardOK = true;
+#ifdef XDEBUG
+    Serial.println("First 1-Bit SD Bus-Mode Start OK");
+#endif
+  }
+#endif
+  
 // **** Debugging Code ****
 #ifdef XDEBUG
-  if (sdCardOK) {
-    Serial.println("Card Mount OK");
-  }
-  else {
-    Serial.println("Card Mount Failed");
-  }
-  
-  sdCardType = SD.cardType();
+  //if (sdCardOK) {
+  //  Serial.println("Card Mount OK");
+  //}
+  //else {
+  //  Serial.println("Card Mount Failed");
+  //}
+
+  // Read Card Type
+  sdCardType = SD_MMC.cardType();
 
   if(sdCardType == CARD_NONE){
     Serial.println("No SD card attached");
@@ -157,8 +208,8 @@ void setup(void) {
     else {
       Serial.println("UNKNOWN");
     }
-    Serial.printf("Total space: %lluMB\n", SD.totalBytes() / (1024 * 1024));
-    Serial.printf("Used space: %lluMB\n", SD.usedBytes() / (1024 * 1024));
+    Serial.printf("Total space: %lluMB\n", SD_MMC.totalBytes() / (1024 * 1024));
+    Serial.printf("Used space: %lluMB\n", SD_MMC.usedBytes() / (1024 * 1024));
   }
 #endif
 // **** Debbuging Code ****
@@ -273,13 +324,13 @@ int sd2oled_readndrawlogo(String corename, int effect) {
   Serial.print("Reading File: ");
   Serial.println(filename);
 #endif
-  if (!SD.exists(filename)) {                  // No File found on SD function end here
+  if (!SD_MMC.exists(filename)) {                  // No File found on SD function end here
 #ifdef XDEBUG
     Serial.println("File not found");
 #endif
     return 0;
   }
-  File imagefile = SD.open(filename);
+  File imagefile = SD_MMC.open(filename);
   String xbm;
   char next;
   u8g2_uint_t imageWidth=0, imageHeight=0;

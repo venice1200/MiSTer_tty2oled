@@ -30,11 +30,15 @@
    Using now "getAscent" instead of "getMaxCharHeight" for Text Y-Position calculation.
   -Show a small "SD-Icon" on Startup Screen instead of the "dot" if SD Card was detected.
 
-  2021-02-16
+  2021-02-16 (not released)
   -Make it more Universal 
    Add DispLineBytes , using more DispHeight & DispWidth instead of fixed Values
 
   2021-03-06
+  -Adding some Menu Effects
+  -Code cleanup
+
+  2021-03-07..12
   -Adding some Menu Effects
   -Code cleanup
   
@@ -58,10 +62,12 @@ SPIClass SDSPI(HSPI);
 #define SDSPI_MISO 2
 #define SDSPI_MOSI 15
 #define SDSPI_SS   13
-//#define SDSPI_SPEED 27000000
+#define SDSPI_SPEED 80000000    // 80MHz
 
 // ------------ Objects -----------------
 // Display Constructor HW-SPI ESP32-Board (TTGO T8 OLED & SD Card) 180° Rotation => U8G2_R2
+// Using VSPI SCLK = 18, MISO = 19, MOSI = 23, CS = 26 (SS = 5 unused)
+// See SPI Using Multiple Buses fopr more details
 U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 26, /* dc=*/ 25, /* reset=*/ 27);  // Enable U8G2_16BIT in u8g2.h <= !! I M P O R T A N T !!
 
 // Display Constructor HW-SPI ESP32-Board (Lolin32) 180° Rotation => U8G2_R2
@@ -78,7 +84,6 @@ U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 26, /* dc=*/ 25, /* r
 // Strings
 String newCore = "";             // Received Text, from MiSTer without "\n\r" currently (2021-01-11)
 String oldCore = "";             // Buffer String for Text change detection
-//char newCoreChar[30]="";        // Array of char needed for some functions, see below "newCore.toCharArray"
 char *newCoreChar;
 
 // Display Vars
@@ -113,10 +118,11 @@ void setup(void) {
   DispLineBytes = DispWidth / 8;             // How many Bytes each Dipslay Line (SSD1322: 256Pixel/8Bit = 32Bytes each Line)
   
   // SD Init TTGO-T8 v1.7 specific
-  // Create SPI Instance for SD Card
+  // Create SPI-Class/Instance for SD Card
   SDSPI.begin(SDSPI_SCLK, SDSPI_MISO, SDSPI_MOSI, SDSPI_SS);     // Pins: SCLK, MISO, MOSI, SS(CS)
 
-  if(SD.begin(SDSPI_SS, SDSPI)){                                 // CS(SS) Pin, SPI Instance
+  //if(SD.begin(SDSPI_SS, SDSPI)){                               // CS(SS) Pin, SPI Instance
+  if(SD.begin(SDSPI_SS, SDSPI, SDSPI_SPEED)){                    // CS(SS) Pin, SPI Instance, Speed
     sdCardOK = true;
   }
   else {
@@ -137,23 +143,23 @@ void setup(void) {
   if(sdCardType == CARD_NONE){
     Serial.println("No SD card attached");
   }
-  
-  Serial.print("SD Card Type: ");
-  if(sdCardType == CARD_MMC){
-    Serial.println("MMC");
-  } 
-  else if(sdCardType == CARD_SD){
-     Serial.println("SDSC");
-  } 
-  else if(sdCardType == CARD_SDHC){
-    Serial.println("SDHC");
-  } 
   else {
-    Serial.println("UNKNOWN");
+    Serial.print("SD Card Type: ");
+    if(sdCardType == CARD_MMC){
+      Serial.println("MMC");
+    } 
+    else if(sdCardType == CARD_SD){
+       Serial.println("SDSC");
+    } 
+    else if(sdCardType == CARD_SDHC){
+      Serial.println("SDHC");
+    } 
+    else {
+      Serial.println("UNKNOWN");
+    }
+    Serial.printf("Total space: %lluMB\n", SD.totalBytes() / (1024 * 1024));
+    Serial.printf("Used space: %lluMB\n", SD.usedBytes() / (1024 * 1024));
   }
-
-  Serial.printf("Total space: %lluMB\n", SD.totalBytes() / (1024 * 1024));
-  Serial.printf("Used space: %lluMB\n", SD.usedBytes() / (1024 * 1024));
 #endif
 // **** Debbuging Code ****
 
@@ -166,6 +172,11 @@ void loop(void) {
 
   if (Serial.available()) {
     newCore = Serial.readStringUntil('\n');                  // Read string from serial until NewLine "\n" (from MiSTer's echo command) is detected or timeout (1000ms) happens.
+#ifdef XDEBUG
+    Serial.printf("Received Corename: %s\n", (char*)newCore.c_str());
+    //Serial.print("Received Corename: ");
+    //Serial.println(newCore);
+#endif
   }  // end serial available
     
   if (newCore!=oldCore) {                                    // Proceed only if Core Name changed
@@ -180,16 +191,18 @@ void loop(void) {
     //else if (newCore=="MENU")         oled_misterlogo(random(0,7));  // MiSTer Logo Effects 0-3
     
     // Show Menu Effects manually
-    else if (newCore=="MENU0")        sd2oled_readndrawlogo("MENU",0);  // Show MiSTer MENU Logo with no Effect
-    else if (newCore=="MENU1")        sd2oled_readndrawlogo("MENU",1);  // Show MiSTer MENU Logo with Particle Effect
-    else if (newCore=="MENU2")        sd2oled_readndrawlogo("MENU",2);  // Show MiSTer MENU Logo drawn from left to right
-    else if (newCore=="MENU3")        sd2oled_readndrawlogo("MENU",3);  // Show MiSTer MENU Logo drawn from top to bottom
-    else if (newCore=="MENU4")        sd2oled_readndrawlogo("MENU",4);  // Show MiSTer MENU Logo drawn from right to left
-    else if (newCore=="MENU5")        sd2oled_readndrawlogo("MENU",5);  // Show MiSTer MENU Logo drawn from bottom to top
-    else if (newCore=="MENU6")        sd2oled_readndrawlogo("MENU",6);  // Show MiSTer MENU Logo drawn from left to right but diagonally
-    else if (newCore=="MENU7")        sd2oled_readndrawlogo("MENU",7);  // Show MiSTer MENU Logo drawn even line left to right / odd line right to left
-    else if (newCore=="MENU8")        sd2oled_readndrawlogo("MENU",8);  // Show MiSTer MENU Logo drawn top part left to right / bottom part right to left 
-    else if (newCore=="MENU9")        sd2oled_readndrawlogo("MENU",9);  // Show MiSTer MENU Logo drawn four parts left to right to left to right
+    else if (newCore=="MENU0")        sd2oled_readndrawlogo("MENU",0);   // Show MiSTer MENU Logo with no Effect
+    else if (newCore=="MENU1")        sd2oled_readndrawlogo("MENU",1);   // Show MiSTer MENU Logo with Particle Effect
+    else if (newCore=="MENU2")        sd2oled_readndrawlogo("MENU",2);   // Show MiSTer MENU Logo drawn from left to right
+    else if (newCore=="MENU3")        sd2oled_readndrawlogo("MENU",3);   // Show MiSTer MENU Logo drawn from top to bottom
+    else if (newCore=="MENU4")        sd2oled_readndrawlogo("MENU",4);   // Show MiSTer MENU Logo drawn from right to left
+    else if (newCore=="MENU5")        sd2oled_readndrawlogo("MENU",5);   // Show MiSTer MENU Logo drawn from bottom to top
+    else if (newCore=="MENU6")        sd2oled_readndrawlogo("MENU",6);   // Show MiSTer MENU Logo drawn from left to right but diagonally
+    else if (newCore=="MENU7")        sd2oled_readndrawlogo("MENU",7);   // Show MiSTer MENU Logo drawn even line left to right / odd line right to left
+    else if (newCore=="MENU8")        sd2oled_readndrawlogo("MENU",8);   // Show MiSTer MENU Logo drawn top part left to right / bottom part right to left 
+    else if (newCore=="MENU9")        sd2oled_readndrawlogo("MENU",9);   // Show MiSTer MENU Logo drawn four parts left to right to left to right
+    else if (newCore=="MENU10")       sd2oled_readndrawlogo("MENU",10);  // Show MiSTer MENU Logo drawn in Circles(Snake)
+    else if (newCore=="MENU11")       sd2oled_readndrawlogo("MENU",11);  // Show MiSTer MENU Logo drawn in 4 Parts
     
     // -- Test Commands --
     else if (newCore=="cls")          u8g2.clear();
@@ -199,7 +212,7 @@ void loop(void) {
     // -- Unidentified Core Name , search SD  --
     else {
       if (sdCardOK) {
-        sdPicShown = sd2oled_readndrawlogo(newCore, random(1,10));  // => 1..9
+        sdPicShown = sd2oled_readndrawlogo(newCore, random(1,12));  // => 1..11
       } // end if sdCardOK
       
       if (!sdCardOK || !sdPicShown) {
@@ -257,7 +270,7 @@ int sd2oled_readndrawlogo(String corename, int effect) {
   char *filename = (char*)xbmFile.c_str();
   if (!filename) return 0;                     // No Filename given function end here
 #ifdef XDEBUG
-  Serial.print("Reading ");
+  Serial.print("Reading File: ");
   Serial.println(filename);
 #endif
   if (!SD.exists(filename)) {                  // No File found on SD function end here
@@ -318,30 +331,30 @@ int sd2oled_readndrawlogo(String corename, int effect) {
   int logoByte;
   unsigned char logoByteValue;
   //int a,i,x,y,x2;
-  int a,x,y,x2;
+  int w,x,y,x2;
 
   // -------------------- Effects -----------------------
   switch (effect) {
     case 1:                                      // Particle Effect
-      for (a=0; a<10000; a++) {
+      for (w=0; w<10000; w++) {
         logoByte = random(logoBytes); // Value 2048 => Get 0..2047
         logoByteValue = imageBits[logoByte];
         x = (logoByte % DispLineBytes) * 8;
         y = logoByte / DispLineBytes;
         drawEightBit(x, y, logoByteValue);
         // For different speed
-        // if ((a % (a/10)) == 0) u8g2.sendBuffer();
-        if (a<=1000) {
-          if ((a % 25)==0) u8g2.sendBuffer();
+        // if ((w % (w/10)) == 0) u8g2.sendBuffer();
+        if (w<=1000) {
+          if ((w % 25)==0) u8g2.sendBuffer();
         }
-        if ((a>1000) && (a<=2000)) {
-          if ((a % 50)==0) u8g2.sendBuffer();
+        if ((w>1000) && (w<=2000)) {
+          if ((w % 50)==0) u8g2.sendBuffer();
         }
-        if ((a>2000) && (a<=5000)) { 
-          if ((a % 200)==0) u8g2.sendBuffer();
+        if ((w>2000) && (w<=5000)) { 
+          if ((w % 200)==0) u8g2.sendBuffer();
         }
-        if (a>5000) { 
-          if ((a % 400)==0) u8g2.sendBuffer();
+        if (w>5000) { 
+          if ((w % 400)==0) u8g2.sendBuffer();
         }
       }
       // Finally overwrite the Screen with fill Size Picture
@@ -423,7 +436,7 @@ int sd2oled_readndrawlogo(String corename, int effect) {
     
     case 8:                                     // Top Part Left to Right / Bottom Part Right to Left
       for (x=0; x<DispLineBytes; x++) {
-        for (y=0; y<=63; y++) {
+        for (y=0; y<DispHeight; y++) {
           if (y < DispLineBytes) {
             x2 = x;
           }
@@ -438,23 +451,95 @@ int sd2oled_readndrawlogo(String corename, int effect) {
       break;  // end case 8
     
     case 9:                                     // Four Parts Left to Right to Left to Right...
-      for (a=0; a<4; a++) {
+      for (w=0; w<4; w++) {
         for (x=0; x<DispLineBytes; x++) {
-          for (y=0; y<16; y++) {
-            if ((a%2) == 0) {
+          for (y=0; y<DispHeight/4; y++) {
+            if ((w%2) == 0) {
               x2 = x;
             }
             else {
               x2 = x*-1 + DispLineBytes -1;
             }
-            logoByteValue = imageBits[x2+(y+a*16)*DispLineBytes];
-            drawEightBit(x2*8, y+a*16, logoByteValue);
+            logoByteValue = imageBits[x2+(y+w*16)*DispLineBytes];
+            drawEightBit(x2*8, y+w*16, logoByteValue);
           }  // end for y
           u8g2.sendBuffer();
         }  // end for x
       }
       break;  // end case 9
-    
+
+      case 10:                                     // Circles(Snake)
+      for (w=0; w<4; w++) {
+        // To the right
+        for (x=0+w; x<DispLineBytes-w; x++) {
+          for (y=0; y<8; y++) {
+            logoByteValue = imageBits[x+(y+w*8)*DispLineBytes];
+            drawEightBit(x*8, y+w*8, logoByteValue);
+          }
+        u8g2.sendBuffer();
+        } 
+        // Down
+        x=DispLineBytes-1-w;
+        for (y=(1+w)*8; y<DispHeight-(1+w)*8; y++) {
+          logoByteValue = imageBits[x+y*DispLineBytes];
+          drawEightBit(x*8, y, logoByteValue);
+          if ((y+1) % 4 == 0) u8g2.sendBuffer();              // Modulo Factor = Speed, 2(slow), 4(middle), 8(fast), none(Hyperspeed)
+        }
+        // To the left
+        for (x=DispLineBytes-1-w; x>=0+w; x--) {
+          for (y=0; y<8; y++) {
+            logoByteValue = imageBits[x+(DispHeight-1-y-w*8)*DispLineBytes];
+            drawEightBit(x*8, DispHeight-1-y-w*8, logoByteValue);
+          }
+        u8g2.sendBuffer();
+        } 
+        // Up
+        x=0+w;
+        for (y=DispHeight-1-(1+w)*8; y>=0+(1+w)*8; y--) {
+          logoByteValue = imageBits[x+y*DispLineBytes];
+          drawEightBit(x*8, y, logoByteValue);
+          if (y % 4 == 0) u8g2.sendBuffer();                  // Modulo Factor = Speed, 2(slow), 4(middle), 8(fast), none(Hyperspeed)
+        }
+      }  // end for w
+      break;  // end case 10
+
+    case 11:                                     // 4 Parts, Top-Left => Bottom-Right => Top-Right => Bottom-Left
+      // Part 1 Top Left
+      for (x=0; x<DispLineBytes/2; x++) {
+        for (y=0; y<DispHeight/2; y++) {
+          logoByteValue = imageBits[x+y*DispLineBytes];
+          drawEightBit(x*8, y, logoByteValue);
+        }  // end for y
+        u8g2.sendBuffer();
+      }  // end for x
+      // Part 2 Bottom Right
+      for (x=DispLineBytes/2; x<DispLineBytes; x++) {
+        for (y=DispHeight/2; y<DispHeight; y++) {
+          logoByteValue = imageBits[x+y*DispLineBytes];
+          drawEightBit(x*8, y, logoByteValue);
+        }  // end for y
+        u8g2.sendBuffer();
+      }  // end for x
+      // Part 3 Top Right
+      //for (x=DispLineBytes/2; x<DispLineBytes; x++) {
+      for (x=DispLineBytes-1; x>=DispLineBytes/2; x--) {
+        for (y=0; y<DispHeight/2; y++) {
+          logoByteValue = imageBits[x+y*DispLineBytes];
+          drawEightBit(x*8, y, logoByteValue);
+        }  // end for y
+        u8g2.sendBuffer();
+      }  // end for x
+      // Part 4 Bottom Left
+      //for (x=0; x<DispLineBytes/2; x++) {
+      for (x=DispLineBytes/2-1; x>=0; x--) {
+        for (y=DispHeight/2; y<DispHeight; y++) {
+          logoByteValue = imageBits[x+y*DispLineBytes];
+          drawEightBit(x*8, y, logoByteValue);
+        }  // end for y
+        u8g2.sendBuffer();
+      }  // end for x
+      break;  // end case 11
+
     default:                                     // Just overwrite the whole screen
 	    //u8g2.clearBuffer();
       u8g2.drawXBM(0, 0, imageWidth, imageHeight, imageBits);

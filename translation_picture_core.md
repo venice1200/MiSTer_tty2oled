@@ -53,10 +53,11 @@ Example: Copy dkong3.xbm to dkong3b.xbm or dkong.xbm to ckongdks.xbm.
 | dkong3.xbm  | Donkey Kong 3 |
 | frogger.xbm  | Frogger | X |
 | gng.xbm | Ghost'n Goblins |
-| llander.xbm | Lunar Lander |
+| llander.xbm | Lunar Lander alternative|
+| llander_alt.xbm | Lunar Lander |
 | mooncrgx.xbm | Moon Cresta |
 | mpatrol.xbm | Moon Patrol |
-| mpatrol_alt.xbm | Alternative Moon Patrol Picture |
+| mpatrol_alt.xbm | Moon Patrol alternative |
 | pong.xbm | Pong |
 | pooyan.xbm  | Pooyan |
 | popeye.xbm  | Popeye |

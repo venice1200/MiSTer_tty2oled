@@ -5,12 +5,12 @@ The Arcade-Table is below this List
 | :--- | :--- | :---: | :---: | :---: | :---: |
 | AO486.xbm | 486DX33 PC System | X |  |  |  |
 | APPLE-I.xbm | Apple I Computer System | X |  |  |  |
-| ARCHIE.xbm | Acrorn Archimedes | X |  |  |  |
+| ARCHIE.xbm | Acorn Archimedes | X |  |  |  |
 | ATARI2600.xbm | Atari 2600 Console |  | X |  |  |
 | ATARI5200.xbm | Atari 5200 Console (see ATARI800) |  | X |  |  |
 | ATARI7800.xbm | Atari 7800 Console (unreleased) |  | X |  |  |
 | ATARI800.xbm | Atari 800/800XL/65XE/130XE and Atari 5200 | X | X |  |  |
-| AcornAtom.xbm  | Acron Atom | X |  |  |  |
+| AcornAtom.xbm  | Acorn Atom | X |  |  |  |
 | Apple-II.xbm | Apple IIe Computer System | X |  |  |  |
 | Astrocade.xbm | Bally Astrocade Console |  | X |  |  |
 | AtariLynx.xbm | Atari Lynx Console (unreleased) |  | X |  |  |

@@ -56,6 +56,7 @@ Example: Copy dkong3.xbm to dkong3b.xbm or dkong.xbm to ckongdks.xbm.
 | llander.xbm | Lunar Lander |
 | mooncrgx.xbm | Moon Cresta |
 | mpatrol.xbm | Moon Patrol |
+| mpatrol_alt.xbm | Alternative Moon Patrol Picture |
 | pong.xbm | Pong |
 | pooyan.xbm  | Pooyan |
 | popeye.xbm  | Popeye |

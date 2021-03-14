@@ -8,11 +8,12 @@ The Arcade-Table is below this List
 | ARCHIE.xbm | Acrorn Archimedes | X |  |  |  |
 | ATARI2600.xbm | Atari 2600 Console |  | X |  |  |
 | ATARI5200.xbm | Atari 5200 Console (see ATARI800) |  | X |  |  |
-| ATARI7800.xbm | Atari 7800 Console (released?) |  | X |  |  |
+| ATARI7800.xbm | Atari 7800 Console (unreleased) |  | X |  |  |
 | ATARI800.xbm | Atari 800/800XL/65XE/130XE and Atari 5200 | X | X |  |  |
 | AcornAtom.xbm  | Acron Atom | X |  |  |  |
 | Apple-II.xbm | Apple IIe Computer System | X |  |  |  |
 | Astrocade.xbm | Bally Astrocade Console |  | X |  |  |
+| AtariLynx.xbm | Atari Lynx Console (unreleased) |  | X |  |  |
 | AtariST.xbm | Atari ST/STe | X |  |  |  |
 | C64.xbm  | Commodore C64 | X |  |  |  |
 | ChannelF.xbm | Fairchild Channel F (released?) |  | X |  |  |
@@ -30,6 +31,7 @@ The Arcade-Table is below this List
 | NES.xbm | Nintendo Entertainment System |  | X |  |  |
 | ODYSSEY2.xbm | Magnavox Odyssey2/Videopac G700 |  | X |  |  |
 | PET2001.xbm  | Commodore PET2001 | X |  |  |  |
+| PlayStation.xbm | Sony PlayStation (unreleased) |  | X |  |  |
 | SG1000.xbm | Alternative for Coleco.xbm |  | X |  |  |
 | SMS.xbm  | Sega Master System and Game Gear |  | X |  |  |
 | SNES.xbm | Super Nintendo Entertainment System |  | X |  |  |
@@ -41,7 +43,8 @@ The Arcade-Table is below this List
 |  |  |  |  |  |  |
   
 Make a copy of the picture with new name to support other versions of the game.  
-Example: Copy dkong3.xbm to dkong3b.xbm or dkong.xbm to ckongdks.xbm.  
+Example: Copy dkong3.xbm to dkong3b.xbm or dkong.xbm to ckongdks.xbm.
+
 | XBM/Core Name | Arcade-System |
 | :--- | :--- |
 | asteroid.xbm | Asteroids |
@@ -53,7 +56,9 @@ Example: Copy dkong3.xbm to dkong3b.xbm or dkong.xbm to ckongdks.xbm.
 | llander.xbm | Lunar Lander |
 | mooncrgx.xbm | Moon Cresta |
 | mpatrol.xbm | Moon Patrol |
+| pong.xbm | Pong |
 | pooyan.xbm  | Pooyan |
+| popeye.xbm  | Popeye |
 | sbrkout.xbm  | Super Breakout |
 | zaxxon.xbm | Zaxxon |
 |  |  |

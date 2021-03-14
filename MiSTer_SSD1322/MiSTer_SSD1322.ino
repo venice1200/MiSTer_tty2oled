@@ -106,7 +106,10 @@ void loop(void) {
     else if (newCore=="llander")      oled_drawlogo64h(llander_logo_width, llander_logo);
     else if (newCore=="mooncrgx")     oled_drawlogo64h(mooncrgx_logo_width, mooncrgx_logo);
     else if (newCore=="mpatrol")      oled_drawlogo64h(mpatrol_logo_width, mpatrol_logo);
+    else if (newCore=="pong")         oled_drawlogo64h(pong_logo_width, pong_logo);
     else if (newCore=="pooyan")       oled_drawlogo64h(pooyan_logo_width, pooyan_logo);
+    // else if (newCore=="pooyan")    oled_drawlogo64h(pooyan_alt_logo_width, pooyan_alt_logo);
+    else if (newCore=="popeye")       oled_drawlogo64h(popeye_logo_width, popeye_logo);
     else if (newCore=="sbrkout")      oled_drawlogo64h(sbrkout_logo_width, sbrkout_logo);
     else if (newCore=="zaxxon")       oled_drawlogo64h(zaxxon_logo_width, zaxxon_logo);
 

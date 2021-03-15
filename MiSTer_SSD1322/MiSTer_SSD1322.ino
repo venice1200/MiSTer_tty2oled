@@ -96,6 +96,8 @@ void loop(void) {
     
     // -- Arcade Cores --
     else if (newCore=="asteroid")     oled_drawlogo64h(asteroids_logo_width, asteroids_logo);
+    else if (newCore=="atetris")      oled_drawlogo64h(atetris_logo_width, atetris_logo);
+    else if (newCore=="atetrisc")     oled_drawlogo64h(atetris_logo_width, atetris_logo);
     else if (newCore=="centiped")     oled_drawlogo64h(centiped3_logo_width, centiped3_logo);
     else if (newCore=="centiped3")    oled_drawlogo64h(centiped3_logo_width, centiped3_logo);
     else if (newCore=="dkong")        oled_drawlogo64h(dkong_logo_width, dkong_logo);
@@ -131,6 +133,7 @@ void loop(void) {
     else if (newCore=="ATARI2600")    oled_drawlogo64h(atari2600_logo_width, atari2600_logo);
     else if (newCore=="ATARI5200")    oled_drawlogo64h(atari5200_logo_width, atari5200_logo);
     else if (newCore=="ATARI7800")    oled_drawlogo64h(atari7800_logo_width, atari7800_logo);
+    else if (newCore=="AtariLynx")    oled_drawlogo64h(atarilynx_logo_width, atarilynx_logo);
     else if (newCore=="Astrocade")    oled_drawlogo64h(astrocade_logo_width, astrocade_logo);
     else if (newCore=="ChannelF")       oled_drawlogo64h(channelf_logo_width, channelf_logo);
     else if (newCore=="Coleco")       oled_drawlogo64h(coleco_logo_width, coleco_logo);
@@ -143,6 +146,7 @@ void loop(void) {
     else if (newCore=="NES")          oled_drawlogo64h(nes_logo_width, nes_logo);
     else if (newCore=="ODYSSEY")      oled_drawlogo64h(odyssey_logo_width, odyssey_logo);
     // else if (newCore=="ODYSSEY")      oled_drawlogo64h(videopac_logo_width, videopac_logo);
+    else if (newCore=="Playstation")  oled_drawlogo64h(playstation_logo_width, playstation_logo);
     else if (newCore=="SMS")          oled_drawlogo64h(sms_logo_width, sms_logo);
     else if (newCore=="SNES")         oled_drawlogo64h(snes_logo_width, snes_logo);
     else if (newCore=="TGFX16")       oled_drawlogo64h(pcengine_logo_width, pcengine_logo);

@@ -48,6 +48,7 @@ Example: Copy dkong3.xbm to dkong3b.xbm or dkong.xbm to ckongdks.xbm.
 | XBM/Core Name | Arcade-System |
 | :--- | :--- |
 | asteroid.xbm | Asteroids |
+| atetris.xbm | Atari Tetris |
 | centiped3.xbm | Centipede |
 | dkong.xbm  | Donkey Kong |
 | dkong3.xbm  | Donkey Kong 3 |
@@ -58,6 +59,7 @@ Example: Copy dkong3.xbm to dkong3b.xbm or dkong.xbm to ckongdks.xbm.
 | mpatrol.xbm | Moon Patrol |
 | pong.xbm | Pong |
 | pooyan.xbm  | Pooyan |
+| pooyan_alt.xbm  | Alternative for Pooyan |
 | popeye.xbm  | Popeye |
 | sbrkout.xbm  | Super Breakout |
 | zaxxon.xbm | Zaxxon |

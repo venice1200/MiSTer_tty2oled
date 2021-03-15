@@ -30,6 +30,14 @@ He uploaded the XBM Files as well so they can be used with the SD Version.
 **SD Version**  
 Code Cleanup and 2 more Effects  
   
+2021-03-14  
+**SD Version**  
+Update SD Access from SPI to SD Bus Mode (SD_MMC)
+Depending on the used hardware 1 or 4 Bit Bus Mode is possible.  
+Code Cleanup & More Debug Code added  
+**Standard Version**  
+Update by ojaksch: New Pictures added to the Arduino Code  
+2 new Pictures added  
   
 Adding/Changing Pictures (BMP/XBM) files from time to time  
 ....work in progress  

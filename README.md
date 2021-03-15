@@ -120,7 +120,7 @@ The following Text-Commands have special functions:
 | sorg | Show Display's Power-On Text |
 | bye | Show Sorgelig's Icon :smile:|
 | MENU | Show MiSTer Logo with randomly picked Effect |
-| MENU0..MENU7 | Show the MiSTer Logo with some Effect |
+| MENU0..MENU11 | Show the MiSTer Logo with some Effect |
   
   
 ### Files and Folders in this Repository

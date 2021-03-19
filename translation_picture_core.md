@@ -1,4 +1,4 @@
-**Translation**  
+** Translations **  
 The Arcade-Table is below this List  
   
 | XBM/Core Name | System | Computer | Console | Other | Utility |
@@ -43,8 +43,8 @@ The Arcade-Table is below this List
 |  |  |  |  |  |  |
   
 Make a copy of the picture with new name to support other versions of the game.  
-Example: Copy dkong3.xbm to dkong3b.xbm or dkong.xbm to ckongdks.xbm.
-
+Example: Copy dkong3.xbm to dkong3b.xbm or dkong.xbm to ckongdks.xbm.  
+  
 | XBM/Core Name | Arcade-System |
 | :--- | :--- |
 | asteroid.xbm | Asteroids |
@@ -53,17 +53,20 @@ Example: Copy dkong3.xbm to dkong3b.xbm or dkong.xbm to ckongdks.xbm.
 | dkong.xbm  | Donkey Kong |
 | dkong3.xbm  | Donkey Kong 3 |
 | frogger.xbm  | Frogger | X |
+| gaunt2.xbm | Gauntlet 2 (?) |
+| gauntlet.xbm | Gauntlet |
 | gng.xbm | Ghost'n Goblins |
-| llander.xbm | Lunar Lander alternative|
+| llander.xbm | Alternative for Lunar Lander |
 | llander_alt.xbm | Lunar Lander |
 | mooncrgx.xbm | Moon Cresta |
 | mpatrol.xbm | Moon Patrol |
-| mpatrol_alt.xbm | Moon Patrol alternative |
+| mpatrol_alt.xbm | Alternative for Moon Patrol |
 | pong.xbm | Pong |
 | pooyan.xbm  | Pooyan |
 | pooyan_alt.xbm  | Alternative for Pooyan |
 | popeye.xbm  | Popeye |
 | sbrkout.xbm  | Super Breakout |
+| xevious.xbm | Xevious |
 | zaxxon.xbm | Zaxxon |
 |  |  |
 |  |  |

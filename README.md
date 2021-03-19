@@ -4,12 +4,12 @@ Software Add-On for the [MiSTer FPGA](https://github.com/MiSTer-devel) showing T
 **NEW!**  
 SD Version with **live** download of Pictures from SD Card (see [below](https://github.com/venice1200/MiSTer_tty2oled/blob/main/README.md#arduino-sd-version) for more details). 
   
-**IMPORTANT NOTES**  
+**IMPORTANT NOTES!**  
 2021-03-19  
-It's likely you need to copy the two needed Script's again to the MiSTer after an MiSTer's OS Update.  
+It's likely you need to **copy the two needed script's again** to the MiSTer after an MiSTer's OS Update.  
   
 2021-02-07  
-Both Arduino Versions (SD and Standard) uses now the Serial Speed of 57600 baud.  
+Both Arduino Versions (SD and Standard) uses now the Serial Speed of **57600 baud**.  
 You need to change/replace the `tty2oled` script on the MiSTer as well to support this.  
   
 **Updates**  

@@ -16,7 +16,7 @@ The Arcade-Table is below this List
 | AtariLynx.xbm | Atari Lynx Console |  | X |  |  |
 | AtariST.xbm | Atari ST/STe | X |  |  |  |
 | C64.xbm  | Commodore C64 | X |  |  |  |
-| ChannelF.xbm | Fairchild Channel F (released?) |  | X |  |  |
+| ChannelF.xbm | Fairchild Channel F (in development, see https://github.com/RW-FPGA-devel-Team/Videopac-G7000) |  | X |  |  |
 | Chess.xbm | Chess Game |  |  | X |  |
 | Coleco.xbm | Colecovision and Sega SG-1000 |  | X |  |  |
 | GAMEBOY.xbm | Gameboy / Gameboy Color |  | X |  |  |

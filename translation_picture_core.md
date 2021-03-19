@@ -13,7 +13,7 @@ The Arcade-Table is below this List
 | AcornAtom.xbm  | Acorn Atom | X |  |  |  |
 | Apple-II.xbm | Apple IIe Computer System | X |  |  |  |
 | Astrocade.xbm | Bally Astrocade Console |  | X |  |  |
-| AtariLynx.xbm | Atari Lynx Console (unreleased) |  | X |  |  |
+| AtariLynx.xbm | Atari Lynx Console |  | X |  |  |
 | AtariST.xbm | Atari ST/STe | X |  |  |  |
 | C64.xbm  | Commodore C64 | X |  |  |  |
 | ChannelF.xbm | Fairchild Channel F (released?) |  | X |  |  |

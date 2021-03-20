@@ -32,13 +32,13 @@ The Arcade-Table is below this List
 | ODYSSEY2.xbm | Magnavox Odyssey2/Videopac G700 |  | X |  |  |
 | PET2001.xbm  | Commodore PET2001 | X |  |  |  |
 | PlayStation.xbm | Sony PlayStation (unreleased) |  | X |  |  |
-| SG1000.xbm | Alternative for Coleco.xbm |  | X |  |  |
+| SG1000.xbm | Alternative for Colecovision and Sega SG-1000 |  | X |  |  |
 | SMS.xbm  | Sega Master System and Game Gear |  | X |  |  |
 | SNES.xbm | Super Nintendo Entertainment System |  | X |  |  |
 | TGFX16.xbm | TurboGrafx 16 / PC Engine |  | X |  |  |
 | VECTREX.xbm | Vectrex |  | X |  |  |
 | VIC20.xbm  | Commodore VIC20 | X |  |  |  |
-| VIDEOPAC.xbm | Alternative for ODYSSEY2.xbm |  | X |  |  |
+| VIDEOPAC.xbm | Alternative Magnavox Odyssey2/Videopac G700 |  | X |  |  |
 |  |  |  |  |  |  |
 |  |  |  |  |  |  |
   

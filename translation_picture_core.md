@@ -53,7 +53,7 @@ Example: Copy dkong3.xbm to dkong3b.xbm or dkong.xbm to ckongdks.xbm.
 | dkong.xbm  | Donkey Kong |
 | dkong3.xbm  | Donkey Kong 3 |
 | frogger.xbm  | Frogger | X |
-| gaunt2.xbm | Gauntlet 2 (?) |
+| gaunt2.xbm | Gauntlet 2 |
 | gauntlet.xbm | Gauntlet |
 | gng.xbm | Ghost'n Goblins |
 | llander.xbm | Alternative for Lunar Lander |

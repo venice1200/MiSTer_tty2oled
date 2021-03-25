@@ -62,8 +62,8 @@ Example: Copy dkong3.xbm to dkong3b.xbm or dkong.xbm to ckongdks.xbm.
 | gauntlet.xbm | Gauntlet |
 | gng.xbm | Ghost'n Goblins |
 | gberet.xbm | Green Beret |
-| llander.xbm | Alternative for Lunar Lander |
-| llander_alt.xbm | Lunar Lander |
+| llander.xbm | Lunar Lander |
+| llander_alt.xbm | Alternative for Lunar Lander |
 | mooncrgx.xbm | Moon Cresta |
 | mpatrol.xbm | Moon Patrol |
 | mpatrol_alt.xbm | Alternative for Moon Patrol |

@@ -15,6 +15,7 @@ The Arcade-Table is below this List
 | Astrocade.xbm | Bally Astrocade Console |  | X |  |  |
 | AtariLynx.xbm | Atari Lynx Console |  | X |  |  |
 | AtariST.xbm | Atari ST/STe | X |  |  |  |
+| C16.xbm  | Commodore C16 & Plus/4 | X |  |  |  |
 | C64.xbm  | Commodore C64 | X |  |  |  |
 | ChannelF.xbm | Fairchild Channel F (in development, see https://github.com/RW-FPGA-devel-Team/Videopac-G7000) |  | X |  |  |
 | Chess.xbm | Chess Game |  |  | X |  |
@@ -23,7 +24,7 @@ The Arcade-Table is below this List
 | GBA.xbm  | Gameboy Advance |  | X |  |  |
 | Genesis.xbm | SEGA Megadrive/Genesis |  | X |  |  |
 | MEMTEST.xbm | SD Ram Test |  |  |  | X |
-| MENU.xbm | Picture for Main Menu |  |  |  |  |
+| MENU.xbm | Picture for the Menu Core |  |  |  |  |
 | MSX.xbm | MSX2/Plus/3 Computer Systems | X |  |  |  |
 | MegaCD.xbm | Sega MegaCD |  | X |  |  |
 | Minimig.xbm | Amiga System (OCS, ECS, AGA) | X |  |  |  |
@@ -47,8 +48,12 @@ Example: Copy dkong3.xbm to dkong3b.xbm or dkong.xbm to ckongdks.xbm.
   
 | XBM/Core Name | Arcade-System |
 | :--- | :--- |
+| 1941.xbm | 1941 Counter Attack (World) |
+| alibaba.xbm | Alibaba 40 Thieves |
 | asteroid.xbm | Asteroids |
+| arkanoid.xbm | Arkanoid (World) |
 | atetris.xbm | Atari Tetris |
+| bombjack.xbm | Bomp Jack |
 | centiped3.xbm | Centipede |
 | dkong.xbm  | Donkey Kong |
 | dkong3.xbm  | Donkey Kong 3 |
@@ -56,6 +61,7 @@ Example: Copy dkong3.xbm to dkong3b.xbm or dkong.xbm to ckongdks.xbm.
 | gaunt2.xbm | Gauntlet 2 |
 | gauntlet.xbm | Gauntlet |
 | gng.xbm | Ghost'n Goblins |
+| gberet.xbm | Green Beret |
 | llander.xbm | Alternative for Lunar Lander |
 | llander_alt.xbm | Lunar Lander |
 | mooncrgx.xbm | Moon Cresta |
@@ -66,6 +72,7 @@ Example: Copy dkong3.xbm to dkong3b.xbm or dkong.xbm to ckongdks.xbm.
 | pooyan_alt.xbm  | Alternative for Pooyan |
 | popeye.xbm  | Popeye |
 | sbrkout.xbm  | Super Breakout |
+| tapper.xbm | Tapper |
 | xevious.xbm | Xevious |
 | zaxxon.xbm | Zaxxon |
 |  |  |

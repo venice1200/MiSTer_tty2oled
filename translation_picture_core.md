@@ -49,35 +49,51 @@ Example: Copy dkong3.xbm to dkong3b.xbm or dkong.xbm to ckongdks.xbm.
 | XBM/Core Name | Arcade-System |
 | :--- | :--- |
 | 1941.xbm | 1941 Counter Attack (World) |
+| 4dwarrio.xbm | 4D Warrior |
 | a.pacman.xbm | Pac Manic Miner Man |
 | alibaba.xbm | Alibaba 40 Thieves |
 | asteroid.xbm | Asteroids |
 | arkanoid.xbm | Arkanoid (World) |
 | atetris.xbm | Atari Tetris |
+| blockgal.xbm | Block Gal |
 | bombjack.xbm | Bomp Jack |
+| bullfgt.xbm | Bull Fight |
 | centiped3.xbm | Centipede |
+| ckong.xbm | Crazy Kong |
+| ckongpt2.xbm | Crazy Kong Part II |
 | clubpacm.xbm | Pac-Man Club |
 | dkong.xbm  | Donkey Kong |
 | dkong3.xbm  | Donkey Kong 3 |
+| flicky.xbm | Flicky |
 | frogger.xbm  | Frogger | X |
 | gaunt2.xbm | Gauntlet 2 |
 | gauntlet.xbm | Gauntlet |
 | gng.xbm | Ghost'n Goblins |
 | gberet.xbm | Green Beret |
+| imsorry.xbm | I'am Sorry |
+| jumpshot.xbm | Jump Shot |
 | llander.xbm | Lunar Lander |
 | llander_alt.xbm | Alternative for Lunar Lander |
+| mario.xbm | Mario Bros. |
 | mooncrgx.xbm | Moon Cresta |
 | mpatrol.xbm | Moon Patrol |
 | mpatrol_alt.xbm | Alternative for Moon Patrol |
+| mrtnt.xbm | Mr. TNT |
+| mrviking.xbm | Mister Viking |
 | mspacman.xbm | Ms. Pac-Man |
 | pacman.xbm | Pac-Man |
 | pacplus.xbm | Pac-Man Plus |
+| pitfall2.xbm | Pitfall II |
 | pong.xbm | Pong |
 | pooyan.xbm  | Pooyan |
 | pooyan_alt.xbm  | Alternative for Pooyan |
 | popeye.xbm  | Popeye |
 | sbrkout.xbm  | Super Breakout |
+| seganinj.xbm | Ninja (Sega) |
+| silkworm.xbm | Silk Worm |
 | tapper.xbm | Tapper |
+| upndown.xbm | Up'n Down |
+| wmatch.xbm | Water Match |
 | xevious.xbm | Xevious |
 | zaxxon.xbm | Zaxxon |
 |  |  |

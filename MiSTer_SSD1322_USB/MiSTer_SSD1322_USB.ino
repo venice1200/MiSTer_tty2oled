@@ -76,8 +76,10 @@
 //#define XDEBUG
 
 // Uncomment ONLY one Board !!
-//#define USE_LOLIN32           // LOLIN32, Arduino: WEMOS LOLIN32
-#define USE_TTGOT8          // TTGO-T8, Arduino: ESP32 Dev Module, xx MB Flash, def. Part. Schema
+//#define USE_LOLIN32W           // LOLIN32, Arduino: WEMOS LOLIN32
+//#define USE_LOLIN32D           // LOLIN32, Arduino: DevKit_C_v4 LOLIN32
+#define USE_TTGOT8             // TTGO-T8, Arduino: ESP32 Dev Module, xx MB Flash, def. Part. Schema
+//#define USE_NODEMCU            // NODEMCU, Arduino: ESP8266 NodeMCU v3
 
 #include <Arduino.h>
 #include <U8g2lib.h>    // Display Library
@@ -86,14 +88,24 @@
 // ------------ Objects -----------------
 // Display Constructor HW-SPI ESP32-Board (Lolin32) with Adafruit SD_MMC Adapter, 180° Rotation => U8G2_R2
 // Using VSPI SCLK = 18, MISO = 19, MOSI = 23 and...
-#ifdef USE_LOLIN32
+#ifdef USE_LOLIN32W
 U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 17, /* dc=*/ 16, /* reset=*/ 5);  // Enable U8G2_16BIT in u8g2.h <= !! I M P O R T A N T !!
+#endif
+
+#ifdef USE_LOLIN32D
+// Display Constructor HW-SPI ESP32-Board (Lolin32) 180° Rotation => U8G2_R2
+U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 12, /* dc=*/ 13, /* reset=*/ 14);  // Enable U8G2_16BIT in u8g2.h <= !! I M P O R T A N T !!
 #endif
 
 // Display Constructor HW-SPI ESP32-Board (TTGO T8 OLED & integrated SD Card) 180° Rotation => U8G2_R2
 // Using VSPI SCLK = 18, MISO = 19, MOSI = 23 and...
 #ifdef USE_TTGOT8
 U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 26, /* dc=*/ 25, /* reset=*/ 27);  // Enable U8G2_16BIT in u8g2.h <= !! I M P O R T A N T !!
+#endif
+
+#ifdef USE_NODEMCU
+// Display Constructor HW-SPI ESP8266-Board (NodeMCU) 180° Rotation => U8G2_R2
+U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 15, /* dc=*/ 4, /* reset=*/ 5);  // Enable U8G2_16BIT in u8g2.h <= !! I M P O R T A N T !!
 #endif
 
 // Display Constructor HW-SPI Mighty Core ATMega 1284 0° Rotation => U8G2_R0
@@ -165,7 +177,11 @@ void loop(void) {
     // -- Get Data via USB from the MiSTer and show them
     else if (newCore=="att")          {}                                 // Do nothing but needed to get an "CORECHANGE" working via USB
     else if (newCore=="CORECHANGE") {                                    // Annoucement to receive Data via USB Serial from the MiSTer
-       usb2oled_readndrawlogo(random(1,12));                             // Receive Picture Data and show them on the OLED
+      #ifdef USE_NODEMCU
+        usb2oled_readndrawlogo(0);
+      #else
+        usb2oled_readndrawlogo(random(1,12));                             // Receive Picture Data and show them on the OLED
+      #endif
     }
     // -- Unidentified Core Name, just write it on screen
     else {

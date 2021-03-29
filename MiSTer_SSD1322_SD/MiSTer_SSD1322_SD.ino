@@ -115,8 +115,8 @@ bool sdPicShown = false;
 void setup(void) {
   // Init Serial
   //Serial.begin(9600);              // 9600 for MiSTer ttyUSBx Device FTDI Chip or manual set Speed
-  Serial.begin(57600);           // 57600 Common Modem Speed :-)
-  //Serial.begin(115200);          // 115200 for MiSTer ttyUSBx Device CP2102 Chip on ESP32
+  //Serial.begin(57600);           // 57600 Common Modem Speed :-)
+  Serial.begin(115200);          // 115200 for MiSTer ttyUSBx Device CP2102 Chip on ESP32
 
   //Init Random Generator with empty Analog Port value
   randomSeed(analogRead(34));
@@ -601,7 +601,7 @@ int sd2oled_readndrawlogo(String corename, int effect) {
   return 1;                      // Everything OK
 }  // end sd2oled_readndrawlogo
 
-// Draw one XBM Byte, called from the Effects in funtion sd2oled_readndrawlogo
+// Draw one XBM Byte, called from the Effects in function sd2oled_readndrawlogo
 void drawEightBit(int x, int y, unsigned char b) {
   for (int i=0; i<8; i++){
     if (bitRead(b, i)) {

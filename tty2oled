@@ -17,9 +17,9 @@
 # 2021-03-29 USB Transfer realized by ojaksch, many thanks.
 #            Modified Arduino Skecth and "tty2oled" for the USB Version of the Arduino Sketch.
 #            All XBM must be stored on the MiSTer in the folder "/media/fat/tty2oledpics".
-#            Instead of sending the Corename the Content of the XBM is send when an XBM exists. Done with the function "sendpic".
+#            Instead of sending the Corename the Content of the XBM is send when an XBM exists. Done with the function "senddata".
 #            Serial Interface set to 115200 Baud now.
-#            "sendpic" checks for an existing Picture-Folder and if the folder exists sends the Picture-Data.
+#            "senddata" checks for an existing Picture-Folder and if the folder exists sends the Picture-Data.
 #            If the Folder does not exist, it's assumed the "SD Version" is used and only the corename is sent. 
 #
 #
@@ -49,7 +49,7 @@ dbug() {
   fi
 }
 
-sendpic() {
+senddata() {
   if [ -d "${picturefolder}" ]; then                                           # Check for am existing Picturefolder and proceedd
     if [ -f "${picturefolder}/${1}.xbm" ]; then                                # Lookup for an existing XBM and proceed
       echo "att" > ${TTYDEV}                                                   # Send an "att" to the MiSTer annoucing an "Corechange"
@@ -83,7 +83,7 @@ if [[ -c "${TTYDEV}" ]]; then						# check for tty device
       if [ "${newcore}" != "${oldcore}" ]; then		# proceed only if Core has changed
 	echo "Send -${newcore}- to ${TTYDEV}."			# some output
 	dbug "Send -${newcore}- to ${TTYDEV}."			# some debug output
-	sendpic ${newcore}								# echo sends text with newline "\n", Arduino use "Serial.readStringUntil('\n');"
+	senddata ${newcore}								# echo sends text with newline "\n", Arduino use "Serial.readStringUntil('\n');"
 	oldcore=${newcore}								# update oldcore variable
       fi											# end if core check
       inotifywait -e modify "${corenamefile}"		# wait here for next change of corename

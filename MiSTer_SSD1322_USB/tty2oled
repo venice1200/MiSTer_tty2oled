@@ -14,13 +14,17 @@
 # 2021-02-07 Changed Speed from 9600 to 57600
 # 2021-02-14 Change Timed Loop to " inotifywait -e modify "/tmp/CORENAME" ".
 #            Makes it much more responsive :-)
+# 2021-03-29 USB Transfer realized by ojaksch, many thanks.
+#            Modified Arduino Skecth and "tty2oled" for the USB Version of the Arduino Sketch.
+#            All XBM must be stored on the MiSTer in the folder "/media/fat/tty2oledpics".
+#            Instead of sending the Corename the Content of the XBM is send when an XBM exists. Done with the function "sendpic".
+#            Serial Interface set to 115200 Baud now.
+#
 #
 
 
 # Define Variables
 TTYDEV="/dev/ttyUSB0"
-#TTYPARAM="9600 cs8 raw -parenb -cstopb -hupcl" # see manpage stty
-#TTYPARAM="57600 cs8 raw -parenb -cstopb -hupcl" # see manpage stty
 TTYPARAM="115200 cs8 raw -parenb -cstopb -hupcl" # see manpage stty
 WAITSECS="0.01"
 newcore=""
@@ -44,15 +48,15 @@ dbug() {
 }
 
 sendpic() {
-  if [ -f "${picturefiles}/${1}.xbm" ]; then
-    echo "att" > ${TTYDEV}
-    sleep ${WAITSECS}
-    echo "CORECHANGE" > ${TTYDEV}
-    sleep ${WAITSECS}
-    tail -n +4 "${picturefiles}/${1}.xbm" | xxd -r -p > ${TTYDEV}
-  else
-    echo "${1}" > ${TTYDEV}
-  fi
+  if [ -f "${picturefiles}/${1}.xbm" ]; then                                 # Lookup for an existing XBM and proceed
+    echo "att" > ${TTYDEV}                                                   # Send an "att" to the MiSTer annoucing an "Corechange"
+    sleep ${WAITSECS}                                                        # sleep needed here ?!
+    echo "CORECHANGE" > ${TTYDEV}                                            # Send "CORECHANGE" annoucing XBM Data to the ESP/Arduino
+    sleep ${WAITSECS}                                                        # sleep needed here ?!
+    tail -n +4 "${picturefiles}/${1}.xbm" | xxd -r -p > ${TTYDEV}            # The Magic, send the Picture-Data up from Line 4 and process them with xdd
+  else                                                                       # No Picture available!
+    echo "${1}" > ${TTYDEV}                                                  # Send just the CORECHANGE
+  fi                                                                         # End if Picture check
 }
 
 

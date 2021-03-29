@@ -64,7 +64,11 @@
   -Adding more Debug Infos
 
   2021-03-29
-  -Adding USB functionality from "ojaksch" and removed SD Stuff.
+  -USB Version Based on SD Version
+   Adding USB functionality from "ojaksch" (Many Thanks) and removed SD Stuff.
+   Receive Picture-Data via Serial connection instead of the Corename from the MiSTer.
+   Speed up Serial Interface to 115200
+   Show a small "USB-Icon" on Startup Screen
 
 */
 
@@ -78,10 +82,6 @@
 #include <Arduino.h>
 #include <U8g2lib.h>    // Display Library
 #include "logo.h"       // The Pics in XMB Format
-
-// SD Stuff 
-//#include "FS.h"
-//#include "SD_MMC.h"
 
 // ------------ Objects -----------------
 // Display Constructor HW-SPI ESP32-Board (Lolin32) with Adafruit SD_MMC Adapter, 180° Rotation => U8G2_R2
@@ -109,19 +109,13 @@ char *newCoreChar;
 // Display Vars
 u8g2_uint_t DispWidth, DispHeight, DispLineBytes;
 
-// SD Vars
-//uint8_t sdCardType;
-//bool sdCardOK = false;
-//bool sdPicShown = false;
 
 // ================ SETUP ==================
 void setup(void) {
   // Init Serial
-  //Serial.begin(9600);              // 9600 for MiSTer ttyUSBx Device FTDI Chip or manual set Speed
-  //Serial.begin(57600);           // 57600 Common Modem Speed :-)
   Serial.begin(115200);          // 115200 for MiSTer ttyUSBx Device CP2102 Chip on ESP32
 
-  //Init Random Generator with empty Analog Port value
+  // Init Random Generator with empty Analog Port value
   randomSeed(analogRead(34));
 
   // Init Display
@@ -168,10 +162,10 @@ void loop(void) {
     else if (newCore=="sorg")         oled_mistertext();
     else if (newCore=="bye")          oled_drawlogo64h(sorgelig_icon64_width, sorgelig_icon64);
     
-    // -- get Data via USB from the MiSTer and show them
-    else if (newCore=="att")          {}                                 // Do nothing, needed for "CORECHANGE" via USB
-    else if (newCore=="CORECHANGE") {                                    // Receive Data via USB Serial from the MiSTer
-       usb2oled_readndrawlogo(random(1,12));
+    // -- Get Data via USB from the MiSTer and show them
+    else if (newCore=="att")          {}                                 // Do nothing but needed to get an "CORECHANGE" working via USB
+    else if (newCore=="CORECHANGE") {                                    // Annoucement to receive Data via USB Serial from the MiSTer
+       usb2oled_readndrawlogo(random(1,12));                             // Receive Picture Data and show them on the OLED
     }
     // -- Unidentified Core Name, just write it on screen
     else {
@@ -203,6 +197,9 @@ void oled_mistertext(void) {
   u8g2.print("MiSTer FPGA");
   u8g2.setCursor(DispWidth/2-(u8g2.getStrWidth("by Sorgelig")/2), ( DispHeight/2 - u8g2.getAscent() ) / 2 + u8g2.getAscent() + DispHeight/2 );
   u8g2.print("by Sorgelig");
+
+  u8g2.drawXBMP(DispWidth-usb_icon16_width-1, 0, usb_icon16_width, usb_icon16_height, usb_icon16);
+  
   u8g2.sendBuffer();
 }
 
@@ -216,17 +213,16 @@ void oled_drawlogo64h(u8g2_uint_t w, const uint8_t *bitmap) {
 
 // --- sd2oled_readndrawlogo -- Read and Draw XBM Picture from SD with some effect, Picture must be sized for the display ----
 int usb2oled_readndrawlogo(int effect) {
-
-  const int logoBytes = DispWidth * DispHeight / 8; // Make it more universal
+  const int logoBytes = DispWidth * DispHeight / 8; // Make it more universal, here 2048
   int logoByte;
   unsigned char logoByteValue;
   int w,x,y,x2;
   unsigned char *logoBin;
   
-  logoBin = (unsigned char *) malloc(logoBytes);
-  Serial.readBytes(logoBin, logoBytes);
+  logoBin = (unsigned char *) malloc(logoBytes);    // Reserve Memory for Picture-Data
+  Serial.readBytes(logoBin, logoBytes);             // Read 2048 Bytes from Serial
   
-
+  // Draw the Picture
   // -------------------- Effects -----------------------
   switch (effect) {
     case 1:                                      // Particle Effect

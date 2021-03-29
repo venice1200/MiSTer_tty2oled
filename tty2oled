@@ -15,9 +15,9 @@
 # 2021-02-14 Change Timed Loop to " inotifywait -e modify "/tmp/CORENAME" ".
 #            Makes it much more responsive :-)
 # 2021-03-29 USB Transfer realized by ojaksch, many thanks.
-#            Modified Arduino Skecth and "tty2oled" for the USB Version of the Arduino Sketch.
+#            Modified Arduino Sketch and "tty2oled" for the USB Version of tty2oled.
 #            All XBM must be stored on the MiSTer in the folder "/media/fat/tty2oledpics".
-#            Instead of sending the Corename the Content of the XBM is send when an XBM exists. Done with the function "senddata".
+#            Instead of sending the Corename the Content of the XBM is send if an XBM exists. Done with the function "senddata".
 #            "senddata" checks for an existing Picture-Folder and if the Folder exists the Picture-Data (if found) or the Corename are sent.
 #            If the Folder does not exist, it's assumed the "SD Version" is used and only the corename is sent. 
 #            Serial Interface set to 115200 Baud now.

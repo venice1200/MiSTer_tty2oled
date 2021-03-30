@@ -93,7 +93,7 @@ U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 17, /* dc=*/ 16, /* r
 #endif
 
 #ifdef USE_LOLIN32D
-// Display Constructor HW-SPI ESP32-Board (Lolin32) 180° Rotation => U8G2_R2
+// Display Constructor HW-SPI ESP32-Board (DevKitC v4, Lolin32) 180° Rotation => U8G2_R2
 U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 12, /* dc=*/ 13, /* reset=*/ 14);  // Enable U8G2_16BIT in u8g2.h <= !! I M P O R T A N T !!
 #endif
 
@@ -104,7 +104,7 @@ U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 26, /* dc=*/ 25, /* r
 #endif
 
 #ifdef USE_NODEMCU
-// Display Constructor HW-SPI ESP8266-Board (NodeMCU) 180° Rotation => U8G2_R2
+// Display Constructor HW-SPI ESP8266-Board (NodeMCU v3) 180° Rotation => U8G2_R2
 U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 15, /* dc=*/ 4, /* reset=*/ 5);  // Enable U8G2_16BIT in u8g2.h <= !! I M P O R T A N T !!
 #endif
 

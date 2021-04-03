@@ -79,6 +79,7 @@ Example: Copy dkong3.xbm to dkong3b.xbm or dkong.xbm to ckongdks.xbm.
 | gberet.xbm | Green Beret |
 | gng.xbm | Ghost'n Goblins |
 | gunfight.xbm | Gun Fight |
+| higemaru.xbm | Pirate Ship Higemaru |
 | imsorry.xbm | I'am Sorry |
 | jumpshot.xbm | Jump Shot |
 | ldrun.xbm | Lode Runner |

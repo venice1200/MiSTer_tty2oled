@@ -50,13 +50,18 @@ Example: Copy dkong3.xbm to dkong3b.xbm or dkong.xbm to ckongdks.xbm.
 | :--- | :--- |
 | 1941.xbm | 1941 Counter Attack (World) |
 | 4dwarrio.xbm | 4D Warrior |
+| a.astdelux.xbm | Asteroids Deluxe |
 | a.pacman.xbm | Pac Manic Miner Man |
 | alibaba.xbm | Alibaba 40 Thieves |
-| asteroid.xbm | Asteroids |
 | arkanoid.xbm | Arkanoid (World) |
+| asteroid.xbm | Asteroids |
+| attackfc.xbm | Attack Force |
 | atetris.xbm | Atari Tetris |
 | blockgal.xbm | Block Gal |
+| blueshrk.xbm | Blue Shark |
 | bombjack.xbm | Bomp Jack |
+| boothill.xbm | Boot Hill |
+| botanic.xbm | Botanic |
 | bullfgt.xbm | Bull Fight |
 | centiped3.xbm | Centipede |
 | ckong.xbm | Crazy Kong |
@@ -64,17 +69,26 @@ Example: Copy dkong3.xbm to dkong3b.xbm or dkong.xbm to ckongdks.xbm.
 | clubpacm.xbm | Pac-Man Club |
 | dkong.xbm  | Donkey Kong |
 | dkong3.xbm  | Donkey Kong 3 |
+| dkongjr.xbm | Donkey Kong Junior |
+| domino.xbm | Domino Man |
 | flicky.xbm | Flicky |
-| frogger.xbm  | Frogger | X |
+| frogger.xbm  | Frogger |
+| galxwars.xbm | Galaxy Wars |
 | gaunt2.xbm | Gauntlet 2 |
 | gauntlet.xbm | Gauntlet |
-| gng.xbm | Ghost'n Goblins |
 | gberet.xbm | Green Beret |
+| gng.xbm | Ghost'n Goblins |
+| gunfight.xbm | Gun Fight |
 | imsorry.xbm | I'am Sorry |
 | jumpshot.xbm | Jump Shot |
+| ldrun.xbm | Lode Runner |
+| ldrun2.xbm | Lode Runner II |
+| ldrun3.xbm | Lode Runner III |
+| ldrun4.xbm | Lode Runner IV |
 | llander.xbm | Lunar Lander |
 | llander_alt.xbm | Alternative for Lunar Lander |
 | mario.xbm | Mario Bros. |
+| maze.xbm | Amazing Maze |
 | mooncrgx.xbm | Moon Cresta |
 | mpatrol.xbm | Moon Patrol |
 | mpatrol_alt.xbm | Alternative for Moon Patrol |
@@ -83,18 +97,27 @@ Example: Copy dkong3.xbm to dkong3b.xbm or dkong.xbm to ckongdks.xbm.
 | mspacman.xbm | Ms. Pac-Man |
 | pacman.xbm | Pac-Man |
 | pacplus.xbm | Pac-Man Plus |
+| pickin.xbm | Pickin' |
 | pitfall2.xbm | Pitfall II |
 | pong.xbm | Pong |
 | pooyan.xbm  | Pooyan |
 | pooyan_alt.xbm  | Alternative for Pooyan |
 | popeye.xbm  | Popeye |
+| sbagman.xbm | Super Bagman |
 | sbrkout.xbm  | Super Breakout |
+| seawolf2.xbm | Sea Wolf II |
 | seganinj.xbm | Ninja (Sega) |
 | silkworm.xbm | Silk Worm |
+| solarfox.xbm | Solar Fox |
+| spcenctr.xbm | Space Encounters |
+| squaitsa.xbm | Squash |
 | tapper.xbm | Tapper |
+| timber.xbm | Timber |
+| ultratnk.xbm | Ultra Tank |
 | upndown.xbm | Up'n Down |
 | wmatch.xbm | Water Match |
 | xevious.xbm | Xevious |
 | zaxxon.xbm | Zaxxon |
+| zigzagb.xbm | Zig Zag |
 |  |  |
 |  |  |

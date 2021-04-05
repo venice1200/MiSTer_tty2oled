@@ -10,18 +10,18 @@ The Arcade-Table is below this List
 | ATARI5200.xbm | Atari 5200 Console (see ATARI800) |  | X |  |  |
 | ATARI7800.xbm | Atari 7800 Console (unreleased) |  | X |  |  |
 | ATARI800.xbm | Atari 800/800XL/65XE/130XE and Atari 5200 | X | X |  |  |
-| AcornAtom.xbm  | Acorn Atom | X |  |  |  |
+| AcornAtom.xbm | Acorn Atom | X |  |  |  |
 | Apple-II.xbm | Apple IIe Computer System | X |  |  |  |
 | Astrocade.xbm | Bally Astrocade Console |  | X |  |  |
 | AtariLynx.xbm | Atari Lynx Console |  | X |  |  |
 | AtariST.xbm | Atari ST/STe | X |  |  |  |
-| C16.xbm  | Commodore C16 & Plus/4 | X |  |  |  |
-| C64.xbm  | Commodore C64 | X |  |  |  |
+| C16.xbm | Commodore C16 & Plus/4 | X |  |  |  |
+| C64.xbm | Commodore C64 | X |  |  |  |
 | ChannelF.xbm | Fairchild Channel F (in development, see https://github.com/RW-FPGA-devel-Team/Videopac-G7000) |  | X |  |  |
 | Chess.xbm | Chess Game |  |  | X |  |
 | Coleco.xbm | Colecovision and Sega SG-1000 |  | X |  |  |
 | GAMEBOY.xbm | Gameboy / Gameboy Color |  | X |  |  |
-| GBA.xbm  | Gameboy Advance |  | X |  |  |
+| GBA.xbm | Gameboy Advance |  | X |  |  |
 | Genesis.xbm | SEGA Megadrive/Genesis |  | X |  |  |
 | MEMTEST.xbm | SD Ram Test |  |  |  | X |
 | MENU.xbm | Picture for the Menu Core |  |  |  |  |
@@ -31,14 +31,14 @@ The Arcade-Table is below this List
 | NEOGEO.xbm | SNK NEO GEO/MVS system |  | X |  |  |
 | NES.xbm | Nintendo Entertainment System |  | X |  |  |
 | ODYSSEY2.xbm | Magnavox Odyssey2/Videopac G700 |  | X |  |  |
-| PET2001.xbm  | Commodore PET2001 | X |  |  |  |
+| PET2001.xbm | Commodore PET2001 | X |  |  |  |
 | PlayStation.xbm | Sony PlayStation (unreleased) |  | X |  |  |
 | SG1000.xbm | Alternative for Colecovision and Sega SG-1000 |  | X |  |  |
-| SMS.xbm  | Sega Master System and Game Gear |  | X |  |  |
+| SMS.xbm | Sega Master System and Game Gear |  | X |  |  |
 | SNES.xbm | Super Nintendo Entertainment System |  | X |  |  |
 | TGFX16.xbm | TurboGrafx 16 / PC Engine |  | X |  |  |
 | VECTREX.xbm | Vectrex |  | X |  |  |
-| VIC20.xbm  | Commodore VIC20 | X |  |  |  |
+| VIC20.xbm | Commodore VIC20 | X |  |  |  |
 | VIDEOPAC.xbm | Alternative Magnavox Odyssey2/Videopac G700 |  | X |  |  |
 |  |  |  |  |  |  |
 |  |  |  |  |  |  |
@@ -67,12 +67,12 @@ Example: Copy dkong3.xbm to dkong3b.xbm or dkong.xbm to ckongdks.xbm.
 | ckong.xbm | Crazy Kong |
 | ckongpt2.xbm | Crazy Kong Part II |
 | clubpacm.xbm | Pac-Man Club |
-| dkong.xbm  | Donkey Kong |
-| dkong3.xbm  | Donkey Kong 3 |
+| dkong.xbm | Donkey Kong |
+| dkong3.xbm | Donkey Kong 3 |
 | dkongjr.xbm | Donkey Kong Junior |
 | domino.xbm | Domino Man |
 | flicky.xbm | Flicky |
-| frogger.xbm  | Frogger |
+| frogger.xbm | Frogger |
 | galxwars.xbm | Galaxy Wars |
 | gaunt2.xbm | Gauntlet 2 |
 | gauntlet.xbm | Gauntlet |
@@ -101,11 +101,11 @@ Example: Copy dkong3.xbm to dkong3b.xbm or dkong.xbm to ckongdks.xbm.
 | pickin.xbm | Pickin' |
 | pitfall2.xbm | Pitfall II |
 | pong.xbm | Pong |
-| pooyan.xbm  | Pooyan |
-| pooyan_alt.xbm  | Alternative for Pooyan |
-| popeye.xbm  | Popeye |
+| pooyan.xbm | Pooyan |
+| pooyan_alt.xbm | Alternative for Pooyan |
+| popeye.xbm | Popeye |
 | sbagman.xbm | Super Bagman |
-| sbrkout.xbm  | Super Breakout |
+| sbrkout.xbm | Super Breakout |
 | seawolf2.xbm | Sea Wolf II |
 | seganinj.xbm | Ninja (Sega) |
 | silkworm.xbm | Silk Worm |

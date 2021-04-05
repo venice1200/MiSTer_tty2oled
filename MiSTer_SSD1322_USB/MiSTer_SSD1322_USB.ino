@@ -116,7 +116,8 @@ U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 15, /* dc=*/ 4, /* re
 // Strings
 String newCore = "";             // Received Text, from MiSTer without "\n\r" currently (2021-01-11)
 String oldCore = "";             // Buffer String for Text change detection
-char *newCoreChar;               
+uint8_t contrast = 200;          // Contrast (brightness) of display, range: 0 (no contrast) to 255 (maximum)
+char *newCoreChar;
 
 // Display Vars
 u8g2_uint_t DispWidth, DispHeight, DispLineBytes;
@@ -132,6 +133,7 @@ void setup(void) {
 
   // Init Display
   u8g2.begin();
+  u8g2.setContrast(contrast);                // Set contrast of display
   u8g2.setDrawColor(1);                      // Set font color to White (default value)
   u8g2.setFontDirection(0);                  // Set drawing direction of all strings or glyphs (default value)
   u8g2.setFontPosBaseline();                 // Set font Reference Position to BASELINE (default value)

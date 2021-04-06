@@ -50,44 +50,69 @@ Example: Copy dkong3.xbm to dkong3b.xbm or dkong.xbm to ckongdks.xbm.
 | :--- | :--- |
 | 1941.xbm | 1941 Counter Attack (World) |
 | 4dwarrio.xbm | 4D Warrior |
+| A.ARKANOID.xbm | Arkanoid (Unlimited Lives) |
 | a.astdelux.xbm | Asteroids Deluxe |
 | a.pacman.xbm | Pac Manic Miner Man |
 | alibaba.xbm | Alibaba 40 Thieves |
+| alienaru.xbm | Alien Arena |
+| anteater.xbm | Anteater |
 | arkanoid.xbm | Arkanoid (World) |
+| arkanoidj.xbm | Arkanoid (Japan) |
+| arkanoiduo.xbm | Arkanoid (US) |
 | asteroid.xbm | Asteroids |
 | attackfc.xbm | Attack Force |
 | atetris.xbm | Atari Tetris |
+| azurian.xbm | Azurian Attack |
+| bagman.xbm | Bagman |
+| battroad.xbm | The Battle Road |
 | blockgal.xbm | Block Gal |
 | blueshrk.xbm | Blue Shark |
 | bombjack.xbm | Bomp Jack |
 | boothill.xbm | Boot Hill |
 | botanic.xbm | Botanic |
 | bullfgt.xbm | Bull Fight |
+| cavenger.xbm | Cosmic Avenger |
+| centiped.xbm | Centipede (revision 4) |
 | centiped3.xbm | Centipede |
 | ckong.xbm | Crazy Kong |
 | ckongpt2.xbm | Crazy Kong Part II |
+| Clean.xbm | Clean Sweep |
 | clubpacm.xbm | Pac-Man Club |
+| crbaloon.xbm | Crazy Balloon |
+| defender.xbm | Defender |
 | dkong.xbm | Donkey Kong |
 | dkong3.xbm | Donkey Kong 3 |
 | dkongjr.xbm | Donkey Kong Junior |
 | domino.xbm | Domino Man |
+| eeekkp.xbm | Eeekk! |
+| eyes.xbm | Eyes |
 | flicky.xbm | Flicky |
+| frenzy.xbm | Frenzy |
 | frogger.xbm | Frogger |
 | galxwars.xbm | Galaxy Wars |
+| gaplus.xbm | Gaplus |
 | gaunt2.xbm | Gauntlet 2 |
 | gauntlet.xbm | Gauntlet |
 | gberet.xbm | Green Beret |
+| gemini.xbm | Gemini Wing |
 | gng.xbm | Ghost'n Goblins |
+| gravitar.xbm | Gravitar |
 | gunfight.xbm | Gun Fight |
 | higemaru.xbm | Pirate Ship Higemaru |
 | imsorry.xbm | I'am Sorry |
+| journey.xbm | Journey |
+| joust.xbm | Joust |
 | jumpshot.xbm | Jump Shot |
+| kingball.xbm | King And Balloon |
+| kungfum.xbm | Kung-Fu Master |
+| ladybug.xbm | Lady Bug |
 | ldrun.xbm | Lode Runner |
 | ldrun2.xbm | Lode Runner II |
 | ldrun3.xbm | Lode Runner III |
 | ldrun4.xbm | Lode Runner IV |
 | llander.xbm | Lunar Lander |
 | llander_alt.xbm | Alternative for Lunar Lander |
+| mappy.xbm | Mappy |
 | mario.xbm | Mario Bros. |
 | maze.xbm | Amazing Maze |
 | mooncrgx.xbm | Moon Cresta |
@@ -118,6 +143,7 @@ Example: Copy dkong3.xbm to dkong3b.xbm or dkong.xbm to ckongdks.xbm.
 | upndown.xbm | Up'n Down |
 | wmatch.xbm | Water Match |
 | xevious.xbm | Xevious |
+| youjyudn.xbm | Youjyuden |
 | zaxxon.xbm | Zaxxon |
 | zigzagb.xbm | Zig Zag |
 |  |  |

@@ -1,5 +1,3 @@
-SHA-1 Digest
-
 8488d3bd3fb354e061082c04fcc5bed5c1a90ca3    PlayStation.xbm
 c270c2095ffa55c720fd6be0b4e9244c48297721    pong.xbm
 c5e464be8abfe6393cdb766637b1d07d9bb15bd8    pooyan.xbm

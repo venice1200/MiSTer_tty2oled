@@ -28,8 +28,10 @@
 #REPOSITORY_URL="https://raw.githubusercontent.com/venice1200/MiSTer_tty2oled/main"
 REPOSITORY_URL="https://github.com/venice1200/MiSTer_tty2oled/raw/main"
 TTY2OLED_PATH="/media/fat/tty2oledpics"
-#NODEBUG="-q"
-NODEBUG="-o /dev/null"
+NODEBUG="-q -o /dev/null"
+
+# Check and remount root writable if neccessary
+[ $(/bin/mount | head -n1 | grep -c "(ro,") = 1 ] && /bin/mount -o remount,rw /
 
 echo -e "\n\e[1;32mtty2oled update script"
 echo -e "----------------------\e[0m"

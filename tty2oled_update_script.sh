@@ -67,4 +67,4 @@ wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM_SD/sha1.txt" -O - | grep ".xbm" 
 echo -e "\e[1;32m(Re-) starting init script\n\e[0m"
 /etc/init.d/S60tty2oled restart
 
-echo -e "\e[1;32mPress a button to continue\n\e[0m"
+echo -e "\e[1;32mPress any key to continue\n\e[0m"

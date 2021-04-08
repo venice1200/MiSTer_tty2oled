@@ -26,11 +26,11 @@
 
 
 REPOSITORY_URL="https://raw.githubusercontent.com/venice1200/MiSTer_tty2oled/main"
-SCRIPTNAME="/tmp/tty2oled_update_script.sh"
+SCRIPTNAME="/tmp/update_tty2oled_script.sh"
 
 echo -e "\n\e[1;32mIf you want to FORCE an update, please re-run with parameter -f\e[0m"
 
-wget -q --no-cache "${REPOSITORY_URL}/tty2oled_update_script.sh" -O ${SCRIPTNAME}
+wget -q --no-cache "${REPOSITORY_URL}/update_tty2oled_script.sh" -O ${SCRIPTNAME}
 case  ${?} in
     0) bash ${SCRIPTNAME} ${1} ;;
     1) echo -e "\e[1;33mwget: \e[1;31mGeneric error code.\e[0m" ;;

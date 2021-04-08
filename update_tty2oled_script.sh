@@ -68,6 +68,9 @@ wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM_SD/sha1.txt" -O - | grep ".xbm" 
     fi
   done
 
+# Check and remount root non-writable if neccessary
+[ $(/bin/mount | head -n1 | grep -c "(rw,") = 1 ] && /bin/mount -o remount,ro /
+
 echo -e "\e[1;32m(Re-) starting init script\n\e[0m"
 /etc/init.d/S60tty2oled restart
 

@@ -67,7 +67,7 @@ wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM_SD/sha1.txt" -O - | grep ".xbm" 
       wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM_SD/${PICNAME}" -O /media/fat/tty2oledpics/${PICNAME}
     fi
   done
-  sync
+sync
 
 # Check and remount root non-writable if neccessary
 [ $(/bin/mount | head -n1 | grep -c "(rw,") = 1 ] && /bin/mount -o remount,ro /

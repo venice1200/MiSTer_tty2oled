@@ -57,7 +57,7 @@ wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM_SD/sha1.txt" -O - | grep ".xbm" 
   while read SHA1PIC; do
     PICNAME=$(echo ${SHA1PIC} | awk '{print $2}')
     CHKSUM1=$(echo ${SHA1PIC,,} | awk '{print $1}')
-    CHKSUM2=$(sha1sum /media/fat/tty2oledpics/${PICNAME} | awk '{print $1}')
+    [ -f /media/fat/tty2oledpics/${PICNAME} ] && CHKSUM2=$(sha1sum /media/fat/tty2oledpics/${PICNAME} | awk '{print $1}')
     if ! [ -f /media/fat/tty2oledpics/${PICNAME} ] || [ "${CHKSUM1}" != "${CHKSUM2}" ] || [ "${1}" = "-f" ]; then
       echo -e "\e[1;33mDownloading picture \e[1;35m${PICNAME}\e[0m"
       wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM_SD/${PICNAME}" -O /media/fat/tty2oledpics/${PICNAME}

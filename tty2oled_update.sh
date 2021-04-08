@@ -25,7 +25,7 @@
 
 
 
-REPOSITORY_URL="https://github.com/venice1200/MiSTer_tty2oled/raw/master"
+REPOSITORY_URL="https://raw.githubusercontent.com/venice1200/MiSTer_tty2oled/main"
 #REPOSITORY_URL="https://github.com/ojaksch/MiSTer_tty2oled/raw/master"
 SCRIPTNAME="/tmp/tty2oled_update_script.sh"
 

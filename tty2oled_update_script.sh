@@ -26,7 +26,6 @@
 
 
 REPOSITORY_URL="https://github.com/venice1200/MiSTer_tty2oled/raw/master"
-# REPOSITORY_URL="https://github.com/ojaksch/MiSTer_tty2oled/raw/master"
 TTY2OLED_PATH="/media/fat/tty2oledpics"
 NODEBUG="-q"
 

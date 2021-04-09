@@ -15,10 +15,13 @@ The Arcade-Table is below this List
 | Astrocade.xbm | Bally Astrocade Console |  | X |  |  |
 | AtariLynx.xbm | Atari Lynx Console |  | X |  |  |
 | AtariST.xbm | Atari ST/STe | X |  |  |  |
+| BBCMicro.xbm | BBC Micro | X  |  |  |  |
 | C16.xbm | Commodore C16 & Plus/4 | X |  |  |  |
 | C64.xbm | Commodore C64 | X |  |  |  |
+| C64_alt.xbm | Commodore C64 | X |  |  |  |
 | ChannelF.xbm | Fairchild Channel F (in development, see https://github.com/RW-FPGA-devel-Team/Videopac-G7000) |  | X |  |  |
 | Chess.xbm | Chess Game |  |  | X |  |
+| CoCo2.xbm | Color Computer 2 and Dragon 32 | X |  |  |  |
 | Coleco.xbm | Colecovision and Sega SG-1000 |  | X |  |  |
 | GAMEBOY.xbm | Gameboy / Gameboy Color |  | X |  |  |
 | GBA.xbm | Gameboy Advance |  | X |  |  |
@@ -33,6 +36,7 @@ The Arcade-Table is below this List
 | ODYSSEY2.xbm | Magnavox Odyssey2/Videopac G700 |  | X |  |  |
 | PET2001.xbm | Commodore PET2001 | X |  |  |  |
 | PlayStation.xbm | Sony PlayStation (unreleased) |  | X |  |  |
+| QL.xbm | Sinclair QL | X |  |  |  |
 | SG1000.xbm | Alternative for Colecovision and Sega SG-1000 |  | X |  |  |
 | SMS.xbm | Sega Master System and Game Gear |  | X |  |  |
 | SNES.xbm | Super Nintendo Entertainment System |  | X |  |  |
@@ -99,6 +103,7 @@ Example: Copy dkong3.xbm to dkong3b.xbm or dkong.xbm to ckongdks.xbm.
 | gravitar.xbm | Gravitar |
 | gunfight.xbm | Gun Fight |
 | higemaru.xbm | Pirate Ship Higemaru |
+| higemaru_alt.xbm | Pirate Ship Higemaru (Alternative) |
 | imsorry.xbm | I'am Sorry |
 | journey.xbm | Journey |
 | joust.xbm | Joust |
@@ -111,24 +116,38 @@ Example: Copy dkong3.xbm to dkong3b.xbm or dkong.xbm to ckongdks.xbm.
 | ldrun3.xbm | Lode Runner III |
 | ldrun4.xbm | Lode Runner IV |
 | llander.xbm | Lunar Lander |
-| llander_alt.xbm | Alternative for Lunar Lander |
+| llander_alt.xbm | Lunar Lander (Alternative) |
 | mappy.xbm | Mappy |
 | mario.xbm | Mario Bros. |
+| maxrpm.xbm | Max RPM |
 | maze.xbm | Amazing Maze |
 | mooncrgx.xbm | Moon Cresta |
+| moonwar.xbm | Moonwar |
+| motos.xbm | Motos |
 | mpatrol.xbm | Moon Patrol |
-| mpatrol_alt.xbm | Alternative for Moon Patrol |
+| mpatrol_alt.xbm | Moon Patrol (Alternative) |
 | mrtnt.xbm | Mr. TNT |
 | mrviking.xbm | Mister Viking |
 | mspacman.xbm | Ms. Pac-Man |
+| myhero.xbm | My Hero |
+| nrallyx.xbm | New Rally-X |
+| orbitron.xbm | Orbitron |
 | pacman.xbm | Pac-Man |
 | pacplus.xbm | Pac-Man Plus |
+| pengo.xbm | Pengo |
 | pickin.xbm | Pickin' |
 | pitfall2.xbm | Pitfall II |
+| pleiadce.xbm | Pleiads (Centuri) |
+| pleiads.xbm | Pleiads |
+| Poly.xbm | PolyPlay |
 | pong.xbm | Pong |
+| ponpoko.xbm | Ponpoko |
 | pooyan.xbm | Pooyan |
-| pooyan_alt.xbm | Alternative for Pooyan |
+| pooyan_alt.xbm | Pooyan (Alternative) |
 | popeye.xbm | Popeye |
+| powerdrv.xbm | Power Drive |
+| puckman.xbm | Puck Man |
+| qbert.xbm | QBert |
 | sbagman.xbm | Super Bagman |
 | sbrkout.xbm | Super Breakout |
 | seawolf2.xbm | Sea Wolf II |

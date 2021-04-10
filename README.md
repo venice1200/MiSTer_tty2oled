@@ -6,4 +6,5 @@ on a (OLED) Display driven by an Arduino which is connected via USB to the MiSTe
   
 Jump to the WIKI 😃 https://github.com/venice1200/MiSTer_tty2oled/wiki for more Information.  
   
+![XBMs](https://img.shields.io/badge/Supported_Cores-149-yellow) 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)

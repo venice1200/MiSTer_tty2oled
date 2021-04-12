@@ -2,16 +2,18 @@
 
 #
 # 2021-01-22 Added -x /usr/bin/tty2oled check to start()
+# 2021-04-12 Added an INI file
 #
 
+. /media/fat/Scripts/tty2oled.ini
 
 # Start
 start() {
-    if [[ -x /usr/bin/tty2oled ]]; then
+    if [[ -x ${${DAEMONSCRIPT}} ]]; then
       echo "Starting tty2oled..."
-      /usr/bin/tty2oled &
+      ${${DAEMONSCRIPT}} &
     else
-      echo "/usr/bin/tty2oled not found!"
+      echo "${${DAEMONSCRIPT}} not found!"
     fi
 }
 

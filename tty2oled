@@ -21,80 +21,69 @@
 #            "senddata" checks for an existing Picture-Folder and if the Folder exists the Picture-Data (if found) or the Corename are sent.
 #            If the Folder does not exist, it's assumed the "SD Version" is used and only the corename is sent. 
 #            Serial Interface set to 115200 Baud now.
+# 2021-04-12 Added an INI file
 #
 #
 
 
-# Define Variables
-TTYDEV="/dev/ttyUSB0"
-TTYPARAM="115200 cs8 raw -parenb -cstopb -hupcl" # see manpage stty
-WAITSECS="0.01"
-newcore=""
-oldcore=""
-corenamefile="/tmp/CORENAME"
-picturefolder="/media/fat/tty2oledpics"
-
-# Debugging
-#debug="true"
-debug="false"
-debugfile="/tmp/tty2oled"
+. /media/fat/Scripts/tty2oled.ini
 
 # Debug function
 dbug() {
   if [ "${debug}" = "true" ]; then
-    if [ ! -e ${debugfile} ]; then			# log file not (!) exists (-e) create it
+    if [ ! -e ${debugfile} ]; then						# log file not (!) exists (-e) create it
       echo "---------- tty2oled Debuglog ----------" > ${debugfile}
     fi 
-    echo "${1}" >> ${debugfile}			# output debug text
+    echo "${1}" >> ${debugfile}							# output debug text
   fi
 }
 
 # USB Send-Picture-Data function
 senddata() {
-  if [ -d "${picturefolder}" ]; then                                           # Check for am existing Picturefolder and proceedd
-    if [ -f "${picturefolder}/${1}.xbm" ]; then                                # Lookup for an existing XBM and proceed
-      echo "att" > ${TTYDEV}                                                   # Send an "att" to the MiSTer annoucing "CORECHANGE"
-      sleep ${WAITSECS}                                                        # sleep needed here ?!
-      echo "CORECHANGE" > ${TTYDEV}                                            # Send "CORECHANGE" annoucing XBM Data to the ESP/Arduino
-      sleep ${WAITSECS}                                                        # sleep needed here ?!
-      tail -n +4 "${picturefolder}/${1}.xbm" | xxd -r -p > ${TTYDEV}           # The Magic, send the Picture-Data up from Line 4 and process them with xxd
-    else                                                                       # No Picture available!
-      echo "${1}" > ${TTYDEV}                                                  # Send just the CORENAME
-    fi                                                                         # End if Picture check
-  else                                                                         # No Picturefolder = SD Version
-    echo "${1}" > ${TTYDEV}                                                    # Send just the CORENAME
-  fi                                                                           # End if Picture check
+  if [ -d "${picturefolder}" ]; then						# Check for am existing Picturefolder and proceedd
+    if [ -f "${picturefolder}/${1}.xbm" ]; then					# Lookup for an existing XBM and proceed
+      echo "att" > ${TTYDEV}							# Send an "att" to the MiSTer annoucing "CORECHANGE"
+      sleep ${WAITSECS}								# sleep needed here ?!
+      echo "CORECHANGE" > ${TTYDEV}						# Send "CORECHANGE" annoucing XBM Data to the ESP/Arduino
+      sleep ${WAITSECS}								# sleep needed here ?!
+      tail -n +4 "${picturefolder}/${1}.xbm" | xxd -r -p > ${TTYDEV}		# The Magic, send the Picture-Data up from Line 4 and process them with xxd
+    else									# No Picture available!
+      echo "${1}" > ${TTYDEV}							# Send just the CORENAME
+    fi										# End if Picture check
+  else										# No Picturefolder = SD Version
+    echo "${1}" > ${TTYDEV}							# Send just the CORENAME
+  fi										# End if Picture check
 }
 
 
 # ** Main **
-if [ -c "${TTYDEV}" ]; then                                                    # check for tty device
-  echo "${TTYDEV} detected, setting Parameter."                                # some output
-  dbug "${TTYDEV} detected, setting Parameter."                                # some debug output
-  stty -F ${TTYDEV} ${TTYPARAM}                                                # set tty parameter
-  sleep ${WAITSECS}                                                            # sleep needed here ?!
-  echo "QWERTZ" > ${TTYDEV}                                                    # First Transmission to clear serial send buffer
-  dbug "Send QWERTZ as first transmission"                                     # some debug output
-  sleep ${WAITSECS}                                                            # sleep needed here ?!
-  while true; do                                                               # main loop
-    if [ -r ${corenamefile} ]; then                                            # proceed if file exists and is readable (-r)
-      newcore=$(cat ${corenamefile})                                           # get CORENAME
-      echo "Read CORENAME: -${newcore}-"                                       # some output
-      dbug "Read CORENAME: -${newcore}-"                                       # some debug output
-      if [ "${newcore}" != "${oldcore}" ]; then                                # proceed only if Core has changed
-	echo "Send -${newcore}- to ${TTYDEV}."                                     # some output
-	dbug "Send -${newcore}- to ${TTYDEV}."                                     # some debug output
-	senddata ${newcore}                                                        # The "Magic"
-	oldcore=${newcore}                                                         # update oldcore variable
-      fi                                                                       # end if core check
-      inotifywait -e modify "${corenamefile}"                                  # wait here for next change of corename
-    else                                                                       # CORENAME file not found
-     echo "File ${corenamefile} not found!"                                    # some output
-     dbug "File ${corenamefile} not found!"                                    # some debug output
-    fi                                                                         # end if /tmp/CORENAME check
-  done                                                                         # end while
-else                                                                           # no tty detected
-  echo "No ${TTYDEV} Device detected, abort."                                  # some output
-  dbug "No ${TTYDEV} Device detected, abort."                                  # some debug output
-fi                                                                             # end if tty check
+if [ -c "${TTYDEV}" ]; then							# check for tty device
+  echo "${TTYDEV} detected, setting Parameter."					# some output
+  dbug "${TTYDEV} detected, setting Parameter."					# some debug output
+  stty -F ${TTYDEV} ${TTYPARAM}							# set tty parameter
+  sleep ${WAITSECS}								# sleep needed here ?!
+  echo "QWERTZ" > ${TTYDEV}							# First Transmission to clear serial send buffer
+  dbug "Send QWERTZ as first transmission"					# some debug output
+  sleep ${WAITSECS}								# sleep needed here ?!
+  while true; do								# main loop
+    if [ -r ${corenamefile} ]; then						# proceed if file exists and is readable (-r)
+      newcore=$(cat ${corenamefile})						# get CORENAME
+      echo "Read CORENAME: -${newcore}-"					# some output
+      dbug "Read CORENAME: -${newcore}-"					# some debug output
+      if [ "${newcore}" != "${oldcore}" ]; then					# proceed only if Core has changed
+	echo "Send -${newcore}- to ${TTYDEV}."					# some output
+	dbug "Send -${newcore}- to ${TTYDEV}."					# some debug output
+	senddata ${newcore}							# The "Magic"
+	oldcore=${newcore}							# update oldcore variable
+      fi									# end if core check
+      inotifywait -e modify "${corenamefile}"					# wait here for next change of corename
+    else									# CORENAME file not found
+     echo "File ${corenamefile} not found!"					# some output
+     dbug "File ${corenamefile} not found!"					# some debug output
+    fi										# end if /tmp/CORENAME check
+  done										# end while
+else										# no tty detected
+  echo "No ${TTYDEV} Device detected, abort."					# some output
+  dbug "No ${TTYDEV} Device detected, abort."					# some debug output
+fi										# end if tty check
 # ** End Main **

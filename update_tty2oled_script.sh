@@ -73,7 +73,7 @@ wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM_SD/sha1.txt" -O - | grep ".xbm" 
 sync
 
 # Check and remount root non-writable if neccessary
-[ ${MOUNTRO} = "true" ] && echo /bin/mount -o remount,ro /
+[ "${MOUNTRO}" = "true" ] && /bin/mount -o remount,ro /
 
 if [ $(pidof tty2oled) ]; then
   echo -e "\e[1;32m(Re-) starting init script\n\e[0m"

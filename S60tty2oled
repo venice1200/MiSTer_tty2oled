@@ -9,11 +9,11 @@
 
 # Start
 start() {
-    if [[ -x ${${DAEMONSCRIPT}} ]]; then
+    if [[ -x ${DAEMONSCRIPT} ]]; then
       echo "Starting tty2oled..."
-      ${${DAEMONSCRIPT}} &
+      ${DAEMONSCRIPT} &
     else
-      echo "${${DAEMONSCRIPT}} not found!"
+      echo "${DAEMONSCRIPT} not found!"
     fi
 }
 

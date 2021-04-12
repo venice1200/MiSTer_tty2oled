@@ -28,17 +28,19 @@
 . /media/fat/Scripts/tty2oled.ini
 
 # Check and remount root writable if neccessary
-[ $(/bin/mount | head -n1 | grep -c "(ro,") = 1 ] && /bin/mount -o remount,rw /
+if [ $(/bin/mount | head -n1 | grep -c "(ro,") = 1 ]; then
+  /bin/mount -o remount,rw /
+  MOUNTRO="true"
+fi
 
 echo -e "\n\e[1;32mtty2oled update script"
 echo -e "----------------------\e[0m"
 
 echo -e "\e[1;32mChecking for available updates...\e[0m"
-[ "${1}" = "-f" ] && echo -e "\e[1;31m-Forced update-\e[0m"
 
 # init script
 wget ${NODEBUG} "${REPOSITORY_URL}/S60tty2oled" -O /tmp/S60tty2oled
-if ! cmp -s /tmp/S60tty2oled ${INITSCRIPT} || [ "${1}" = "-f" ]; then
+if ! cmp -s /tmp/S60tty2oled ${INITSCRIPT}; then
   echo -e "\e[1;33mUpdating init script \e[1;35mS60tty2oled\e[0m"
   mv -f /tmp/S60tty2oled ${INITSCRIPT}
   chmod +x ${INITSCRIPT}
@@ -48,7 +50,7 @@ fi
 
 # daemon
 wget ${NODEBUG} "${REPOSITORY_URL}/tty2oled" -O /tmp/tty2oled
-if ! cmp -s /tmp/tty2oled ${DAEMONSCRIPT} || [ "${1}" = "-f" ]; then
+if ! cmp -s /tmp/tty2oled ${DAEMONSCRIPT}; then
   echo -e "\e[1;33mUpdating daemon \e[1;35mtty2oled\e[0m"
   mv -f /tmp/tty2oled ${DAEMONSCRIPT}
   chmod +x ${DAEMONSCRIPT}
@@ -71,9 +73,11 @@ wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM_SD/sha1.txt" -O - | grep ".xbm" 
 sync
 
 # Check and remount root non-writable if neccessary
-[ $(/bin/mount | head -n1 | grep -c "(rw,") = 1 ] && /bin/mount -o remount,ro /
+[ ${MOUNTRO} = "true" ] && echo /bin/mount -o remount,ro /
 
-echo -e "\e[1;32m(Re-) starting init script\n\e[0m"
-${INITSCRIPT} restart
+if [ $(pidof tty2oled) ]; then
+  echo -e "\e[1;32m(Re-) starting init script\n\e[0m"
+  ${INITSCRIPT} restart
+fi
 
 [ -z "${SSH_TTY}" ] && echo -e "\e[1;32mPress any key to continue\n\e[0m"

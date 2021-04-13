@@ -38,6 +38,7 @@ fi
 
 wget ${NODEBUG} --no-cache "${REPOSITORY_URL}/update_tty2oled.sh" -O /tmp/update_tty2oled.sh
 if ! cmp -s /tmp/update_tty2oled.sh /media/fat/Scripts/update_tty2oled.sh; then
+    echo -e "\e[1;33mDownloading Updater-Update \e[1;35m${PICNAME}\e[0m"
     mv -f /tmp/update_tty2oled.sh /media/fat/Scripts/update_tty2oled.sh
     exec /media/fat/Scripts/update_tty2oled.sh
     exit 255

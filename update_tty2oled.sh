@@ -30,7 +30,11 @@ REPOSITORY_URL="https://raw.githubusercontent.com/venice1200/MiSTer_tty2oled/tes
 SCRIPTNAME="/tmp/update_tty2oled_script.sh"
 NODEBUG="-q -o /dev/null"
 
-! [[ -f /media/fat/Scripts/tty2oled.ini ]] && wget ${NODEBUG} --no-cache "${REPOSITORY_URL}/tty2oled.ini" -O /media/fat/Scripts/tty2oled.ini
+# ! [[ -f /media/fat/Scripts/tty2oled.ini ]] && wget ${NODEBUG} --no-cache "${REPOSITORY_URL}/tty2oled.ini" -O /media/fat/Scripts/tty2oled.ini
+if ! [ -f "${picturefolder}/${1}.xbm" ]; then
+  echo -e "\e[1;33mDownloading INI File \e[1;35m${PICNAME}\e[0m"
+  wget ${NODEBUG} --no-cache "${REPOSITORY_URL}/tty2oled.ini" -O /media/fat/Scripts/tty2oled.ini
+fi
 
 wget ${NODEBUG} --no-cache "${REPOSITORY_URL}/update_tty2oled.sh" -O /tmp/update_tty2oled.sh
 if ! cmp -s /tmp/update_tty2oled.sh /media/fat/Scripts/update_tty2oled.sh; then

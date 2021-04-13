@@ -3,6 +3,7 @@ The Arcade-Table is below this List
   
 | XBM/Core Name | System | Computer | Console | Other | Utility |
 | :--- | :--- | :---: | :---: | :---: | :---: |
+| AliceMC10.xbm | Tandy TRS-80 MC-10 / Matra Alice | X |  |  |  |
 | AO486.xbm | 486DX33 PC System | X |  |  |  |
 | APPLE-I.xbm | Apple I Computer System | X |  |  |  |
 | ARCHIE.xbm | Acorn Archimedes | X |  |  |  |

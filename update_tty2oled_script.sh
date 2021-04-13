@@ -75,11 +75,9 @@ sync
 # Check and remount root non-writable if neccessary
 [ "${MOUNTRO}" = "true" ] && /bin/mount -o remount,ro /
 
-if [ $(pidof tty2oled) ]; then
+if [ $(pidof tty2oled) ] || [ -c "${TTYDEV}" ]; then
   echo -e "\e[1;32m(Re-) starting init script\n\e[0m"
   ${INITSCRIPT} restart
-else
-  ${INITSCRIPT} start
 fi
 
 [ -z "${SSH_TTY}" ] && echo -e "\e[1;32mPress any key to continue\n\e[0m"

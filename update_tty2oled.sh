@@ -21,15 +21,30 @@
 
 
 # Changelog:
-# v1.0	Base updater script. Downloads and executes a second script (Main updater), which in turn completes all tasks.
+# v1.1 Use of an INI file (tty2oled.ini)
+# v1.0 Base updater script. Downloads and executes a second script (Main updater), which in turn completes all tasks.
 
 
-REPOSITORY_URL="https://raw.githubusercontent.com/venice1200/MiSTer_tty2oled/main"
+#REPOSITORY_URL="https://raw.githubusercontent.com/venice1200/MiSTer_tty2oled/main"
+REPOSITORY_URL="https://raw.githubusercontent.com/venice1200/MiSTer_tty2oled/testing"		# Testing branch
 SCRIPTNAME="/tmp/update_tty2oled_script.sh"
-#NODEBUG="-q"
-NODEBUG="-o /dev/null"
+NODEBUG="-q -o /dev/null"
 
-echo -e "\n\e[1;32mIf you want to FORCE an update, please re-run with parameter -f\e[0m"
+# ! [[ -f /media/fat/Scripts/tty2oled.ini ]] && wget ${NODEBUG} --no-cache "${REPOSITORY_URL}/tty2oled.ini" -O /media/fat/Scripts/tty2oled.ini
+if ! [ -f /media/fat/Scripts/tty2oled.ini ]; then
+  echo -e "\e[1;33mDownloading tty2oled.ini File \e[1;35m${PICNAME}\e[0m"
+  wget ${NODEBUG} --no-cache "${REPOSITORY_URL}/tty2oled.ini" -O /media/fat/Scripts/tty2oled.ini
+fi
+
+wget ${NODEBUG} --no-cache "${REPOSITORY_URL}/update_tty2oled.sh" -O /tmp/update_tty2oled.sh
+if ! cmp -s /tmp/update_tty2oled.sh /media/fat/Scripts/update_tty2oled.sh; then
+    echo -e "\e[1;33mDownloading Updater-Update \e[1;35m${PICNAME}\e[0m"
+    mv -f /tmp/update_tty2oled.sh /media/fat/Scripts/update_tty2oled.sh
+    exec /media/fat/Scripts/update_tty2oled.sh
+    exit 255
+else
+    rm /tmp/update_tty2oled.sh
+fi
 
 wget ${NODEBUG} --no-cache "${REPOSITORY_URL}/update_tty2oled_script.sh" -O ${SCRIPTNAME}
 case  ${?} in

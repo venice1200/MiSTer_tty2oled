@@ -40,7 +40,7 @@ dbug() {
 
 # USB Send-Picture-Data function
 senddata() {
-  if [ "${USBMODE}" = "YES" ]; then						# Check the tty2xxx mode
+  if [ "${USBMODE}" = "yes" ]; then						# Check the tty2xxx mode
     if [ -f "${picturefolder}/${1}.xbm" ]; then					# Lookup for an existing XBM and proceed
       echo "att" > ${TTYDEV}							# Send an "att" to the MiSTer annoucing "CORECHANGE"
       sleep ${WAITSECS}								# sleep needed here ?!

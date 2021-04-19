@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# v1.0 - Copyright (c) 2021 Oliver Jaksch, Lars Meuser
+# v1.2 - Copyright (c) 2021 Oliver Jaksch, Lars Meuser
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,19 +21,41 @@
 
 
 # Changelog:
+# v1.2 New parameter in INI file, which selects the used tty2xxx device
 # v1.1 Use of an INI file (tty2oled.ini)
 # v1.0 Base updater script. Downloads and executes a second script (Main updater), which in turn completes all tasks.
 
 
-#REPOSITORY_URL="https://raw.githubusercontent.com/venice1200/MiSTer_tty2oled/main"
-REPOSITORY_URL="https://raw.githubusercontent.com/venice1200/MiSTer_tty2oled/testing"		# Testing branch
+REPOSITORY_URL="https://raw.githubusercontent.com/venice1200/MiSTer_tty2oled/main"
+#REPOSITORY_URL="https://raw.githubusercontent.com/venice1200/MiSTer_tty2oled/testing"		# Testing branch
 SCRIPTNAME="/tmp/update_tty2oled_script.sh"
 NODEBUG="-q -o /dev/null"
 
-# ! [[ -f /media/fat/Scripts/tty2oled.ini ]] && wget ${NODEBUG} --no-cache "${REPOSITORY_URL}/tty2oled.ini" -O /media/fat/Scripts/tty2oled.ini
+
+wget ${NODEBUG} --no-cache "${REPOSITORY_URL}/tty2oled.ini" -O /tmp/tty2oled.ini
 if ! [ -f /media/fat/Scripts/tty2oled.ini ]; then
-  echo -e "\e[1;33mDownloading tty2oled.ini File \e[1;35m${PICNAME}\e[0m"
-  wget ${NODEBUG} --no-cache "${REPOSITORY_URL}/tty2oled.ini" -O /media/fat/Scripts/tty2oled.ini
+  echo -e "\e[1;33mCreating tty2oled.ini File \e[1;35m${PICNAME}\e[0m"
+  mv -f /tmp/tty2oled.ini /media/fat/Scripts/tty2oled.ini
+elif ! [[ "$(head -n1 /tmp/tty2oled.ini)" = "$(head -n1 /media/fat/Scripts/tty2oled.ini)" ]]; then
+  echo -e "\e[1;31mThere is a newer version of \e[1;33m/media/fat/Scripts/tty2oled.ini\e[1;31m availble.\e[0m"
+  echo -e "\e[1;31mIt is very likely that something will break if we continue. You should backup\e[0m"
+  echo -e "\e[1;31myour INI file and move or delete the original afterwards. After re-running\e[0m"
+  echo -e "\e[1;31mthis updater and receiving the new INI file, compare both versions and edit\e[0m"
+  echo -e "\e[1;31mthe new INI file, if necessary.\e[0m"
+  echo -e "\n\e[1;35mIf you would like that we continue and automagically doing the rest,"
+  echo -e "please answer YES\e[0m"
+  read ANSWER
+  if [ "${ANSWER}" = "YES" ]; then
+    mv -f /media/fat/Scripts/tty2oled.ini /media/fat/Scripts/tty2oled.ini.bak
+    mv -f /tmp/tty2oled.ini /media/fat/Scripts/tty2oled.ini
+    echo -e "\n\e[1;33mThese are the differences:\e[0m\n"
+    diff -u /media/fat/Scripts/tty2oled.ini.bak /media/fat/Scripts/tty2oled.ini
+    echo -e "\n\e[1;33mPlease edit the new INI file and make necessary changes,"
+    echo -e "then re-run this updater.\e[0m\n"
+  else
+    echo -e "\n\e[1;33mAborting.\e[0m"
+  fi
+  exit 1
 fi
 
 wget ${NODEBUG} --no-cache "${REPOSITORY_URL}/update_tty2oled.sh" -O /tmp/update_tty2oled.sh

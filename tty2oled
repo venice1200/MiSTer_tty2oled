@@ -40,23 +40,19 @@ dbug() {
 
 # USB Send-Picture-Data function
 senddata() {
-  if [ -d "${picturefolder}" ]; then						# Check for am existing Picturefolder and proceedd
-    if [ "${TTY2DEVMODE}" = "USB" ]; then					# Check the tty2xxx mode
-      if [ -f "${picturefolder}/${1}.xbm" ]; then				# Lookup for an existing XBM and proceed
-	echo "att" > ${TTYDEV}							# Send an "att" to the MiSTer annoucing "CORECHANGE"
-	sleep ${WAITSECS}							# sleep needed here ?!
-	echo "CORECHANGE" > ${TTYDEV}						# Send "CORECHANGE" annoucing XBM Data to the ESP/Arduino
-	sleep ${WAITSECS}							# sleep needed here ?!
-	tail -n +4 "${picturefolder}/${1}.xbm" | xxd -r -p > ${TTYDEV}		# The Magic, send the Picture-Data up from Line 4 and process them with xxd
-      else									# No Picture available!
-	echo "${1}" > ${TTYDEV}							# Send just the CORENAME
-      fi									# End if Picture check
-    elif [ "${TTY2DEVMODE}" = "SD" ]; then
-      echo "${1}" > ${TTYDEV}							# Instruct the device to load the appropriate picture from SD card
-    fi
-  else										# No Picturefolder = SD Version
-    echo "${1}" > ${TTYDEV}							# Send just the CORENAME
-  fi										# End if Picture check
+  if [ "${USBMODE}" = "YES" ]; then						# Check the tty2xxx mode
+    if [ -f "${picturefolder}/${1}.xbm" ]; then					# Lookup for an existing XBM and proceed
+      echo "att" > ${TTYDEV}							# Send an "att" to the MiSTer annoucing "CORECHANGE"
+      sleep ${WAITSECS}								# sleep needed here ?!
+      echo "CORECHANGE" > ${TTYDEV}						# Send "CORECHANGE" annoucing XBM Data to the ESP/Arduino
+      sleep ${WAITSECS}								# sleep needed here ?!
+      tail -n +4 "${picturefolder}/${1}.xbm" | xxd -r -p > ${TTYDEV}		# The Magic, send the Picture-Data up from Line 4 and process them with xxd
+    else									# No Picture available!
+      echo "${1}" > ${TTYDEV}							# Send just the CORENAME
+    fi										# End if Picture check
+  else 										# SD/Standard Mode ? Just send the Corename
+    echo "${1}" > ${TTYDEV}							# Instruct the device to load the appropriate picture from SD card
+  fi
 }
 
 

@@ -71,7 +71,7 @@ if [ "${USBMODE}" = "yes" ]; then
       wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM_SD/${PICNAME}" -O ${picturefolder}/${PICNAME}
     fi
   done
-done
+fi
 
 sync
 

@@ -59,8 +59,9 @@ else
 fi
 
 # pictures
-[[ -d ${picturefolder} ]] || mkdir -m 777 ${picturefolder}
-wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM_SD/sha1.txt" -O - | grep ".xbm" | \
+if [ "${USBMODE}" = "yes" ]; then
+  [[ -d ${picturefolder} ]] || mkdir -m 777 ${picturefolder}
+  wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM_SD/sha1.txt" -O - | grep ".xbm" | \
   while read SHA1PIC; do
     PICNAME=$(echo ${SHA1PIC} | awk '{print $2}')
     CHKSUM1=$(echo ${SHA1PIC,,} | awk '{print $1}')
@@ -70,6 +71,8 @@ wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM_SD/sha1.txt" -O - | grep ".xbm" 
       wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM_SD/${PICNAME}" -O ${picturefolder}/${PICNAME}
     fi
   done
+done
+
 sync
 
 # Check and remount root non-writable if neccessary

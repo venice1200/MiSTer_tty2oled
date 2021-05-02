@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# v1.1 - Copyright (c) 2021 Oliver Jaksch, Lars Meuser
+# v1.2 - Copyright (c) 2021 Oliver Jaksch, Lars Meuser
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 
 
 # Changelog:
+# v1.2 New Option USETEXTPICTURES & some Cosmetics
 # v1.1 Use of an INI file (tty2oled.ini)
 # v1.0 Main updater script which completes all tasks.
 
@@ -61,16 +62,35 @@ fi
 # pictures
 if [ "${USBMODE}" = "yes" ]; then
   [[ -d ${picturefolder} ]] || mkdir -m 777 ${picturefolder}
+  # Text-Pictures
+  if [ "${USETEXTOICTURES}" = "yes" ]; then
+    wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM_Text/sha1.txt" -O - | grep ".xbm" | \
+    while read SHA1PIC; do
+      PICNAME=$(echo ${SHA1PIC} | awk '{print $2}')
+      CHKSUM1=$(echo ${SHA1PIC,,} | awk '{print $1}')
+      [ -f ${picturefolder}/${PICNAME} ] && CHKSUM2=$(sha1sum ${picturefolder}/${PICNAME} | awk '{print $1}')
+      if ! [ -f ${picturefolder}/${PICNAME} ] || ([ "${CHKSUM1}" != "${CHKSUM2}" ] && [ "${OVERWRITE}" = "yes" ]); then
+        echo -e "\e[1;33mDownloading Text-Picture \e[1;35m${PICNAME}\e[0m"
+        wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM_Text/${PICNAME}" -O ${picturefolder}/${PICNAME}
+      fi
+    done
+  else
+    echo -e "\e[1;33mSkipping Text-Pictures download because of USETEXTOICTURES INI-Option \e[1;35m${PICNAME}\e[0m"
+  fi
+  
+  # Graphics-Pictures
   wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM/sha1.txt" -O - | grep ".xbm" | \
   while read SHA1PIC; do
     PICNAME=$(echo ${SHA1PIC} | awk '{print $2}')
     CHKSUM1=$(echo ${SHA1PIC,,} | awk '{print $1}')
     [ -f ${picturefolder}/${PICNAME} ] && CHKSUM2=$(sha1sum ${picturefolder}/${PICNAME} | awk '{print $1}')
     if ! [ -f ${picturefolder}/${PICNAME} ] || ([ "${CHKSUM1}" != "${CHKSUM2}" ] && [ "${OVERWRITE}" = "yes" ]); then
-      echo -e "\e[1;33mDownloading picture \e[1;35m${PICNAME}\e[0m"
-      wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM_SD/${PICNAME}" -O ${picturefolder}/${PICNAME}
+      echo -e "\e[1;33mDownloading Picture \e[1;35m${PICNAME}\e[0m"
+      wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM/${PICNAME}" -O ${picturefolder}/${PICNAME}
     fi
   done
+else
+  echo -e "\e[1;33mSkipping Picture Download because of USBMODE INI-Option \e[1;35m${PICNAME}\e[0m"
 fi
 
 sync

@@ -75,7 +75,7 @@ if [ "${USBMODE}" = "yes" ]; then
       fi
     done
   else
-    echo -e "\e[1;33mSkipping Text-Pictures download because of USETEXTOICTURES INI-Option \e[1;35m${PICNAME}\e[0m"
+    echo -e "\e[1;33mSkipping Text-Pictures download because of USETEXTPICTURES INI-Option \e[1;35m${PICNAME}\e[0m"
   fi
   
   # Graphics-Pictures

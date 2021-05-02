@@ -63,7 +63,7 @@ fi
 if [ "${USBMODE}" = "yes" ]; then
   [[ -d ${picturefolder} ]] || mkdir -m 777 ${picturefolder}
   # Text-Based Pictures download
-  if [ "${USETEXTPICTURES}" = "yes" ]; then
+  if [ "${USETEXTPICTURE}" = "yes" ]; then
     wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM_Text/sha1.txt" -O - | grep ".xbm" | \
     while read SHA1PIC; do
       PICNAME=$(echo ${SHA1PIC} | awk '{print $2}')

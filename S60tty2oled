@@ -10,7 +10,7 @@
 # Start
 start() {
     if [[ -x ${DAEMONSCRIPT} ]]; then
-      echo "Starting tty2oled..."
+      echo "Starting ${DAEMONNAME}..."
       ${DAEMONSCRIPT} &
     else
       echo "${DAEMONSCRIPT} not found!"
@@ -19,8 +19,8 @@ start() {
 
 # Stop
 stop() {
-    echo "Stopping tty2oled..."
-    killall tty2oled
+    echo "Stopping ${DAEMONNAME}..."
+    killall ${DAEMONNAME}
 }
 
 case "$1" in

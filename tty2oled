@@ -22,6 +22,7 @@
 #            If the Folder does not exist, it's assumed the "SD Version" is used and only the corename is sent. 
 #            Serial Interface set to 115200 Baud now.
 # 2021-04-12 Added an INI file
+# 2021-05-05 Added sending Contrast Value
 #
 #
 
@@ -38,11 +39,21 @@ dbug() {
   fi
 }
 
+# Send-Contrast-Data function
+sendcontrast() {
+  echo "att" > ${TTYDEV}                                                    # Send an "att" to the MiSTer annoucing another Command
+  sleep ${WAITSECS}                                                         # sleep needed here ?!
+  echo "CONTRAST" > ${TTYDEV}                                               # Send "CONTRAST" annoucing the OLED Contrast Data as next
+  sleep ${WAITSECS}                                                         # sleep needed here ?!
+  echo ${CONTRAST} > ${TTYDEV}                                              # Send Contrast Value
+}
+
+
 # USB Send-Picture-Data function
 senddata() {
   if [ "${USBMODE}" = "yes" ]; then						# Check the tty2xxx mode
     if [ -f "${picturefolder}/${1}.xbm" ]; then					# Lookup for an existing XBM and proceed
-      echo "att" > ${TTYDEV}							# Send an "att" to the MiSTer annoucing "CORECHANGE"
+      echo "att" > ${TTYDEV}							# Send an "att" to the MiSTer annoucing another Command
       sleep ${WAITSECS}								# sleep needed here ?!
       echo "CORECHANGE" > ${TTYDEV}						# Send "CORECHANGE" annoucing XBM Data to the ESP/Arduino
       sleep ${WAITSECS}								# sleep needed here ?!
@@ -65,6 +76,7 @@ if [ -c "${TTYDEV}" ]; then							# check for tty device
   echo "QWERTZ" > ${TTYDEV}							# First Transmission to clear serial send buffer
   dbug "Send QWERTZ as first transmission"					# some debug output
   sleep ${WAITSECS}								# sleep needed here ?!
+  sendcontrast
   while true; do								# main loop
     if [ -r ${corenamefile} ]; then						# proceed if file exists and is readable (-r)
       newcore=$(cat ${corenamefile})						# get CORENAME

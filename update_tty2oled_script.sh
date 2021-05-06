@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# v1.2 - Copyright (c) 2021 Oliver Jaksch, Lars Meuser
+# v1.3 - Copyright (c) 2021 Oliver Jaksch, Lars Meuser
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 
 
 # Changelog:
+# v1.3 More Text Output (Pictures)
 # v1.2 New Option USETEXTPICTURES & some Cosmetics
 # v1.1 Use of an INI file (tty2oled.ini)
 # v1.0 Main updater script which completes all tasks.
@@ -64,6 +65,7 @@ if [ "${USBMODE}" = "yes" ]; then
   [[ -d ${picturefolder} ]] || mkdir -m 777 ${picturefolder}
   # Text-Based Pictures download
   if [ "${USETEXTPICTURE}" = "yes" ]; then
+  echo -e "\e[1;32mChecking for available Text-Picture updates...\e[0m"
     wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM_Text/sha1.txt" -O - | grep ".xbm" | \
     while read SHA1PIC; do
       PICNAME=$(echo ${SHA1PIC} | awk '{print $2}')
@@ -78,6 +80,7 @@ if [ "${USBMODE}" = "yes" ]; then
     echo -e "\e[1;33mSkipping Text-Based Picture download because of USETEXTPICTURES INI-Option \e[1;35m${PICNAME}\e[0m"
   fi
   # Graphic-Based Pictures (as Second = Higher Priority)
+  echo -e "\e[1;32mChecking for available Picture updates...\e[0m"
   wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM/sha1.txt" -O - | grep ".xbm" | \
   while read SHA1PIC; do
     PICNAME=$(echo ${SHA1PIC} | awk '{print $2}')

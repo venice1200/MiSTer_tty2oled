@@ -63,14 +63,21 @@
    Choose ONLY one USE_xxxx Board definition at the beggining of the Sketch
   -Adding more Debug Infos
 
+  2021-05-05
+  -Add an Option to receive the Contrast Level from the MiSTer
+   First MiSTer needs to send "att"
+   Second MiSTer needs to send "CONTRAST"
+   Third MiSTer needs to send "[Contrast Value 0..255]"
+
 */
+
 
 // Uncomment to get some Debugging Infos over Serial especially for SD Debugging
 //#define XDEBUG
 
 // Uncomment ONLY one Board !!
-//#define USE_LOLIN32           // LOLIN32, Arduino: WEMOS LOLIN32
-#define USE_TTGOT8          // TTGO-T8, Arduino: ESP32 Dev Module, xx MB Flash, def. Part. Schema
+#define USE_LOLIN32           // LOLIN32, Arduino: WEMOS LOLIN32
+//#define USE_TTGOT8          // TTGO-T8, Arduino: ESP32 Dev Module, xx MB Flash, def. Part. Schema
 
 #include <Arduino.h>
 #include <U8g2lib.h>    // Display Library
@@ -101,6 +108,7 @@ U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 26, /* dc=*/ 25, /* r
 // Strings
 String newCore = "";             // Received Text, from MiSTer without "\n\r" currently (2021-01-11)
 String oldCore = "";             // Buffer String for Text change detection
+uint8_t contrast = 200;          // Contrast (brightness) of display, range: 0 (no contrast) to 255 (maximum)
 char *newCoreChar;               
 
 // Display Vars
@@ -123,6 +131,7 @@ void setup(void) {
 
   // Init Display
   u8g2.begin();
+  u8g2.setContrast(contrast);                // Set contrast of display
   u8g2.setDrawColor(1);                      // Set font color to White (default value)
   u8g2.setFontDirection(0);                  // Set drawing direction of all strings or glyphs (default value)
   u8g2.setFontPosBaseline();                 // Set font Reference Position to BASELINE (default value)
@@ -133,6 +142,7 @@ void setup(void) {
   DispWidth = u8g2.getDisplayWidth();
   DispHeight = u8g2.getDisplayHeight();
   DispLineBytes = DispWidth / 8;             // How many Bytes each Dipslay Line (SSD1322: 256Pixel/8Bit = 32Bytes each Line)
+
 
 // LOLIN32 SD Bus Init
 #ifdef USE_LOLIN32
@@ -259,6 +269,16 @@ void loop(void) {
     else if (newCore=="cls")          u8g2.clear();
     else if (newCore=="sorg")         oled_mistertext();
     else if (newCore=="bye")          oled_drawlogo64h(sorgelig_icon64_width, sorgelig_icon64);
+
+    // -- Get "att" = Attention an Command follows
+    else if (newCore=="att") {                                           // Do nothing but needed to get an following Command (Contrast) working
+      // Do nothing (actually)
+    }
+
+    // -- Get Contrast Data via USB from the MiSTer and set them
+    else if (newCore=="CONTRAST") {                                     // Annoucement to receive Contrast-Level Data from the MiSTer
+      sd2oled_readnsetcontrast();                                      // Read and Set contrast                                   
+    }
     
     // -- Unidentified Core Name , search SD  --
     else {
@@ -311,6 +331,13 @@ void oled_drawlogo64h(u8g2_uint_t w, const uint8_t *bitmap) {
   u8g2.sendBuffer();
 } // end oled_drawlogo64h
 
+// --- sd2oled_readnsetcontrast -- Receive and set Display Contrast ----
+void sd2oled_readnsetcontrast(void) {
+  while (!Serial.available()) {                                          //
+    // Just wait here
+  }
+  u8g2.setContrast(Serial.readStringUntil('\n').toInt());            // Read and Set contrast  
+}
 
 // --- sd2oled_readndrawlogo -- Read and Draw XBM Picture from SD with some effect, Picture must be sized for the display ----
 int sd2oled_readndrawlogo(String corename, int effect) {

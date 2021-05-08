@@ -65,7 +65,7 @@ if [ "${USBMODE}" = "yes" ]; then
   [[ -d ${picturefolder} ]] || mkdir -m 777 ${picturefolder}
   # Text-Based Pictures download
   if [ "${USETEXTPICTURE}" = "yes" ]; then
-  echo -e "\e[1;32mChecking for available Text-Picture updates...\e[0m"
+  echo -e "\e[1;32mChecking for available Text-Pictures...\e[0m"
     wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM_Text/sha1.txt" -O - | grep ".xbm" | \
     while read SHA1PIC; do
       PICNAME=$(echo ${SHA1PIC} | awk '{print $2}')
@@ -80,7 +80,7 @@ if [ "${USBMODE}" = "yes" ]; then
     echo -e "\e[1;33mSkipping Text-Based Picture download because of USETEXTPICTURES INI-Option \e[1;35m${PICNAME}\e[0m"
   fi
   # Graphic-Based Pictures (as Second = Higher Priority)
-  echo -e "\e[1;32mChecking for available Picture updates...\e[0m"
+  echo -e "\e[1;32mChecking for available Graphic-Pictures...\e[0m"
   wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM/sha1.txt" -O - | grep ".xbm" | \
   while read SHA1PIC; do
     PICNAME=$(echo ${SHA1PIC} | awk '{print $2}')

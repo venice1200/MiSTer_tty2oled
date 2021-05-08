@@ -85,9 +85,9 @@
 //#define XDEBUG
 
 // Uncomment ONLY one Board !!
-#define USE_LOLIN32W           // LOLIN32, Arduino: WEMOS LOLIN32
+#define USE_TTGOT8             // TTGO-T8, Arduino: ESP32 Dev Module, xx MB Flash, def. Part. Schema
+//#define USE_LOLIN32W           // LOLIN32, Arduino: WEMOS LOLIN32
 //#define USE_LOLIN32D           // LOLIN32, Arduino: DevKit_C_v4 LOLIN32
-//#define USE_TTGOT8             // TTGO-T8, Arduino: ESP32 Dev Module, xx MB Flash, def. Part. Schema
 //#define USE_NODEMCU            // NODEMCU, Arduino: ESP8266 NodeMCU v3
 
 #include <Arduino.h>

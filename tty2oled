@@ -23,6 +23,13 @@
 #            Serial Interface set to 115200 Baud now.
 # 2021-04-12 Added an INI file
 # 2021-05-05 Added sending Contrast Value
+# 2021-05-14 Adding Command Line Parameter for Testing
+#            Parameter 1: /dev/ttyUSBx Device 
+#            Parameter 1: SD or USB Mode 
+#            Parameter 3: Baudrate
+#            Example: /usr/bin/tty2oled /dev/ttyUSB1 
+#            Example: /usr/bin/tty2oled /dev/ttyUSB1 SD 
+#            Example: /usr/bin/tty2oled /dev/ttyUSB1 USB 921600
 #
 #
 
@@ -68,6 +75,25 @@ senddata() {
 
 
 # ** Main **
+if [ "${#}" -ge 1 ]; then                                                       # At least one Command Line Parameter given
+  echo "Using Command Line Parameter"                                           # Some Output
+  TTYDEV=${1}                                                                   # Set TTYDEV with Parameter 1
+  if [ -n "${2}" ]; then                                                        # Parameter 2 SD or USB Mode
+    if [ "${2}" = "SD" ]; then                                                  # Parameter 2 = "SD" ?
+      USBMODE="no"                                                              # Un-Set USBMODE
+    fi                                                                          # end if SD Mode
+    if [ "${2}" = "USB" ]; then                                                 # Parameter 2 = "USB" ?
+      USBMODE="yes"                                                             # Set USBMODE
+    fi                                                                          # end if USB Mode
+  fi                                                                            # end if Parameter 2
+  if [ -n "${3}" ]; then                                                        # Parameter 3 Baudrate
+    BAUDRATE=${3}                                                               # Set Baudrate
+  fi                                                                            # end if Parameter 3
+  echo "Using Interface: ${TTYDEV} with ${BAUDRATE} Baud"                       # Devive Output
+  echo "USBMODE: ${USBMODE}"                                                    # Mode Output
+fi                                                                              # end if command line Parameter 
+
+
 if [ -c "${TTYDEV}" ]; then							# check for tty device
   echo "${TTYDEV} detected, setting Parameter."					# some output
   dbug "${TTYDEV} detected, setting Parameter."					# some debug output

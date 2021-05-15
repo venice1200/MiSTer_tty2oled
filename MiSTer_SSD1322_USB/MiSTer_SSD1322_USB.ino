@@ -189,11 +189,7 @@ void loop(void) {
 
     // -- Get Data via USB from the MiSTer and show them
     else if (newCore=="CORECHANGE") {                                    // Annoucement to receive Data via USB Serial from the MiSTer
-      #ifdef USE_NODEMCU
-        usb2oled_readndrawlogo(0);
-      #else
-        usb2oled_readndrawlogo(random(1,12));                            // Receive Picture Data and show them on the OLED
-      #endif
+      usb2oled_readndrawlogo(random(1,12));                            // Receive Picture Data and show them on the OLED
     }
  
     // -- Get Contrast Data via USB from the MiSTer and set them
@@ -495,6 +491,9 @@ void drawEightBit(int x, int y, unsigned char b) {
       u8g2.setDrawColor(1);        
     }  // end bit read
   }  // end for j
+  #ifdef USE_NODEMCU
+    yield();
+  #endif
 }
 
 //========================== The end ================================

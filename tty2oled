@@ -89,7 +89,7 @@ if [ "${#}" -ge 1 ]; then                                                       
   if [ -n "${3}" ]; then                                                        # Parameter 3 Baudrate
     BAUDRATE=${3}                                                               # Set Baudrate
   fi                                                                            # end if Parameter 3
-  echo "Using Interface: ${TTYDEV} with ${BAUDRATE} Baud"                       # Devive Output
+  echo "Using Interface: ${TTYDEV} with ${BAUDRATE} Baud"                       # Device Output
   echo "USBMODE: ${USBMODE}"                                                    # Mode Output
 fi                                                                              # end if command line Parameter 
 

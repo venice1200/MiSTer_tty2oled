@@ -75,9 +75,17 @@
 
   2021-05-05
   -Add an Option to receive the Contrast Level from the MiSTer
-   First MiSTer needs to send "att"
-   Second MiSTer needs to send "CONTRAST"
-   Third MiSTer needs to send "[Contrast Value 0..255]"
+   At First MiSTer needs to send "att"
+   As Second MiSTer needs to send "CONTRAST"
+   As Third MiSTer needs to send "[Contrast Value 0..255]"
+
+  2021-05-22
+  -Device CleanUp 
+
+  2021-05-24
+  -Trying to detect the Board chosen in the Arduino IDE (ESP32 Dev Module, WEMOS LOLIN32 or NODEMCU 8266) and set the Display config.
+   No need to set the Board manually in the Sketch.
+   But without the correct Board you get Compiler Errors.
 
 */
 
@@ -85,9 +93,9 @@
 //#define XDEBUG
 
 // Uncomment ONLY one Board !!
-#define USE_TTGOT8             // TTGO-T8, Arduino: ESP32 Dev Module, xx MB Flash, def. Part. Schema
-//#define USE_LOLIN32W           // LOLIN32, Arduino: WEMOS LOLIN32
-//#define USE_LOLIN32D           // LOLIN32, Arduino: DevKit_C_v4 LOLIN32
+//#define USE_TTGOT8             // TTGO-T8, Arduino: ESP32 Dev Module, xx MB Flash, def. Part. Schema
+//#define USE_LOLIN32            // Wemos LOLIN32, Arduino: WEMOS LOLIN32
+//#define USE_DEVKIT4            // Az-Delivery Devkitc_V4, Arduino: LOLIN32D or ESP32 Dev Module
 //#define USE_NODEMCU            // NODEMCU, Arduino: ESP8266 NodeMCU v3
 
 #include <Arduino.h>
@@ -95,30 +103,22 @@
 #include "logo.h"       // The Pics in XMB Format
 
 // ------------ Objects -----------------
-// Display Constructor HW-SPI ESP32-Board (Lolin32) with Adafruit SD_MMC Adapter, 180° Rotation => U8G2_R2
-// Using VSPI SCLK = 18, MISO = 19, MOSI = 23 and...
-#ifdef USE_LOLIN32W
-U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 17, /* dc=*/ 16, /* reset=*/ 5);  // Enable U8G2_16BIT in u8g2.h <= !! I M P O R T A N T !!
-#endif
-
-#ifdef USE_LOLIN32D
-// Display Constructor HW-SPI ESP32-Board (DevKitC v4, Lolin32) 180° Rotation => U8G2_R2
-U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 12, /* dc=*/ 13, /* reset=*/ 14);  // Enable U8G2_16BIT in u8g2.h <= !! I M P O R T A N T !!
-#endif
-
 // Display Constructor HW-SPI ESP32-Board (TTGO T8 OLED & integrated SD Card) 180° Rotation => U8G2_R2
 // Using VSPI SCLK = 18, MISO = 19, MOSI = 23 and...
-#ifdef USE_TTGOT8
-U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 26, /* dc=*/ 25, /* reset=*/ 27);  // Enable U8G2_16BIT in u8g2.h <= !! I M P O R T A N T !!
+#ifdef ARDUINO_ESP32_DEV
+U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 26, /* dc=*/ 25, /* reset=*/ 27);
 #endif
 
-#ifdef USE_NODEMCU
+// Display Constructor HW-SPI ESP32-Board (Lolin32) with Adafruit SD_MMC Adapter, 180° Rotation => U8G2_R2
+// Using VSPI SCLK = 18, MISO = 19, MOSI = 23, SS = 5 and...
+#ifdef ARDUINO_LOLIN32
+U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 5, /* dc=*/ 16, /* reset=*/ 17);  // Better because SPI SS = 5
+#endif
+
 // Display Constructor HW-SPI ESP8266-Board (NodeMCU v3) 180° Rotation => U8G2_R2
-U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 15, /* dc=*/ 4, /* reset=*/ 5);  // Enable U8G2_16BIT in u8g2.h <= !! I M P O R T A N T !!
+#if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
+U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 15, /* dc=*/ 4, /* reset=*/ 5);
 #endif
-
-// Display Constructor HW-SPI Mighty Core ATMega 1284 0° Rotation => U8G2_R0
-//U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R0, /* cs=*/ 17, /* dc=*/ 16, /* reset=*/ 18);  // Enable U8G2_16BIT in u8g2.h <= !! I M P O R T A N T !!
 
 // ------------ Variables ----------------
 
@@ -135,6 +135,7 @@ u8g2_uint_t DispWidth, DispHeight, DispLineBytes;
 // ================ SETUP ==================
 void setup(void) {
   // Init Serial
+  //Serial.begin(57600);                       // 57600 for MiSTer ttyUSBx Device CP2102 Chip on ESP32
   Serial.begin(115200);                      // 115200 for MiSTer ttyUSBx Device CP2102 Chip on ESP32
   //Serial.begin(921600);                     // 921600 for MiSTer ttyUSBx Device CP2102 Chip on ESP32
 
@@ -491,9 +492,9 @@ void drawEightBit(int x, int y, unsigned char b) {
       u8g2.setDrawColor(1);        
     }  // end bit read
   }  // end for j
-  #ifdef USE_NODEMCU
-    yield();
-  #endif
+#if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
+  yield();
+#endif
 }
 
 //========================== The end ================================

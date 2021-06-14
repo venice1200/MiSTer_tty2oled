@@ -87,11 +87,23 @@
    No need to set the Board manually in the Sketch.
    But without the correct Board you get Compiler Errors.
 
+  2021-06-14
+  -Adding "Textoutput"
+   With this additional function you can send text to the Display without using the tty2oled scripts.
+   ! The Serial Interface needs to be correctly configured !
+   The Format is "xxx,yy,s,[Text]"
+   xxx = 3 Digits X-Position 000..255
+   yy  = 2 Digits Y-Position 00..63 
+   s = Text Size (0= 8 Pixel Font (u8g2_font_luBS08_tf), 1=10 , 2=14, 3=18, 4=24)
+   Example: echo "010,10,1,Text Out" > /dev/ttyUSB01
+   Tip: Use the command "cls" to clear the screen => echo "cls" > /dev/ttyUSB01
+
 */
 
 // Uncomment to get some Debugging Infos over Serial especially for SD Debugging
 //#define XDEBUG
 
+// USE Parameter are currently unused !! 
 // Uncomment ONLY one Board !!
 //#define USE_TTGOT8             // TTGO-T8, Arduino: ESP32 Dev Module, xx MB Flash, def. Part. Schema
 //#define USE_LOLIN32            // Wemos LOLIN32, Arduino: WEMOS LOLIN32
@@ -102,23 +114,42 @@
 #include <U8g2lib.h>    // Display Library
 #include "logo.h"       // The Pics in XMB Format
 
-// ------------ Objects -----------------
-// Display Constructor HW-SPI ESP32-Board (TTGO T8 OLED & integrated SD Card) 180° Rotation => U8G2_R2
+// ------------ Display Objects Automatic Mode -----------------
+
+// TTGO-T8 Display Constructor HW-SPI OLED & integrated SD Card, 180° Rotation => U8G2_R2
 // Using VSPI SCLK = 18, MISO = 19, MOSI = 23 and...
 #ifdef ARDUINO_ESP32_DEV
 U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 26, /* dc=*/ 25, /* reset=*/ 27);
 #endif
 
-// Display Constructor HW-SPI ESP32-Board (Lolin32) with Adafruit SD_MMC Adapter, 180° Rotation => U8G2_R2
+// WEMOS LOLIN32 Display Constructor HW-SPI & Adafruit SD_MMC Adapter 180° Rotation => U8G2_R2
+// Devkitc V4 works as well with these settings.
 // Using VSPI SCLK = 18, MISO = 19, MOSI = 23, SS = 5 and...
 #ifdef ARDUINO_LOLIN32
-U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 5, /* dc=*/ 16, /* reset=*/ 17);  // Better because SPI SS = 5
+U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 5, /* dc=*/ 16, /* reset=*/ 17);  // Better because original SPI SS = 5
 #endif
 
-// Display Constructor HW-SPI ESP8266-Board (NodeMCU v3) 180° Rotation => U8G2_R2
+// ESP8266-Board (NodeMCU v3) Display Constructor HW-SPI 180° Rotation => U8G2_R2
 #if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
 U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 15, /* dc=*/ 4, /* reset=*/ 5);
 #endif
+
+// ------------ Display Objects Manual Mode -----------------
+
+// Display Constructor HW-SPI ESP32-Board TTGO T8 OLED & integrated SD Card, 180° Rotation => U8G2_R2
+// Using VSPI SCLK = 18, MISO = 19, MOSI = 23 and...
+//U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 26, /* dc=*/ 25, /* reset=*/ 27);
+
+// WEMOS LOLIN32 Display Constructor HW-SPI & Adafruit SD_MMC Adapter, 180° Rotation => U8G2_R2
+// Using VSPI SCLK = 18, MISO = 19, MOSI = 23, SS = 5 and...
+//U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 5, /* dc=*/ 16, /* reset=*/ 17);
+
+// Devkitc V4 Display Constructor HW-SPI, 180° Rotation => U8G2_R2
+// Using VSPI SCLK = 18, MISO = 19, MOSI = 23 and...
+//U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 5, /* dc=*/ 16, /* reset=*/ 17);
+
+// ESP8266-Board (NodeMCU v3) Display Constructor HW-SPI, 180° Rotation => U8G2_R2
+//U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 15, /* dc=*/ 4, /* reset=*/ 5);
 
 // ------------ Variables ----------------
 
@@ -190,12 +221,20 @@ void loop(void) {
 
     // -- Get Data via USB from the MiSTer and show them
     else if (newCore=="CORECHANGE") {                                    // Annoucement to receive Data via USB Serial from the MiSTer
-      usb2oled_readndrawlogo(random(1,12));                            // Receive Picture Data and show them on the OLED
+      usb2oled_readndrawlogo(random(1,11));                              // Receive Picture Data and show them on the OLED, Transition Effect Random Number 1..10
     }
  
     // -- Get Contrast Data via USB from the MiSTer and set them
     else if (newCore=="CONTRAST") {                                     // Annoucement to receive Contrast-Level Data from the MiSTer
       usb2oled_readnsetcontrast();                                      // Read and Set contrast                                   
+    }
+
+    // -- Get Text Data via USB from the MiSTer and write it
+    else if (newCore=="TEXTOUTXY") {                                     // Annoucement to receive Contrast-Level Data from the MiSTer
+#ifdef XDEBUG
+      Serial.println("Call Function TEXTOUTXY");
+#endif
+      usb2oled_readnwritetext();                                         // Read and Write Text
     }
 
     // -- Unidentified Core Name, just write it on screen
@@ -243,10 +282,78 @@ void oled_drawlogo64h(u8g2_uint_t w, const uint8_t *bitmap) {
 
 // --- usb2oled_readnsetcontrast -- Receive and set Display Contrast ----
 void usb2oled_readnsetcontrast(void) {
+#ifdef XDEBUG
+    Serial.println("Called Function CONTRAST");
+#endif
   while (!Serial.available()) {                                          //
     // Just wait here
   }
   u8g2.setContrast(Serial.readStringUntil('\n').toInt());            // Read and Set contrast  
+}
+
+// --- usb2oled_readnwritetext -- Receive and set Display Contrast ----
+// Format = "xxx,yy,s,[Text]"; xxx = X-Position 000..255, yy  = Y-Position 00..63, s = Text Size (0=8Pix, 1=10Pix, 2=14Pix, 3=18Pix, 4=24Pix)
+void usb2oled_readnwritetext(void) {
+  int x=0,y=0,s=0;
+  String TextIn="", xPos="", yPos="", TextSize="", TextOut="";
+  //char *TextOutChar;
+  
+#ifdef XDEBUG
+    Serial.println("Called Function TEXTOUTXY");
+#endif
+ 
+  while (!Serial.available()) {                                          //
+    // Just wait here for the Text
+  }
+  TextIn = Serial.readStringUntil('\n');                                // Read Text
+#ifdef XDEBUG
+  Serial.printf("Received Text: %s\n", (char*)TextIn.c_str());
+#endif
+
+  xPos = TextIn.substring(0, 3);
+  yPos = TextIn.substring(4, 6);
+  TextSize = TextIn.substring(7, 8);
+  TextOut = TextIn.substring(9, TextIn.length());
+#ifdef XDEBUG
+  Serial.printf("Received= X: %s Y: %s S: %s T: %s\n", (char*)xPos.c_str(), (char*)yPos.c_str(), (char*)TextSize.c_str(), (char*)TextOut.c_str());
+#endif
+
+  x = xPos.toInt();
+  y = yPos.toInt();
+  s = TextSize.toInt();
+  
+  // Parameter check
+  if (x<0 || x>DispWidth-1 || y<0 || y>DispHeight-1 || s<0 || s>4) {
+    x=5;
+    y=40;
+    s=3;
+    TextOut="Parameter Error";
+  }
+  const uint8_t *old_font = u8g2.getU8g2()->font;  // Save current Font
+  //Set Font
+  switch (s) {
+    case 0:
+      u8g2.setFont(u8g2_font_luBS08_tf);
+      break;
+    case 1:
+      u8g2.setFont(u8g2_font_luBS10_tf);
+      break;
+    case 2:
+      u8g2.setFont(u8g2_font_luBS14_tf);
+      break;
+    case 3:
+      u8g2.setFont(u8g2_font_luBS18_tf);
+      break;
+    case 4:
+      u8g2.setFont(u8g2_font_luBS24_tf);
+      break;
+    default:
+      u8g2.setFont(u8g2_font_luBS10_tf);
+      break;
+  }
+  u8g2.drawStr(x, y, (char*)TextOut.c_str());
+  u8g2.sendBuffer();
+  u8g2.setFont(old_font);                          // Set Font back
 }
 
 // --- usb2oled_readndrawlogo -- Read and Draw XBM Picture from SD with some effect, Picture must be sized for the display ----
@@ -256,6 +363,10 @@ int usb2oled_readndrawlogo(int effect) {
   unsigned char logoByteValue;
   int w,x,y,x2;
   unsigned char *logoBin;
+
+#ifdef XDEBUG
+    Serial.println("Called Function CORECHANGE");
+#endif
   
   logoBin = (unsigned char *) malloc(logoBytes);    // Reserve Memory for Picture-Data
   Serial.readBytes(logoBin, logoBytes);             // Read 2048 Bytes from Serial
@@ -396,42 +507,7 @@ int usb2oled_readndrawlogo(int effect) {
       }
       break;  // end case 9
 
-      case 10:                                     // Circles(Snake)
-      for (w=0; w<4; w++) {
-        // To the right
-        for (x=0+w; x<DispLineBytes-w; x++) {
-          for (y=0; y<8; y++) {
-            logoByteValue = logoBin[x+(y+w*8)*DispLineBytes];
-            drawEightBit(x*8, y+w*8, logoByteValue);
-          }
-        u8g2.sendBuffer();
-        } 
-        // Down
-        x=DispLineBytes-1-w;
-        for (y=(1+w)*8; y<DispHeight-(1+w)*8; y++) {
-          logoByteValue = logoBin[x+y*DispLineBytes];
-          drawEightBit(x*8, y, logoByteValue);
-          if ((y+1) % 4 == 0) u8g2.sendBuffer();              // Modulo Factor = Speed, 2(slow), 4(middle), 8(fast), none(Hyperspeed)
-        }
-        // To the left
-        for (x=DispLineBytes-1-w; x>=0+w; x--) {
-          for (y=0; y<8; y++) {
-            logoByteValue = logoBin[x+(DispHeight-1-y-w*8)*DispLineBytes];
-            drawEightBit(x*8, DispHeight-1-y-w*8, logoByteValue);
-          }
-        u8g2.sendBuffer();
-        } 
-        // Up
-        x=0+w;
-        for (y=DispHeight-1-(1+w)*8; y>=0+(1+w)*8; y--) {
-          logoByteValue = logoBin[x+y*DispLineBytes];
-          drawEightBit(x*8, y, logoByteValue);
-          if (y % 4 == 0) u8g2.sendBuffer();                  // Modulo Factor = Speed, 2(slow), 4(middle), 8(fast), none(Hyperspeed)
-        }
-      }  // end for w
-      break;  // end case 10
-
-    case 11:                                     // 4 Parts, Top-Left => Bottom-Right => Top-Right => Bottom-Left
+    case 10:                                     // 4 Parts, Top-Left => Bottom-Right => Top-Right => Bottom-Left
       // Part 1 Top Left
       for (x=0; x<DispLineBytes/2; x++) {
         for (y=0; y<DispHeight/2; y++) {
@@ -466,6 +542,41 @@ int usb2oled_readndrawlogo(int effect) {
         }  // end for y
         u8g2.sendBuffer();
       }  // end for x
+      break;  // end case 10
+      
+      case 11:                                     // Circles(Snake)
+      for (w=0; w<4; w++) {
+        // To the right
+        for (x=0+w; x<DispLineBytes-w; x++) {
+          for (y=0; y<8; y++) {
+            logoByteValue = logoBin[x+(y+w*8)*DispLineBytes];
+            drawEightBit(x*8, y+w*8, logoByteValue);
+          }
+        u8g2.sendBuffer();
+        } 
+        // Down
+        x=DispLineBytes-1-w;
+        for (y=(1+w)*8; y<DispHeight-(1+w)*8; y++) {
+          logoByteValue = logoBin[x+y*DispLineBytes];
+          drawEightBit(x*8, y, logoByteValue);
+          if ((y+1) % 4 == 0) u8g2.sendBuffer();              // Modulo Factor = Speed, 2(slow), 4(middle), 8(fast), none(Hyperspeed)
+        }
+        // To the left
+        for (x=DispLineBytes-1-w; x>=0+w; x--) {
+          for (y=0; y<8; y++) {
+            logoByteValue = logoBin[x+(DispHeight-1-y-w*8)*DispLineBytes];
+            drawEightBit(x*8, DispHeight-1-y-w*8, logoByteValue);
+          }
+        u8g2.sendBuffer();
+        } 
+        // Up
+        x=0+w;
+        for (y=DispHeight-1-(1+w)*8; y>=0+(1+w)*8; y--) {
+          logoByteValue = logoBin[x+y*DispLineBytes];
+          drawEightBit(x*8, y, logoByteValue);
+          if (y % 4 == 0) u8g2.sendBuffer();                  // Modulo Factor = Speed, 2(slow), 4(middle), 8(fast), none(Hyperspeed)
+        }
+      }  // end for w
       break;  // end case 11
 
     default:                                     // Just overwrite the whole screen

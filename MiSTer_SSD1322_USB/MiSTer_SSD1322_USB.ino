@@ -88,15 +88,18 @@
    But without the correct Board you get Compiler Errors.
 
   2021-06-14
-  -Adding "Textoutput"
+  -Adding "TEXTOUTXY" Function
    With this additional function you can send text to the Display without using the tty2oled scripts.
    ! The Serial Interface needs to be correctly configured !
    The Format is "xxx,yy,s,[Text]"
    xxx = 3 Digits X-Position 000..255
    yy  = 2 Digits Y-Position 00..63 
    s = Text Size (0= 8 Pixel Font (u8g2_font_luBS08_tf), 1=10 , 2=14, 3=18, 4=24)
-   Example: echo "010,10,1,Text Out" > /dev/ttyUSB01
    Tip: Use the command "cls" to clear the screen => echo "cls" > /dev/ttyUSB01
+   Example/Command Order: 
+   1: echo "att" > /dev/ttyUSB0
+   2: echo "TEXTOUTXY" > /dev/ttyUSB0
+   3: echo "010,10,1,Text Out" > /dev/ttyUSB0
 
 */
 

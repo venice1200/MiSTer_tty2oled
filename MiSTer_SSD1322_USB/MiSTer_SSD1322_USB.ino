@@ -94,7 +94,7 @@
    The Format is "xxx,yy,f,[Text]"
    xxx = 3 Digits X-Position 000..255
    yy  = 2 Digits Y-Position 00..63 
-   f = Font Type
+   f   = Font Type 0..9
    Tip: Use the command "cls" to clear the screen => echo "cls" > /dev/ttyUSB01
    Example/Command Order: 
    1: echo "att" > /dev/ttyUSB0
@@ -234,7 +234,7 @@ void loop(void) {
     else if (newCore=="bye")          oled_drawlogo64h(sorgelig_icon64_width, sorgelig_icon64);
     
     // -- Get "att" = Attention an Command follows
-    else if (newCore=="att") {                                           // Do nothing but needed to get an following Command (Contrast/Corechnage)working
+    else if (newCore=="att") {                                           // Do nothing but needed to get an following Command (CONTRAST/CORECHANGE/TEXTOUTXY) working
       // Do nothing (actually)
     }
 
@@ -311,11 +311,9 @@ void usb2oled_readnsetcontrast(void) {
 }
 
 // --- usb2oled_readnwritetext -- Receive and set Display Contrast ----
-// Format = "xxx,yy,f,[Text]"; xxx = X-Position 000..255, yy  = Y-Position 00..63, 
-// f = Font Type See List in Doku on Top of Sketch
 void usb2oled_readnwritetext(void) {
   int x=0,y=0,f=0;
-  String TextIn="", xPos="", yPos="", TextSize="", TextOut="";
+  String TextIn="", xPos="", yPos="", FontType="", TextOut="";
   //char *TextOutChar;
   
 #ifdef XDEBUG
@@ -332,7 +330,7 @@ void usb2oled_readnwritetext(void) {
 
   xPos = TextIn.substring(0, 3);
   yPos = TextIn.substring(4, 6);
-  TextSize = TextIn.substring(7, 8);
+  FontType = TextIn.substring(7, 8);
   TextOut = TextIn.substring(9, TextIn.length());
 #ifdef XDEBUG
   Serial.printf("Received= X: %s Y: %s S: %s T: %s\n", (char*)xPos.c_str(), (char*)yPos.c_str(), (char*)TextSize.c_str(), (char*)TextOut.c_str());
@@ -340,7 +338,7 @@ void usb2oled_readnwritetext(void) {
 
   x = xPos.toInt();
   y = yPos.toInt();
-  f = TextSize.toInt();
+  f = FontType.toInt();
   
   // Parameter check
   if (x<0 || x>DispWidth-1 || y<0 || y>DispHeight-1 || f<0 || f>20) {

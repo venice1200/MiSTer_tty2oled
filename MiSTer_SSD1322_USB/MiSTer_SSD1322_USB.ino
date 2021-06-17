@@ -91,15 +91,31 @@
   -Adding "TEXTOUTXY" Function
    With this additional function you can send text to the Display without using the tty2oled scripts.
    ! The Serial Interface needs to be correctly configured !
-   The Format is "xxx,yy,s,[Text]"
+   The Format is "xxx,yy,f,[Text]"
    xxx = 3 Digits X-Position 000..255
    yy  = 2 Digits Y-Position 00..63 
-   s = Text Size (0= 8 Pixel Font (u8g2_font_luBS08_tf), 1=10 , 2=14, 3=18, 4=24)
+   f = Font Type
    Tip: Use the command "cls" to clear the screen => echo "cls" > /dev/ttyUSB01
    Example/Command Order: 
    1: echo "att" > /dev/ttyUSB0
    2: echo "TEXTOUTXY" > /dev/ttyUSB0
    3: echo "010,10,1,Text Out" > /dev/ttyUSB0
+
+  2021-06-17 
+  -Adding Fonts for "TEXTOUTXY"
+   https://github.com/olikraus/u8g2/wiki/fntlistall
+   f:  Font Type            Width x Height, Size for Character A
+   0:  u8g2_font_luBS08_tf (20x12, 8 Pixel A, Transparent)
+   1:  u8g2_font_luBS10_tf (26x15, 10 Pixel A, Transparent)
+   2:  u8g2_font_luBS14_tf (35x22, 14 Pixel A, Transparent)
+   3:  u8g2_font_luBS18_tf (44x28, 18 Pixel A, Transparent)
+   4:  u8g2_font_luBS24_tf (61x40, 24 Pixel A, Transparent)
+   5:  u8g2_font_profont12_mf (6x12, 8 Pixel A, Non-Transparent)
+   6:  u8g2_font_profont17_mf (9x17, 11 Pixel A, Non-Transparent)
+   7:  u8g2_font_profont22_mf (12x22, 14 Pixel A, Non-Transparent)
+   8:  u8g2_font_profont29_mf (16x29, 19 Pixel A, Non-Transparent)
+   9:  u8g2_font_open_iconic_all_2x_t (16x16 Icons, Transparent)
+   10: u8g2_font_lucasarts_scumm_subtitle_o_tf (Nice 12 Pixel Fon, Transparent)
 
 */
 
@@ -295,9 +311,10 @@ void usb2oled_readnsetcontrast(void) {
 }
 
 // --- usb2oled_readnwritetext -- Receive and set Display Contrast ----
-// Format = "xxx,yy,s,[Text]"; xxx = X-Position 000..255, yy  = Y-Position 00..63, s = Text Size (0=8Pix, 1=10Pix, 2=14Pix, 3=18Pix, 4=24Pix)
+// Format = "xxx,yy,f,[Text]"; xxx = X-Position 000..255, yy  = Y-Position 00..63, 
+// f = Font Type See List in Doku on Top of Sketch
 void usb2oled_readnwritetext(void) {
-  int x=0,y=0,s=0;
+  int x=0,y=0,f=0;
   String TextIn="", xPos="", yPos="", TextSize="", TextOut="";
   //char *TextOutChar;
   
@@ -323,35 +340,53 @@ void usb2oled_readnwritetext(void) {
 
   x = xPos.toInt();
   y = yPos.toInt();
-  s = TextSize.toInt();
+  f = TextSize.toInt();
   
   // Parameter check
-  if (x<0 || x>DispWidth-1 || y<0 || y>DispHeight-1 || s<0 || s>4) {
+  if (x<0 || x>DispWidth-1 || y<0 || y>DispHeight-1 || f<0 || f>20) {
     x=5;
     y=40;
-    s=3;
+    f=8;
     TextOut="Parameter Error";
   }
   const uint8_t *old_font = u8g2.getU8g2()->font;  // Save current Font
   //Set Font
-  switch (s) {
+  switch (f) {
     case 0:
-      u8g2.setFont(u8g2_font_luBS08_tf);
+      u8g2.setFont(u8g2_font_luBS08_tf);          // Transparent Font 20x12, 8 Pixel A
       break;
     case 1:
-      u8g2.setFont(u8g2_font_luBS10_tf);
+      u8g2.setFont(u8g2_font_luBS10_tf);          // Transparent Font 26x15, 10 Pixel A
       break;
     case 2:
-      u8g2.setFont(u8g2_font_luBS14_tf);
+      u8g2.setFont(u8g2_font_luBS14_tf);          // Transparent Font 35x22, 14 Pixel A
       break;
     case 3:
-      u8g2.setFont(u8g2_font_luBS18_tf);
+      u8g2.setFont(u8g2_font_luBS18_tf);          // Transparent Font 44x28, 18 Pixel A
       break;
     case 4:
-      u8g2.setFont(u8g2_font_luBS24_tf);
+      u8g2.setFont(u8g2_font_luBS24_tf);          // Transparent Font 61x40, 24 Pixel A
+      break;
+    case 5:
+      u8g2.setFont(u8g2_font_profont12_mf);       // Non-Transparent Font 6x12, 8 Pixel A
+      break;
+    case 6:
+      u8g2.setFont(u8g2_font_profont17_mf);       // Non-Transparent Font 9x17, 11 Pixel A
+      break;
+    case 7:
+      u8g2.setFont(u8g2_font_profont22_mf);       // Non-Transparent Font 12x22, 14 Pixel A
+      break;
+    case 8:
+      u8g2.setFont(u8g2_font_profont29_mf);       // Non-Transparent Font 16x29, 19 Pixel A
+      break;
+    case 9:
+      u8g2.setFont(u8g2_font_open_iconic_all_2x_t);          // Icons 16x16 Pixel
+      break;
+    case 10:
+      u8g2.setFont(u8g2_font_lucasarts_scumm_subtitle_o_tf); // Nice 12 Pixel Font
       break;
     default:
-      u8g2.setFont(u8g2_font_luBS10_tf);
+      u8g2.setFont(u8g2_font_profont17_mf);
       break;
   }
   u8g2.drawStr(x, y, (char*)TextOut.c_str());

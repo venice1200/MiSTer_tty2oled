@@ -94,7 +94,7 @@
    The Format is "xxx,yy,f,[Text]"
    xxx = 3 Digits X-Position 000..255
    yy  = 2 Digits Y-Position 00..63 
-   f   = Font Type 0..9
+   f   = Font Type 0.. (see Font List below)
    Tip: Use the command "cls" to clear the screen => echo "cls" > /dev/ttyUSB01
    Example/Command Order: 
    1: echo "att" > /dev/ttyUSB0
@@ -292,12 +292,14 @@ void oled_mistertext(void) {
   u8g2.sendBuffer();
 }
 
+
 // ---- oled_drawlogo64h -- Draw Pictures with an height of 64 Pixel centerred ----
 void oled_drawlogo64h(u8g2_uint_t w, const uint8_t *bitmap) {
   u8g2.clearBuffer();
   u8g2.drawXBMP(DispWidth/2-w/2, 0, w, DispHeight, bitmap);
   u8g2.sendBuffer();
 } // end oled_drawlogo64h
+
 
 // --- usb2oled_readnsetcontrast -- Receive and set Display Contrast ----
 void usb2oled_readnsetcontrast(void) {
@@ -310,9 +312,10 @@ void usb2oled_readnsetcontrast(void) {
   u8g2.setContrast(Serial.readStringUntil('\n').toInt());            // Read and Set contrast  
 }
 
+
 // --- usb2oled_readnwritetext -- Receive and set Display Contrast ----
 void usb2oled_readnwritetext(void) {
-  int x=0,y=0,f=0;
+  int x=0,y=0,f=0,d1=0,d2=0,d3=0;
   String TextIn="", xPos="", yPos="", FontType="", TextOut="";
   //char *TextOutChar;
   
@@ -328,25 +331,35 @@ void usb2oled_readnwritetext(void) {
   Serial.printf("Received Text: %s\n", (char*)TextIn.c_str());
 #endif
 
-  xPos = TextIn.substring(0, 3);
-  yPos = TextIn.substring(4, 6);
-  FontType = TextIn.substring(7, 8);
-  TextOut = TextIn.substring(9, TextIn.length());
+  //Searching for the "," delimiter
+  d1 = TextIn.indexOf(',');                 // Find location of first ","
+  d2 = TextIn.indexOf(',', d1+1 );          // Find location of second ","
+  d3 = TextIn.indexOf(',', d2+1 );          // Find location of third ","
+
+  //Create Substrings
+  xPos = TextIn.substring(0, d1);           // Get String for X-Position
+  yPos = TextIn.substring(d1+1, d2);        // Get String for Y-Position
+  FontType = TextIn.substring(d2+1, d3);    // Get String for Font-Type
+  TextOut = TextIn.substring(d3+1);         // Get String for Text
+  
 #ifdef XDEBUG
-  Serial.printf("Received= X: %s Y: %s S: %s T: %s\n", (char*)xPos.c_str(), (char*)yPos.c_str(), (char*)TextSize.c_str(), (char*)TextOut.c_str());
+  Serial.printf("Created Strings: X: %s Y: %s S: %s T: %s\n", (char*)xPos.c_str(), (char*)yPos.c_str(), (char*)FontType.c_str(), (char*)TextOut.c_str());
 #endif
 
+  // Convert Strings to Integer
   x = xPos.toInt();
   y = yPos.toInt();
   f = FontType.toInt();
   
   // Parameter check
-  if (x<0 || x>DispWidth-1 || y<0 || y>DispHeight-1 || f<0 || f>20) {
+  if (x<0 || x>DispWidth-1 || y<0 || y>DispHeight-1 || f<0 || d1==-1 || d2==-1 || d3==-1) {
     x=5;
     y=40;
-    f=8;
+    f=7;
     TextOut="Parameter Error";
   }
+  
+  // Prepare for Text-Output
   const uint8_t *old_font = u8g2.getU8g2()->font;  // Save current Font
   //Set Font
   switch (f) {
@@ -387,10 +400,12 @@ void usb2oled_readnwritetext(void) {
       u8g2.setFont(u8g2_font_profont17_mf);
       break;
   }
+  // Output of Text
   u8g2.drawStr(x, y, (char*)TextOut.c_str());
   u8g2.sendBuffer();
   u8g2.setFont(old_font);                          // Set Font back
 }
+
 
 // --- usb2oled_readndrawlogo -- Read and Draw XBM Picture from SD with some effect, Picture must be sized for the display ----
 int usb2oled_readndrawlogo(int effect) {
@@ -624,6 +639,7 @@ int usb2oled_readndrawlogo(int effect) {
   free(logoBin);
   return 1;                      // Everything OK
 }  // end sd2oled_readndrawlogo
+
 
 // Draw one XBM Byte, called from the Effects in function sd2oled_readndrawlogo
 void drawEightBit(int x, int y, unsigned char b) {

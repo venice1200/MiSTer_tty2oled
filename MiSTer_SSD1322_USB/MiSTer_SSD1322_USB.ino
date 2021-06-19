@@ -138,7 +138,7 @@
 
    The Command-Parameter Format is "g,c,x,y,i,j,k"
    g = Geometric Type 1..10
-   c = Clear Flag (0=Draw, 1= Clear)
+   c = Draw Color 0=Clear, 1=Draw, 2=XOR/Invert Pixel
    x = X-Position 0..255
    y = Y-Position 0..63
    i = Parameter 1 (Depends on Geometric)
@@ -147,7 +147,7 @@
    
    Geometric Type            Parameter needed                        Link
    1:  Pixel                 need x,y                            see https://github.com/olikraus/u8g2/wiki/u8g2reference#drawpixel
-   2:  Line,                 need x,y,i=x1, j=y1                 see https://github.com/olikraus/u8g2/wiki/u8g2reference#drawline
+   2:  Line                  need x,y,i=x1, j=y1                 see https://github.com/olikraus/u8g2/wiki/u8g2reference#drawline
    3:  Frame                 need x,y,i=width,j=height           see https://github.com/olikraus/u8g2/wiki/u8g2reference#drawframe
    4:  Box (Filled Frame)    need x,y,i=width,j=height           see https://github.com/olikraus/u8g2/wiki/u8g2reference#drawbox
    5:  Circle                need x,y,i=radius                   see https://github.com/olikraus/u8g2/wiki/u8g2reference#drawcircle
@@ -355,6 +355,112 @@ void usb2oled_readnsetcontrast(void) {
 }
 
 
+// --- usb2oled_readndrawgeo -- Receive and Draw some Geometrics ----
+void usb2oled_readndrawgeo(void) {
+  int g=0,c=0,x=0,y=0,i=0,j=0,k=0,d1=0,d2=0,d3=0,d4=0,d5=0,d6=0;
+  String TextIn="",gT="",cT="",xT="",yT="",iT="",jT="",kT="";
+  bool pError=false;
+  
+#ifdef XDEBUG
+    Serial.println("Called Function GEOOUTXY");
+#endif
+ 
+  while (!Serial.available()) {                                          //
+    // Just wait here for the Text
+  }
+  TextIn = Serial.readStringUntil('\n');                                // Read Text
+#ifdef XDEBUG
+  Serial.printf("Received Text: %s\n", (char*)TextIn.c_str());
+#endif
+  
+  //Searching for the "," delimiter
+  d1 = TextIn.indexOf(',');                 // Find location of first ","
+  d2 = TextIn.indexOf(',', d1+1 );          // Find location of second ","
+  d3 = TextIn.indexOf(',', d2+1 );          // Find location of third ","
+  d4 = TextIn.indexOf(',', d3+1 );          // Find location of fourth ","
+  d5 = TextIn.indexOf(',', d4+1 );          // Find location of fifth ","
+  d6 = TextIn.indexOf(',', d5+1 );          // Find location of sixt ","
+
+  //Create Substrings
+  gT = TextIn.substring(0, d1);           // Get String for Geometric-Type
+  cT = TextIn.substring(d1+1, d2);        // Get String for Clear Flag
+  xT = TextIn.substring(d2+1, d3);        // Get String for X-Position
+  yT = TextIn.substring(d3+1, d4);        // Get String for Y-Position
+  iT = TextIn.substring(d4+1, d5);        // Get String for Parameter i
+  jT = TextIn.substring(d5+1, d6);        // Get String for Parameter j
+  kT = TextIn.substring(d6+1);            // Get String for Parameter k
+
+#ifdef XDEBUG
+  Serial.printf("Part-Strings: G:%s C:%s X:%s Y:%s I:%s J:%s K:%s\n", (char*)gT.c_str(), (char*)cT.c_str(), (char*)xT.c_str(), (char*)yT.c_str(), (char*)iT.c_str(), (char*)jT.c_str(), (char*)kT.c_str() );
+#endif
+
+  // Convert Strings to Integer
+  g = gT.toInt();
+  c = cT.toInt();
+  x = xT.toInt();
+  y = yT.toInt();
+  i = iT.toInt();
+  j = jT.toInt();
+  k = kT.toInt();
+
+#ifdef XDEBUG
+  Serial.printf("Values: G:%i C:%i X:%i Y:%i I:%i J:%i K:%i\n", g,c,x,y,i,j,k);
+#endif
+
+  // Enough Parameter given / Parameter Check
+  if (g<1 || g>10 || c<0 || c>2 || x<0 || x>DispWidth-1 || y<0 || y>DispHeight-1 || d1==-1 || d2==-1 || d3==-1  || d4==-1 || d5==-1  || d6==-1) {
+    pError=true;
+  }
+
+  if (!pError) {
+    if (c==0) u8g2.setDrawColor(0);  // Set Draw Color to Background Color (Clear)
+    if (c==2) u8g2.setDrawColor(2);  // Set Draw Color to to XOR
+    switch (g) {
+      case 1:  // Pixel x,y
+        u8g2.drawPixel(x,y);
+        break;
+      case 2:  // Line x0,y0,x1,y1
+        u8g2.drawLine(x,y,i,j);
+        break;
+      case 3:  // Frame x,y,w,h
+        u8g2.drawFrame(x,y,i,j);
+        break;
+      case 4:  // Filled Frame/Box x,y,w,h
+        u8g2.drawBox(x,y,i,j);
+        break;
+      case 5:  // Circle x,y,r
+        u8g2.drawCircle(x,y,i);
+        break;
+      case 6:  // Filled Circle/Disc x,y,r
+        u8g2.drawDisc(x,y,i);
+        break;
+      case 7:  // EllipseCircle x,y,rw,rh
+        u8g2.drawEllipse(x,y,i,j);
+        break;
+      case 8:  // drawFilledEllipse x,y,rw,rh
+        u8g2.drawFilledEllipse(x,y,i,j);
+        break;
+      case 9:  // Rounded Frame x,y,w,h,r
+        u8g2.drawRFrame(x,y,i,j,k);
+        break;
+      case 10: // Rounded Box x,y,w,h,r
+        u8g2.drawRBox(x,y,i,j,k);
+        break;
+      default:  // Just something :-)
+        u8g2.drawEllipse(128,32,32,16);
+        u8g2.drawDisc(128,32,8);
+        break;
+    }
+  }
+  else {
+    u8g2.drawStr(5, 40, "Parameter Error");
+  }
+
+  u8g2.sendBuffer();       // Draw Display content
+  u8g2.setDrawColor(1);    // Back to normal Draw Color
+}
+
+
 // --- usb2oled_readnwritetext -- Receive and set Display Contrast ----
 void usb2oled_readnwritetext(void) {
   int x=0,y=0,f=0,d1=0,d2=0,d3=0;
@@ -446,111 +552,6 @@ void usb2oled_readnwritetext(void) {
   u8g2.drawStr(x, y, (char*)TextOut.c_str());
   u8g2.sendBuffer();
   u8g2.setFont(old_font);                          // Set Font back
-}
-
-
-// --- usb2oled_readndrawgeo -- Receive and Draw some Geometrics ----
-void usb2oled_readndrawgeo(void) {
-  int g=0,c=0,x=0,y=0,i=0,j=0,k=0,d1=0,d2=0,d3=0,d4=0,d5=0,d6=0;
-  String TextIn="",gT="",cT="",xT="",yT="",iT="",jT="",kT="";
-  bool pError=false;
-  
-#ifdef XDEBUG
-    Serial.println("Called Function GEOOUTXY");
-#endif
- 
-  while (!Serial.available()) {                                          //
-    // Just wait here for the Text
-  }
-  TextIn = Serial.readStringUntil('\n');                                // Read Text
-#ifdef XDEBUG
-  Serial.printf("Received Text: %s\n", (char*)TextIn.c_str());
-#endif
-  
-  //Searching for the "," delimiter
-  d1 = TextIn.indexOf(',');                 // Find location of first ","
-  d2 = TextIn.indexOf(',', d1+1 );          // Find location of second ","
-  d3 = TextIn.indexOf(',', d2+1 );          // Find location of third ","
-  d4 = TextIn.indexOf(',', d3+1 );          // Find location of fourth ","
-  d5 = TextIn.indexOf(',', d4+1 );          // Find location of fifth ","
-  d6 = TextIn.indexOf(',', d5+1 );          // Find location of sixt ","
-
-  //Create Substrings
-  gT = TextIn.substring(0, d1);           // Get String for Geometric-Type
-  cT = TextIn.substring(d1+1, d2);        // Get String for Clear Flag
-  xT = TextIn.substring(d2+1, d3);        // Get String for X-Position
-  yT = TextIn.substring(d3+1, d4);        // Get String for Y-Position
-  iT = TextIn.substring(d4+1, d5);        // Get String for Parameter i
-  jT = TextIn.substring(d5+1, d6);        // Get String for Parameter j
-  kT = TextIn.substring(d6+1);            // Get String for Parameter k
-
-#ifdef XDEBUG
-  Serial.printf("Part-Strings: G:%s C:%s X:%s Y:%s I:%s J:%s K:%s\n", (char*)gT.c_str(), (char*)cT.c_str(), (char*)xT.c_str(), (char*)yT.c_str(), (char*)iT.c_str(), (char*)jT.c_str(), (char*)kT.c_str() );
-#endif
-
-  // Convert Strings to Integer
-  g = gT.toInt();
-  c = cT.toInt();
-  x = xT.toInt();
-  y = yT.toInt();
-  i = iT.toInt();
-  j = jT.toInt();
-  k = kT.toInt();
-
-#ifdef XDEBUG
-  Serial.printf("Values: G:%i C:%i X:%i Y:%i I:%i J:%i K:%i\n", g,c,x,y,i,j,k);
-#endif
-
-  // Enough Parameter given / Parameter Check
-  if (g<1 || g>10 || x<0 || x>DispWidth-1 || y<0 || y>DispHeight-1 || d1==-1 || d2==-1 || d3==-1  || d4==-1 || d5==-1  || d6==-1) {
-    pError=true;
-  }
-
-  if (!pError) {
-    if (c==1) u8g2.setDrawColor(0);  // Clear Pixel/Set to Background Color
-    switch (g) {
-      case 1:  // Pixel x,y
-        u8g2.drawPixel(x,y);
-        break;
-      case 2:  // Line x0,y0,x1,y1
-        u8g2.drawLine(x,y,i,j);
-        break;
-      case 3:  // Frame x,y,w,h
-        u8g2.drawFrame(x,y,i,j);
-        break;
-      case 4:  // Filled Frame/Box x,y,w,h
-        u8g2.drawBox(x,y,i,j);
-        break;
-      case 5:  // Circle x,y,r
-        u8g2.drawCircle(x,y,i);
-        break;
-      case 6:  // Filled Circle/Disc x,y,r
-        u8g2.drawDisc(x,y,i);
-        break;
-      case 7:  // EllipseCircle x,y,rw,rh
-        u8g2.drawEllipse(x,y,i,j);
-        break;
-      case 8:  // drawFilledEllipse x,y,rw,rh
-        u8g2.drawFilledEllipse(x,y,i,j);
-        break;
-      case 9:  // Rounded Frame x,y,w,h,r
-        u8g2.drawRFrame(x,y,i,j,k);
-        break;
-      case 10: // Rounded Box x,y,w,h,r
-        u8g2.drawRBox(x,y,i,j,k);
-        break;
-      default:  // Just something :-)
-        u8g2.drawEllipse(128,32,32,16);
-        u8g2.drawDisc(128,32,8);
-        break;
-    }
-  }
-  else {
-    u8g2.drawStr(5, 40, "Parameter Error");
-  }
-
-  u8g2.sendBuffer();
-  u8g2.setDrawColor(1);    // Back to normal Draw Color
 }
 
 

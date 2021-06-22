@@ -3,7 +3,7 @@
 New/Updatet Features  
 -Over The Air Updates for ESP32
  You need add your Wireless Credentials to the "cred.h" file.  
- Enable OTA from the command line (see Examples).  
+ Enable OTA from the command line (see Examples below).  
  The Arduino IDE should show you an new Network "Port" for Uploads.  
  
 -New Command Structure for "external" Commands  
@@ -34,7 +34,7 @@ New/Updatet Features
 * "CMDRESET"   ESP32 Reset  
 * "CMDENOTA"   ESP32 Enable OTA Programming Mode  
   
-Run the Examples from Command Line (CLI/SSH):  
+Examples Command Line (CLI/SSH):  
 `echo "CMDCLS" > /dev/ttyUSB0`                             Clear Screen  
 `echo "CMDCON,211" > /dev/ttyUSB0`                         Send Contrast Value 211  
 `echo "CMDTXT,5,1,10,10,Hello World" > /dev/ttyUSB0`       Write/Draw "Hello World" at 10,10 with Font 5  

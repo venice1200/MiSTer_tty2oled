@@ -30,7 +30,7 @@ New
 * "CMDRESET"   ESP32 Reset  
 * "CMDENOTA"   ESP32 Enable OTA Programming Mode  
   
-Examples:
+Examples:  
 `echo "CMDCLS" > /dev/ttyUSB0`                             Clear Screen  
 `echo "CMDCON,211" > /dev/ttyUSB0`                         Send Contrast Value 211  
 `echo "CMDTXT,5,1,10,10,Hello World" > /dev/ttyUSB0`       Write Hello World at 10,10  

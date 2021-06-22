@@ -33,8 +33,9 @@ New
 Examples:  
 `echo "CMDCLS" > /dev/ttyUSB0`                             Clear Screen  
 `echo "CMDCON,211" > /dev/ttyUSB0`                         Send Contrast Value 211  
-`echo "CMDTXT,5,1,10,10,Hello World" > /dev/ttyUSB0`       Write Hello World at 10,10  
+`echo "CMDTXT,5,1,10,10,Hello World" > /dev/ttyUSB0`       Write/Draw "Hello World" at 10,10 with Font 5  
 `echo "CMDGEO,4,1,10,10,50,20,0" > /dev/ttyUSB0`           Draw Box at 10,10 with 50x20 Pixel  
+`echo "CMDGEO,4,0,10,10,50,20,0" > /dev/ttyUSB0`           Clear Box-Area at 10,10 with 50x20 Pixel  
 `echo "CMDENOTA" > /dev/ttyUSB0`                           Enable OTA Mode, the Arduino IDE should show you an new Network "Port" for Uploads  
   
 Make Backup and Replace "/usr/bin/tty2oled" with the one in this directory.  

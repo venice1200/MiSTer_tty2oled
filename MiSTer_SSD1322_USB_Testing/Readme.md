@@ -1,6 +1,6 @@
-**Testing Version**  
+**Testing-Version**  
   
-New  
+New/Updatet Features  
 -Over The Air Updates for ESP32  
 -New Command Structure for "external" Commands  
 * "CMDCLS"  
@@ -39,8 +39,8 @@ Examples:
 `echo "CMDGEO,4,2,10,10,50,20,0" > /dev/ttyUSB0`           Invert Box-Area at 10,10 with 50x20 Pixel (not for Circle/Disc/Ellipse)  
 `echo "CMDENOTA" > /dev/ttyUSB0`                           Enable OTA Mode, the Arduino IDE should show you an new Network "Port" for Uploads  
   
-Make Backup and Replace "/usr/bin/tty2oled" with the one in this directory.  
-Make sure this version is executeable.  
+Make Backup and Replace "/usr/bin/tty2oled" with the one from this directory.  
+Make sure this version is "executeable".  
   
 Report Issues here:  
 https://misterfpga.org/viewtopic.php?p=28397  

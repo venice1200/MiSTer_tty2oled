@@ -91,6 +91,20 @@ if [ "${USBMODE}" = "yes" ]; then
       wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM/${PICNAME}" -O ${picturefolder}/${PICNAME}
     fi
   done
+  # Checking for US version of Graphic-Based Pictures (Genesis = MegaDrive ; Sega CD = Mega CD ; TurboGrafx16 = PCEngine)
+  if [ "${USE_US_PICTURE}" = "yes" ]; then 
+	echo -e "\e[1;32mChecking for available Graphic-Pictures American versions...\e[0m"
+	wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM_US/sha1.txt" -O - | grep ".xbm" | \
+	while read SHA1PIC; do
+	  PICNAME=$(echo ${SHA1PIC} | awk '{print $2}')
+	  CHKSUM1=$(echo ${SHA1PIC,,} | awk '{print $1}')
+		[ -f ${picturefolder}/${PICNAME} ] && CHKSUM2=$(sha1sum ${picturefolder}/${PICNAME} | awk '{print $1}')
+		if ! [ -f ${picturefolder}/${PICNAME} ] || ([ "${CHKSUM1}" != "${CHKSUM2}" ] && [ "${OVERWRITE}" = "yes" ]); then
+		  echo -e "\e[1;33mDownloading Picture \e[1;35m${PICNAME}\e[0m"
+		  wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM_US/${PICNAME}" -O ${picturefolder}/${PICNAME}
+		fi
+	done
+  fi
 else
   echo -e "\e[1;33mSkipping Picture Download because of USBMODE INI-Option \e[1;35m${PICNAME}\e[0m"
 fi

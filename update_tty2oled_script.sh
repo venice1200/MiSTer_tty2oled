@@ -63,7 +63,7 @@ fi
 
 # pictures
 if [ "${USBMODE}" = "yes" ]; then
-  [[ -d ${picturefolder} ]] || mkdir -m 777 ${picturefolder}
+  [[ -d ${picturefolder} ]] || mkdir -p -m 777 ${picturefolder}
   # Text-Based Pictures download
   if [ "${USE_TEXT_PICTURE}" = "yes" ]; then
     echo -e "\e[1;32mChecking for available Text-Pictures...\e[0m"

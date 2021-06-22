@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# v1.3 - Copyright (c) 2021 Oliver Jaksch, Lars Meuser
+# v1.4 - Copyright (c) 2021 ojaksch, venice
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 
 
 # Changelog:
+# v1.4 New Option US Pictures
 # v1.3 More Text Output (Pictures)
 # v1.2 New Option USETEXTPICTURES & some Cosmetics
 # v1.1 Use of an INI file (tty2oled.ini)
@@ -64,7 +65,7 @@ fi
 if [ "${USBMODE}" = "yes" ]; then
   [[ -d ${picturefolder} ]] || mkdir -m 777 ${picturefolder}
   # Text-Based Pictures download
-  if [ "${USETEXTPICTURE}" = "yes" ]; then
+  if [ "${USE_TEXT_PICTURE}" = "yes" ]; then
     echo -e "\e[1;32mChecking for available Text-Pictures...\e[0m"
     wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM_Text/sha1.txt" -O - | grep ".xbm" | \
     while read SHA1PIC; do
@@ -77,8 +78,9 @@ if [ "${USBMODE}" = "yes" ]; then
       fi
     done
   else
-    echo -e "\e[1;33mSkipping Text-Based Picture download because of USETEXTPICTURES INI-Option \e[1;35m${PICNAME}\e[0m"
+    echo -e "\e[1;33mSkipping Text-Based Picture download because of USE_TEXT_PICTURES INI-Option \e[1;35m${PICNAME}\e[0m"
   fi
+  
   # Graphic-Based Pictures (as Second = Higher Priority)
   echo -e "\e[1;32mChecking for available Graphic-Pictures...\e[0m"
   wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM/sha1.txt" -O - | grep ".xbm" | \
@@ -91,20 +93,23 @@ if [ "${USBMODE}" = "yes" ]; then
       wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM/${PICNAME}" -O ${picturefolder}/${PICNAME}
     fi
   done
+  
   # Checking for US version of Graphic-Based Pictures (Genesis = MegaDrive ; Sega CD = Mega CD ; TurboGrafx16 = PCEngine)
   if [ "${USE_US_PICTURE}" = "yes" ]; then 
-	echo -e "\e[1;32mChecking for available Graphic-Pictures American versions...\e[0m"
-	wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM_US/sha1.txt" -O - | grep ".xbm" | \
-	while read SHA1PIC; do
-	  PICNAME=$(echo ${SHA1PIC} | awk '{print $2}')
-	  CHKSUM1=$(echo ${SHA1PIC,,} | awk '{print $1}')
-		[ -f ${picturefolder}/${PICNAME} ] && CHKSUM2=$(sha1sum ${picturefolder}/${PICNAME} | awk '{print $1}')
-		if ! [ -f ${picturefolder}/${PICNAME} ] || ([ "${CHKSUM1}" != "${CHKSUM2}" ] && [ "${OVERWRITE}" = "yes" ]); then
-		  echo -e "\e[1;33mDownloading Picture \e[1;35m${PICNAME}\e[0m"
-		  wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM_US/${PICNAME}" -O ${picturefolder}/${PICNAME}
-		fi
-	done
-  fi
+    echo -e "\e[1;32mChecking for available Graphic-Pictures American versions...\e[0m"
+    wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM_US/sha1.txt" -O - | grep ".xbm" | \
+    while read SHA1PIC; do
+      PICNAME=$(echo ${SHA1PIC} | awk '{print $2}')
+      CHKSUM1=$(echo ${SHA1PIC,,} | awk '{print $1}')
+      [ -f ${picturefolder}/${PICNAME} ] && CHKSUM2=$(sha1sum ${picturefolder}/${PICNAME} | awk '{print $1}')
+      if ! [ -f ${picturefolder}/${PICNAME} ] || ([ "${CHKSUM1}" != "${CHKSUM2}" ] && [ "${OVERWRITE}" = "yes" ]); then
+        echo -e "\e[1;33mDownloading Picture \e[1;35m${PICNAME}\e[0m"
+        wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM_US/${PICNAME}" -O ${picturefolder}/${PICNAME}
+      fi
+    done
+  else
+    echo -e "\e[1;33mSkipping Text-Based Picture download because of USE_US_PICTURES INI-Option \e[1;35m${PICNAME}\e[0m"
+  1fi
 else
   echo -e "\e[1;33mSkipping Picture Download because of USBMODE INI-Option \e[1;35m${PICNAME}\e[0m"
 fi

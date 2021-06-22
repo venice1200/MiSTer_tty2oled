@@ -11,15 +11,15 @@ New
   
 * "CMDTXT,[Parameter]" Text-Ouput  
  Parameter-Format = "f,c,x,y,[Text]  
- f = Font Type 0.. (see Font List above)  
+ f = Font Type 0.. see https://github.com/venice1200/MiSTer_tty2oled/wiki/Command
  c = Draw Color 0=Clear, 1=Draw, 2=XOR/Invert Pixel  
  x = X-Position 0..255  
- y = Y-Position 0..63   
+ y = Y-Position 0..63  
  [Text] = Text to Draw  
   
 * "CMDGEO,[Parmeter]" Geometric-Output, 
  Parameter Format = "g,c,x,y,i,j,k"  
- g = Geometric Type 1..10  
+ g = Geometric Type see https://github.com/venice1200/MiSTer_tty2oled/wiki/Command  
  c = Draw Color 0=Clear, 1=Draw, 2=XOR/Invert Pixel  
  x = X-Position 0..255  
  y = Y-Position 0..63  
@@ -36,6 +36,7 @@ Examples:
 `echo "CMDTXT,5,1,10,10,Hello World" > /dev/ttyUSB0`       Write/Draw "Hello World" at 10,10 with Font 5  
 `echo "CMDGEO,4,1,10,10,50,20,0" > /dev/ttyUSB0`           Draw Box at 10,10 with 50x20 Pixel  
 `echo "CMDGEO,4,0,10,10,50,20,0" > /dev/ttyUSB0`           Clear Box-Area at 10,10 with 50x20 Pixel  
+`echo "CMDGEO,4,2,10,10,50,20,0" > /dev/ttyUSB0`           Invert Box-Area at 10,10 with 50x20 Pixel (not for Circle/Disc/Ellipse)  
 `echo "CMDENOTA" > /dev/ttyUSB0`                           Enable OTA Mode, the Arduino IDE should show you an new Network "Port" for Uploads  
   
 Make Backup and Replace "/usr/bin/tty2oled" with the one in this directory.  

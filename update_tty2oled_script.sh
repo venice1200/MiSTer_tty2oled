@@ -96,7 +96,7 @@ if [ "${USBMODE}" = "yes" ]; then
   
   # Checking for US version of Graphic-Based Pictures (Genesis = MegaDrive ; Sega CD = Mega CD ; TurboGrafx16 = PCEngine)
   if [ "${USE_US_PICTURE}" = "yes" ]; then 
-    echo -e "\e[1;32mChecking for available Graphic-Pictures American versions...\e[0m"
+    echo -e "\e[1;32mChecking for available Graphic-Pictures US-Version...\e[0m"
     wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM_US/sha1.txt" -O - | grep ".xbm" | \
     while read SHA1PIC; do
       PICNAME=$(echo ${SHA1PIC} | awk '{print $2}')

@@ -7,8 +7,8 @@ New/UpdatedFeatures
 -Over The Air Updates for ESP32  
  You need add your Wireless Credentials to the "cred.h" file.  
  Enable OTA from the command line (see Examples below).  
- The Arduino IDE should show you an new Network "Port" for Uploads.
- See https://misterfpga.org/viewtopic.php?p=28423#p28423 
+ The Arduino IDE should show you an new Network "Port" for Uploads.  
+ See https://misterfpga.org/viewtopic.php?p=28423#p28423  
  
 -New Command Structure for "external" Commands  
 * "CMDCLS"  

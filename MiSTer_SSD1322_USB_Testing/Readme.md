@@ -1,6 +1,10 @@
 **Testing-Version**  
   
-New/Updatet Features  
+Updated Arduino Code and tty2oled Daemon.  
+Run an "normal" Update before using the Testing-Version.  
+An Update after using the Testing-Version downloads the "old" tty2oled Daemon again.  
+  
+New/UpdatedFeatures  
 -Over The Air Updates for ESP32
  You need add your Wireless Credentials to the "cred.h" file.  
  Enable OTA from the command line (see Examples below).  

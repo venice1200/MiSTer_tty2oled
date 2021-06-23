@@ -100,14 +100,17 @@ if [ -c "${TTYDEV}" ]; then							# check for tty device
   echo "CMDGEO,4,2,100,20,60,30,0" > ${TTYDEV}
 
   sleep 3
-  for ((i=0; i<5; i++ )); do
-    echo "CMDCON,200" > ${TTYDEV}
-    sleep 0.2
+  echo "CMDCLS" > ${TTYDEV}
+  echo "CMDGEO,4,1,0,0,255,64,0" > ${TTYDEV}
+  sleep 2
+  echo "CMDTXT,4,0,50,40,BLINK'in" > ${TTYDEV}
+  sleep 2
+  for ((i=0; i<10; i++ )); do
     echo "CMDCON,0" > ${TTYDEV}
     sleep 0.2
+    echo "CMDCON,2000" > ${TTYDEV}
+    sleep 0.2
   done
-
-  echo "CMDCON,200" > ${TTYDEV}
 
 else										# no tty detected
   echo "No ${TTYDEV} Device detected, abort."					# some output

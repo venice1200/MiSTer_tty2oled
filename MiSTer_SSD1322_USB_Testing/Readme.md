@@ -1,7 +1,6 @@
 **Testing-Version**  
   
 Updated Arduino Code and tty2oled Daemon.  
-Run an "normal" Update before using the Testing-Version.  
 An Update after using the Testing-Version downloads the "old" tty2oled Daemon again.  
   
 New/UpdatedFeatures  

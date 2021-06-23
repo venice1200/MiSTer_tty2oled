@@ -13,12 +13,17 @@ dbug() {
 }
 
 if [ -c "${TTYDEV}" ]; then							# check for tty device
-  echo "${TTYDEV} detected, setting Parameter."					# some output
-  dbug "${TTYDEV} detected, setting Parameter."					# some debug output
+
+  echo "Stopping tty2oled Daemon"
+  /etc/init.d/S60tty2oled stop							# Stopping tty2oled
+
+  echo "${TTYDEV} detected, setting Parameter."
+  dbug "${TTYDEV} detected, setting Parameter."
   stty -F ${TTYDEV} ${TTYPARAM}							# set tty parameter
   sleep ${WAITSECS}	
 
   echo "Enable OTA Mode on ESP32"
   dbug "Enable OTA Mode on ESP32"
   echo "CMDENOTA" > ${TTYDEV}                                                   # Send OTA Command
+
 fi

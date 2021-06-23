@@ -21,4 +21,9 @@ if [ -c "${TTYDEV}" ]; then							# check for tty device
   echo "RESET ESP32"
   dbug "RESET ESP32"
   echo "CMDRESET" > ${TTYDEV}                                                   # Send OTA Command
+
+  sleep 5
+  echo "Start tty2oled Daemon"
+  /etc/init.d/S60tty2oled start
+
 fi

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# v1.2 - Copyright (c) 2021 Oliver Jaksch, Lars Meuser
+# v1.2 - Copyright (c) 2021 RealLarry, venice
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

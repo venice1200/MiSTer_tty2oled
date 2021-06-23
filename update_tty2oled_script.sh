@@ -36,6 +36,9 @@ if [ $(/bin/mount | head -n1 | grep -c "(ro,") = 1 ]; then
   MOUNTRO="true"
 fi
 
+# Create Work-Folder
+[[ -d ${picturefolder} ]] || mkdir -p -m 777 ${picturefolder}
+
 echo -e "\n\e[1;32mtty2oled update script"
 echo -e "----------------------\e[0m"
 
@@ -63,7 +66,7 @@ fi
 
 # pictures
 if [ "${USBMODE}" = "yes" ]; then
-  [[ -d ${picturefolder} ]] || mkdir -p -m 777 ${picturefolder}
+  # [[ -d ${picturefolder} ]] || mkdir -p -m 777 ${picturefolder}
   # Text-Based Pictures download
   if [ "${USE_TEXT_PICTURE}" = "yes" ]; then
     echo -e "\e[1;32mChecking for available Text-Pictures...\e[0m"

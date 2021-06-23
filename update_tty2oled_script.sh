@@ -21,9 +21,9 @@
 
 
 # Changelog:
-# v1.4 New Option US Pictures
+# v1.4 New Option USE_US_PICTURE
 # v1.3 More Text Output (Pictures)
-# v1.2 New Option USETEXTPICTURES & some Cosmetics
+# v1.2 New Option USE_TEXT_PICTURE & some Cosmetics
 # v1.1 Use of an INI file (tty2oled.ini)
 # v1.0 Main updater script which completes all tasks.
 

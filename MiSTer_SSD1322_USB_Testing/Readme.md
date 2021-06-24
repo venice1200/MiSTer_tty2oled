@@ -3,18 +3,23 @@
 Updated Arduino Code, updated tty2oled Daemon Script and new Scripts.  
   
 tty2oled Daemon  
-Make a Backup and replace "/usr/bin/tty2oled" with the one from this directory.  
-Make sure this version is "executeable".  
-! An Update after using the Testing-Version downloads the "old" tty2oled Daemon again !  
+* Make a Backup and replace "/usr/bin/tty2oled" with the one from this directory.  
+* Make sure this version is "executeable".  
+* ! An Update after using the Testing-Version downloads the "old" tty2oled Daemon again !  
   
   
 New/UpdatedFeatures  
+  
 -Over The Air (OTA) Updates for ESP32  
- You need add your Wireless Credentials to the "cred.h" file.  
+* You need add your Wireless Credentials to the "cred.h" file.  
+ Update your ESP32 with the Program from this folder. After this Version was applied you can use OTA for future Updates.  
  Copy "tty2oled_enable_OTA.sh" and "tty2oled_RESET.sh" from this folder to "media/fat/Scripts".  
- Enable OTA from the command line (see Command Examples below) or run the Script "tty2oled_enable_OTA.sh".  
+  
+-Running OTA  
+* Enable OTA from the command line (see Command Examples below) or run the Script "tty2oled_enable_OTA.sh".  
  The Arduino IDE should show you an new Network "Port" for Uploads after OTA is active.  
  See https://misterfpga.org/viewtopic.php?p=28423#p28423  
+ Use the new Port for the upload of the new Program.  
  If you like to stop OTA Reset the ESP32 (see Command Examples below) or run the Script "tty2oled_RESET.sh".  
   
 -New Command Structure for "external" Commands  

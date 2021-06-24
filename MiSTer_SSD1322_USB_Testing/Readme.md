@@ -14,12 +14,12 @@ Updated tty2oled Daemon Script, new Scripts and updated Arduino Code.
  Update your ESP32 with the new Program. After this Version was applied you can use OTA for future Updates.  
  Copy the Scripts "tty2oled_enable_OTA.sh" and "tty2oled_RESET.sh" from this folder to "media/fat/Scripts".  
   
-* Running OTA  
+* Using OTA  
  Enable OTA from the command line (see Command Examples below) or run the Script "tty2oled_enable_OTA.sh".  
  The Arduino IDE should show you an new Network "Port" for Uploads after OTA is active.  
- See https://misterfpga.org/viewtopic.php?p=28423#p28423  
  Use the new Port for the upload of the new Program.  
- If you like to stop OTA Reset the ESP32 (see Command Examples below) or run the Script "tty2oled_RESET.sh".  
+ See https://misterfpga.org/viewtopic.php?p=28423#p28423  
+ If you like to stop OTA, Reset the ESP32 (see Command Examples below) or run the Script "tty2oled_RESET.sh".  
   
 -New Command Structure for "external" Commands  
 * "CMDCLS"  

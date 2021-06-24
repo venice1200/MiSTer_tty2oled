@@ -36,8 +36,10 @@ if [ $(/bin/mount | head -n1 | grep -c "(ro,") = 1 ]; then
   MOUNTRO="true"
 fi
 
-# Create Work-Folder
+# Create Work-Folders
 [[ -d ${picturefolder} ]] || mkdir -p -m 777 ${picturefolder}
+[[ -d ${picturefolder_pri} ]] || mkdir -p -m 777 ${picturefolder_pri}
+
 
 echo -e "\n\e[1;32mtty2oled update script"
 echo -e "----------------------\e[0m"

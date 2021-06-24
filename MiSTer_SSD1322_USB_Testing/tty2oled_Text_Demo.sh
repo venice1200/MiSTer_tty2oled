@@ -19,32 +19,32 @@ if [ -c "${TTYDEV}" ]; then							# check for tty device
 
 
   echo "CMDCLS" > ${TTYDEV}
-  echo "CMDTXT,0,1,0,30,I'am Font No. 0" > ${TTYDEV}
-  echo "CMDTXT,5,1,0,60,I'am Font No. 5" > ${TTYDEV}
+  echo "CMDTXT,0,1,0,30,I am Font No. 0" > ${TTYDEV}
+  echo "CMDTXT,5,1,0,60,I am Font No. 5" > ${TTYDEV}
   
   sleep 3
   echo "CMDCLS" > ${TTYDEV}
-  echo "CMDTXT,1,1,0,30,I'am Font No. 1" > ${TTYDEV}
-  echo "CMDTXT,6,1,0,60,I'am Font No. 6" > ${TTYDEV}
+  echo "CMDTXT,1,1,0,30,I am Font No. 1" > ${TTYDEV}
+  echo "CMDTXT,6,1,0,60,I am Font No. 6" > ${TTYDEV}
  
   sleep 3
   echo "CMDCLS" > ${TTYDEV}
-  echo "CMDTXT,2,1,0,30,I'am Font No. 2" > ${TTYDEV}
-  echo "CMDTXT,7,1,0,60,I'am Font No. 7" > ${TTYDEV}
+  echo "CMDTXT,2,1,0,30,I am Font No. 2" > ${TTYDEV}
+  echo "CMDTXT,7,1,0,60,I am Font No. 7" > ${TTYDEV}
 
   sleep 3
   echo "CMDCLS" > ${TTYDEV}
-  echo "CMDTXT,3,1,0,30,I'am Font No. 3" > ${TTYDEV}
-  echo "CMDTXT,8,1,0,60,I'am Font No. 8" > ${TTYDEV}
+  echo "CMDTXT,3,1,0,30,I am Font No. 3" > ${TTYDEV}
+  echo "CMDTXT,8,1,0,60,I am Font No. 8" > ${TTYDEV}
 
   sleep 3
   echo "CMDCLS" > ${TTYDEV}
-  echo "CMDTXT,4,1,0,60,I'am Font 4" > ${TTYDEV}
+  echo "CMDTXT,4,1,0,60,I am Font 4" > ${TTYDEV}
  
   sleep 3
   echo "CMDCLS" > ${TTYDEV}
-  echo "CMDTXT,9,1,0,30,I'am Font No. 9" > ${TTYDEV}
-  echo "CMDTXT,10,1,0,60,I'am Font No. 10" > ${TTYDEV}
+  echo "CMDTXT,9,1,0,30,I am Font No. 9" > ${TTYDEV}
+  echo "CMDTXT,10,1,0,60,I am Font No. 10" > ${TTYDEV}
 
   sleep 3
   echo "CMDCLS" > ${TTYDEV}

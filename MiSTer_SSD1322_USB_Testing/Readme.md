@@ -10,7 +10,7 @@ Updated tty2oled Daemon Script, new Scripts and updated Arduino Code.
 -Over The Air (OTA) Updates for ESP32  
 * Copy the "Testing Folder" to your local Arduino Project Folder  
  You need only the .ino  File and all .h files.  
- You need add your Wireless Credentials to the "cred.h" file.  
+ You need to add your Wireless Credentials to the "cred.h" file.  
  Update your ESP32 with the new Program. After this Version was applied you can use OTA for future Updates.  
  Copy the Scripts "tty2oled_enable_OTA.sh" and "tty2oled_RESET.sh" from this folder to "media/fat/Scripts".  
   

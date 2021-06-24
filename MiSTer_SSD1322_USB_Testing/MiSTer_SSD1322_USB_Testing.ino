@@ -176,10 +176,14 @@
    "CMDBYE"
    "CMCOR,[Corename]"
    "CMDCON,[Contrast]"
-   "CMDTXT,[Parameter]"   Text-Ouput,       Parameter-Format = "f,c,x,y,[Text]
-   "CMDGEO,[Parmeter]"    Geometric-Output, Parameter Format = "g,c,x,y,i,j,k"
+   "CMDTXT,[Parameter]"   Text-Ouput,          Parameter-Format = "f,c,x,y,[Text]
+   "CMDGEO,[Parmeter]"    Geometric-Output,    Parameter Format = "g,c,x,y,i,j,k"
    "CMDRESET" 
    "CMDENOTA"
+   "CMDOFF,[Parameter]"   Set Power Save Mode, 0=Disabled/Display ON (default), 1=Enabled/Display OFF
+
+  2021-06-24
+  -Changed location of the "yield()" Command which is needed for 8266 NodeMCU
 
 */
 
@@ -381,6 +385,12 @@ void loop(void) {
     else if (newCore.startsWith("CMDGEO")) {                            // Command from Serial to draw geometrics
       usb2oled_readndrawgeo2();                                         // Read and Draw Geometrics
     }
+
+    // -- Create Geometrics out of the Date send by the MiSTer
+    else if (newCore.startsWith("CMDOFF")) {                            // Command from Serial to set Power Save Mode
+      usb2oled_readnopowersave();                                       // Set Power Save Mode
+    }
+
 
 #ifdef ESP32  // OTA and Reset only for ESP32
     // -- Enable (Basic) OTA
@@ -903,6 +913,7 @@ void drawEightBit(int x, int y, unsigned char b) {
 
 // -----------------------------------------------------------------------------
 // -------------------------- Commands V2 --------------------------------------
+// ------------------- Commands Starting with "CMD"-----------------------------
 // -----------------------------------------------------------------------------
 
 // ----------------- Command Read an Set Contrast ------------------------------
@@ -921,6 +932,21 @@ void usb2oled_readnsetcontrast2(void) {
   u8g2.setContrast(cT.toInt());            // Read and Set contrast  
 }
 
+// ----------------- Command Read an Set Power Save Mode ------------------------------
+void usb2oled_readnopowersave(void) {
+  String pT="";
+#ifdef XDEBUG
+    Serial.println("Called Command CMDOFF");
+#endif
+  
+  pT=newCore.substring(7);
+
+#ifdef XDEBUG
+  Serial.printf("Received Text: %s\n", (char*)pT.c_str());
+#endif
+
+  u8g2.setPowerSave(pT.toInt());            // Set Power Save Modecontrast  
+}
 
 // -----------------------Command Read an Draw Logo ----------------------------
 int usb2oled_readndrawlogo2(int effect) {

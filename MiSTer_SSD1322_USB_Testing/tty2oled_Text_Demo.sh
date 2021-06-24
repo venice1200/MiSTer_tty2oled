@@ -99,11 +99,11 @@ if [ -c "${TTYDEV}" ]; then							# check for tty device
   sleep 2
   echo "CMDGEO,4,2,100,20,60,30,0" > ${TTYDEV}
 
-  sleep 3
-  echo "CMDCLS" > ${TTYDEV}
-  echo "CMDGEO,4,1,0,0,255,64,0" > ${TTYDEV}
   sleep 2
-  echo "CMDTXT,4,0,50,40,BLINK'in" > ${TTYDEV}
+  echo "CMDCLS" > ${TTYDEV}
+  sleep 1
+  echo "CMDGEO,4,1,0,0,255,64,0" > ${TTYDEV}
+  echo "CMDTXT,4,0,50,45,BLINK'in" > ${TTYDEV}
   sleep 2
   for ((i=0; i<10; i++ )); do
     echo "CMDCON,0" > ${TTYDEV}
@@ -111,6 +111,21 @@ if [ -c "${TTYDEV}" ]; then							# check for tty device
     echo "CMDCON,2000" > ${TTYDEV}
     sleep 0.2
   done
+
+  sleep 2
+  echo "CMDCLS" > ${TTYDEV}
+  sleep 1
+  echo "CMDGEO,4,1,0,0,255,64,0" > ${TTYDEV}
+  echo "CMDTXT,4,0,40,45,BLINK'in 2" > ${TTYDEV}
+  sleep 2
+  for ((i=0; i<5; i++ )); do
+    echo "CMDOFF,1" > ${TTYDEV}
+    sleep 0.5
+    echo "CMDOFF,0" > ${TTYDEV}
+    sleep 0.6
+  done
+
+  #/etc/init.d/S60tty2oled restart
 
 else										# no tty detected
   echo "No ${TTYDEV} Device detected, abort."					# some output

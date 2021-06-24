@@ -48,6 +48,9 @@ Updated tty2oled Daemon Script, new Scripts and updated Arduino Code.
   
 * "CMDRESET"   ESP32 Reset  
 * "CMDENOTA"   ESP32 Enable OTA Programming Mode  
+* "CMDOFF,[Parameter]" Set Power Save Mode  
+ Parameter-Format = "p"  
+ p = 0=Disable Power Save Mode/Display ON (Default), 1=Enable Power Save Mode/Display OFF  
   
 Examples Command Line (CLI/SSH):  
 `echo "CMDCLS" > /dev/ttyUSB0`                             Clear Screen  
@@ -58,6 +61,9 @@ Examples Command Line (CLI/SSH):
 `echo "CMDGEO,4,2,10,10,50,20,0" > /dev/ttyUSB0`           Invert Box-Area at 10,10 with 50x20 Pixel (not for Circle/Disc/Ellipse)  
 `echo "CMDENOTA" > /dev/ttyUSB0`                           Enable ESP32 OTA Mode  
 `echo "CMDRESET" > /dev/ttyUSB0`                           Reset/Reboot ESP32  
+`echo "CMDOFF,1" > /dev/ttyUSB0`                           Enable Power Save/Display OFF  
+`echo "CMDOFF,0" > /dev/ttyUSB0`                           Disable Power Save/Display ON  
+
 
   
 Report Issues here:  

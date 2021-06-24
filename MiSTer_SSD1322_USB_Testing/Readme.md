@@ -1,6 +1,6 @@
 **Testing-Version**  
   
-Updated Arduino Code and tty2oled Daemon.  
+Updated Arduino Code, updated tty2oled Daemon Script and new Scripts.  
   
 tty2oled Daemon  
 Make a Backup and replace "/usr/bin/tty2oled" with the one from this directory.  
@@ -9,12 +9,14 @@ Make sure this version is "executeable".
   
   
 New/UpdatedFeatures  
--Over The Air Updates for ESP32  
+-Over The Air (OTA) Updates for ESP32  
  You need add your Wireless Credentials to the "cred.h" file.  
- Enable OTA from the command line (see Examples below).  
- The Arduino IDE should show you an new Network "Port" for Uploads.  
+ Copy "tty2oled_enable_OTA.sh" and "tty2oled_RESET.sh" from this folder to "media/fat/Scripts".  
+ Enable OTA from the command line (see Command Examples below) or run the Script "tty2oled_enable_OTA.sh".  
+ The Arduino IDE should show you an new Network "Port" for Uploads after OTA is active.  
  See https://misterfpga.org/viewtopic.php?p=28423#p28423  
- 
+ If you like to stop OTA Reset the ESP32 (see Command Examples below) or run the Script "tty2oled_RESET.sh".  
+  
 -New Command Structure for "external" Commands  
 * "CMDCLS"  
 * "CMDSORG"  
@@ -50,7 +52,9 @@ Examples Command Line (CLI/SSH):
 `echo "CMDGEO,4,1,10,10,50,20,0" > /dev/ttyUSB0`           Draw Box at 10,10 with 50x20 Pixel  
 `echo "CMDGEO,4,0,10,10,50,20,0" > /dev/ttyUSB0`           Clear Box-Area at 10,10 with 50x20 Pixel  
 `echo "CMDGEO,4,2,10,10,50,20,0" > /dev/ttyUSB0`           Invert Box-Area at 10,10 with 50x20 Pixel (not for Circle/Disc/Ellipse)  
-`echo "CMDENOTA" > /dev/ttyUSB0`                           Enable OTA Mode  
+`echo "CMDENOTA" > /dev/ttyUSB0`                           Enable ESP32 OTA Mode  
+`echo "CMDRESET" > /dev/ttyUSB0`                           Reset/Reboot ESP32  
+
   
 Report Issues here:  
 https://misterfpga.org/viewtopic.php?p=28397  

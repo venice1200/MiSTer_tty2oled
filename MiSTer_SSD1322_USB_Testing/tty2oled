@@ -34,9 +34,11 @@
 # 2021-06-22 New Command Mode (Testing)
 #            "CMCOR,[Corename]", "CMDCON,[Contrast]",  "CMDTEX,[Parameter]", "CMDGEO,[Parmeter]", "CMDRST", "CMDOTA"
 #
+# 2021-06-24 Adding folder "/media/fat/Scripts/.tty2oled/pics_pri"  
+#            Pictures found in this folder will be used before the "common" pictures.
+#            The User himself is responsible for the content in this Folder.
 #
 #
-
 
 . /media/fat/Scripts/tty2oled.ini
 
@@ -60,8 +62,13 @@ sendcontrast() {
 # USB Send-Picture-Data function
 senddata() {
   if [ "${USBMODE}" = "yes" ]; then						# Check the tty2xxx mode
-    if [ -f "${picturefolder}/${1}.xbm" ]; then					# Lookup for an existing XBM and proceed
-      dbug "Sending: CMDCOR,${1}"							# some debug output
+    if [ -f "${picturefolder_pri}/${1}.xbm" ]; then                             # Lookup for an existing XBM in PRI and proceed
+      dbug "Sending: CMDCOR,${1}"                                               
+      echo "CMDCOR,${1}" > ${TTYDEV}                                            # Send CORECHANGE" Command and Corename
+      sleep ${WAITSECS}                                                         # sleep needed here ?!
+      tail -n +4 "${picturefolder_pri}/${1}.xbm" | xxd -r -p > ${TTYDEV}        # The Magic, send the Picture-Data up from Line 4 and proces$
+    elif [ -f "${picturefolder}/${1}.xbm" ]; then				# Lookup for an existing XBM and proceed
+      dbug "Sending: CMDCOR,${1}"						
       echo "CMDCOR,${1}" > ${TTYDEV}						# Send CORECHANGE" Command and Corename
       sleep ${WAITSECS}								# sleep needed here ?!
       tail -n +4 "${picturefolder}/${1}.xbm" | xxd -r -p > ${TTYDEV}		# The Magic, send the Picture-Data up from Line 4 and process them with xxd

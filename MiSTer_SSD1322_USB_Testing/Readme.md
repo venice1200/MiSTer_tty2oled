@@ -1,7 +1,12 @@
 **Testing-Version**  
   
 Updated Arduino Code and tty2oled Daemon.  
-An Update after using the Testing-Version downloads the "old" tty2oled Daemon again.  
+  
+tty2oled Daemon  
+Make a Backup and replace "/usr/bin/tty2oled" with the one from this directory.  
+Make sure this version is "executeable".  
+! An Update after using the Testing-Version downloads the "old" tty2oled Daemon again !  
+  
   
 New/UpdatedFeatures  
 -Over The Air Updates for ESP32  
@@ -46,9 +51,6 @@ Examples Command Line (CLI/SSH):
 `echo "CMDGEO,4,0,10,10,50,20,0" > /dev/ttyUSB0`           Clear Box-Area at 10,10 with 50x20 Pixel  
 `echo "CMDGEO,4,2,10,10,50,20,0" > /dev/ttyUSB0`           Invert Box-Area at 10,10 with 50x20 Pixel (not for Circle/Disc/Ellipse)  
 `echo "CMDENOTA" > /dev/ttyUSB0`                           Enable OTA Mode  
-  
-Make Backup and Replace "/usr/bin/tty2oled" with the one from this directory.  
-Make sure this version is "executeable".  
   
 Report Issues here:  
 https://misterfpga.org/viewtopic.php?p=28397  

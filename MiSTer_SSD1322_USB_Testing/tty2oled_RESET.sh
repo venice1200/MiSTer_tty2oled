@@ -24,6 +24,6 @@ if [ -c "${TTYDEV}" ]; then							# check for tty device
 
   sleep 5
   echo "Start tty2oled Daemon"
-  /etc/init.d/S60tty2oled start
+  /etc/init.d/S60tty2oled restart
 
 fi

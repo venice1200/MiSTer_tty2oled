@@ -175,9 +175,9 @@
    "CMDSORG"
    "CMDBYE"
    "CMCOR,[Corename]"
-   "CMDCON,[Contrast]"    Geometric-Output, Parameter Format = "g,c,x,y,i,j,k"
+   "CMDCON,[Contrast]"
    "CMDTXT,[Parameter]"   Text-Ouput,       Parameter-Format = "f,c,x,y,[Text]
-   "CMDGEO,[Parmeter]" 
+   "CMDGEO,[Parmeter]"    Geometric-Output, Parameter Format = "g,c,x,y,i,j,k"
    "CMDRESET" 
    "CMDENOTA"
 
@@ -895,10 +895,10 @@ void drawEightBit(int x, int y, unsigned char b) {
       u8g2.drawPixel(x+i,y);
       u8g2.setDrawColor(1);        
     }  // end bit read
-  }  // end for j
 #if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
-  yield();
+    yield();
 #endif
+  }  // end for j
 }
 
 // -----------------------------------------------------------------------------

@@ -50,7 +50,7 @@ Updated tty2oled Daemon Script, new Scripts and updated Arduino Code.
 * "CMDENOTA"   ESP32 Enable OTA Programming Mode  
 * "CMDOFF,[Parameter]" Set Power Save Mode  
  Parameter-Format = "p"  
- p = 0=Disable Power Save Mode/Display ON (Default), 1=Enable Power Save Mode/Display OFF  
+ p = Power Save Mode 0=Disabled/Display ON (Default), 1=Enabled/Display OFF  
   
 Examples Command Line (CLI/SSH):  
 `echo "CMDCLS" > /dev/ttyUSB0`                             Clear Screen  

@@ -36,9 +36,11 @@ if [ $(/bin/mount | head -n1 | grep -c "(ro,") = 1 ]; then
   MOUNTRO="true"
 fi
 
-# Create Work-Folders
+# Create Work-Folders, delete old Work-Folders if needed
 [[ -d ${picturefolder} ]] || mkdir -p -m 777 ${picturefolder}
 [[ -d ${picturefolder_pri} ]] || mkdir -p -m 777 ${picturefolder_pri}
+# [[ -d ${oldpicturefolder_pri} ]] && mv ${oldpicturefolder_pri}/*.* {picturefolder} && rm ${oldpicturefolder_pri}
+# [[ -d ${oldpicturefolder_pri} ]] && mv ${oldpicturefolder_pri}/*.* {picturefolder} && rm ${oldpicturefolder_pri}
 
 
 echo -e "\n\e[1;32mtty2oled update script"

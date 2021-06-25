@@ -39,7 +39,8 @@ fi
 # Create Work-Folders, delete old Work-Folders if needed
 [[ -d ${picturefolder} ]] || mkdir -p -m 777 ${picturefolder}
 [[ -d ${picturefolder_pri} ]] || mkdir -p -m 777 ${picturefolder_pri}
-#[[ -v ${oldpicturefolder} ]] && [[ -d ${oldpicturefolder} ]] && mv ${oldpicturefolder}/* ${picturefolder} && rm -R ${oldpicturefolder}
+[[ -v oldpicturefolder ]] && [[ -d ${oldpicturefolder} ]] && mv ${oldpicturefolder}/* ${picturefolder} && rm -R ${oldpicturefolder}
+#[[ -n ${oldpicturefolder} ]] && [[ -d ${oldpicturefolder} ]] && mv ${oldpicturefolder}/* ${picturefolder} && rm -R ${oldpicturefolder}
 
 
 echo -e "\n\e[1;32mtty2oled update script"

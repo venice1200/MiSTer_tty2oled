@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# v1.2 - Copyright (c) 2021 ojaksch, venice
+# v1.2 - Copyright (c) 2021 o.jaksch, venice
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

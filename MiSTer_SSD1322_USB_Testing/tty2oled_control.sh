@@ -20,7 +20,7 @@ fgreen=`tput setf 2`
 fred=`tput setf 4`
 fblue=`tput setf 1`
 
-PARAM="espota espreset dispoff dispon ttystop ttystart ttybooton ttybootoff"
+PARAM="espota espreset dispoff dispon ttystop ttystart ttybooton ttybootoff dispron disproff"
 
 # Debug function
 dbug() {
@@ -61,6 +61,16 @@ if [ "${#}" -ge 1 ]; then                           # At least one Command Line 
     "dispon")
       echo "Power Display ${fgreen}ON${freset}"
       echo "CMDOFF,0" > ${TTYDEV}
+    ;;
+    "disproff")
+      echo "Display Rotation ${fred}OFF${freset}"
+      echo "CMDROT,0" > ${TTYDEV}
+      echo "CMDSORG" > ${TTYDEV}
+    ;;
+    "dispron")
+      echo "Display Rotation ${fgreen}ON${freset}"
+      echo "CMDROT,1" > ${TTYDEV}
+      echo "CMDSORG" > ${TTYDEV}
     ;;
     "ttystop")
       echo "${fred}Stop${freset} ${DAEMONNAME}"

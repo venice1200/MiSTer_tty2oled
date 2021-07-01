@@ -1,7 +1,7 @@
 **Testing-Version**  
   
 Updated tty2oled Daemon Script, new Scripts and updated Arduino Code.  
-Use the INI Script from the Main folder.  
+Use the INI File from the main folder.  
   
 -tty2oled Daemon  
 * Make a Backup and replace "/usr/bin/tty2oled" with the one from this directory.  

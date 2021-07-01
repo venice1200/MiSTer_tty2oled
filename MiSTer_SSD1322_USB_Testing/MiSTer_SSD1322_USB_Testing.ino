@@ -185,6 +185,11 @@
   2021-06-24
   -Changed location of the "yield()" Command which is needed for 8266 NodeMCU
 
+  2021-06-30
+  -New Command "CMDROT"
+   "CMDROT,[Parameter]" Set Display Rotation (0=180° (My Standard), 1=0 degrees) Rotation after Start
+   You will see the Command Result after the next Write/Draw Command.
+
 */
 
 // Uncomment to get some Debugging Infos over Serial especially for SD Debugging
@@ -216,7 +221,8 @@ bool OTAEN=false;                // Will be set to "true" by Command "CMDENABLEO
 // TTGO-T8 Display Constructor HW-SPI OLED & integrated SD Card, 180° Rotation => U8G2_R2
 // Using VSPI SCLK = 18, MISO = 19, MOSI = 23 and...
 #ifdef ARDUINO_ESP32_DEV
-U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 26, /* dc=*/ 25, /* reset=*/ 27);
+U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 26, /* dc=*/ 25, /* reset=*/ 27);      // 270° Rotation
+//U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R0, /* cs=*/ 26, /* dc=*/ 25, /* reset=*/ 27);      // 0° Rotation
 #endif
 
 // WEMOS LOLIN32 Display Constructor HW-SPI & Adafruit SD_MMC Adapter 180° Rotation => U8G2_R2
@@ -253,7 +259,7 @@ U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 15, /* dc=*/ 4, /* re
 // Strings
 String newCore = "";             // Received Text, from MiSTer without "\n\r" currently (2021-01-11)
 String oldCore = "";             // Buffer String for Text change detection
-uint8_t contrast = 20;           // Contrast (brightness) of display, range: 0 (no contrast) to 255 (maximum)
+uint8_t contrast = 5;            // Contrast (brightness) of display, range: 0 (no contrast) to 255 (maximum)
 char *newCoreChar;
 
 // Display Vars
@@ -368,30 +374,35 @@ void loop(void) {
     }
 
     // -- Get Data via USB from the MiSTer and show them
-    else if (newCore.startsWith("CMDCOR")) {                             // Command from Serial to receive Data via USB Serial from the MiSTer
+    else if (newCore.startsWith("CMDCOR,")) {                            // Command from Serial to receive Data via USB Serial from the MiSTer
       usb2oled_readndrawlogo2(random(1,11));                             // Receive Picture Data and show them on the OLED, Transition Effect Random Number 1..10
     }
     // -- Get Contrast Data via USB from the MiSTer and set them
-    else if (newCore.startsWith("CMDCON")) {                             // Command from Serial to receive Contrast-Level Data from the MiSTer
+    else if (newCore.startsWith("CMDCON,")) {                            // Command from Serial to receive Contrast-Level Data from the MiSTer
       usb2oled_readnsetcontrast2();                                      // Read and Set contrast                                   
     }
 
     // -- Get Text Data via USB from the MiSTer and write it
-    else if (newCore.startsWith("CMDTXT")) {                            // Command from Serial to write Text
+    else if (newCore.startsWith("CMDTXT,")) {                           // Command from Serial to write Text
       usb2oled_readnwritetext2();                                       // Read and Write Text
     }
     
     // -- Create Geometrics out of the Date send by the MiSTer
-    else if (newCore.startsWith("CMDGEO")) {                            // Command from Serial to draw geometrics
+    else if (newCore.startsWith("CMDGEO,")) {                           // Command from Serial to draw geometrics
       usb2oled_readndrawgeo2();                                         // Read and Draw Geometrics
     }
 
     // -- Create Geometrics out of the Date send by the MiSTer
-    else if (newCore.startsWith("CMDOFF")) {                            // Command from Serial to set Power Save Mode
+    else if (newCore.startsWith("CMDOFF,")) {                           // Command from Serial to set Power Save Mode
       usb2oled_readnopowersave();                                       // Set Power Save Mode
     }
 
+    // -- Set Display Rotation
+    else if (newCore.startsWith("CMDROT,")) {                           // Command from Serial to set Rotation
+      usb2oled_readnsetrotation();                                      // Set Rotation
+    }
 
+// The following Commands are only for ESP32
 #ifdef ESP32  // OTA and Reset only for ESP32
     // -- Enable (Basic) OTA
     else if (newCore=="CMDENOTA") {                                     // Command from Serial to enable OTA on the ESP
@@ -946,6 +957,35 @@ void usb2oled_readnopowersave(void) {
 #endif
 
   u8g2.setPowerSave(pT.toInt());            // Set Power Save Modecontrast  
+}
+
+// ----------------- Command Read an Set Rotation ------------------------------
+void usb2oled_readnsetrotation(void) {
+  String rT="";
+  int r=0;
+#ifdef XDEBUG
+    Serial.println("Called Command CMDROT");
+#endif
+  
+  rT=newCore.substring(7);
+
+#ifdef XDEBUG
+  Serial.printf("Received Text: %s\n", (char*)pT.c_str());
+#endif
+
+  r=rT.toInt();
+  
+  switch (r) {
+    case 0:
+      u8g2.setDisplayRotation(U8G2_R2);
+    break;
+    case 1:
+      u8g2.setDisplayRotation(U8G2_R0);
+    break;
+    default:
+      u8g2.setDisplayRotation(U8G2_R2);
+    break;
+  }
 }
 
 // -----------------------Command Read an Draw Logo ----------------------------

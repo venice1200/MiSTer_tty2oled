@@ -38,6 +38,7 @@
 #            Pictures found in this folder will be used before the "common" pictures.
 #            The User himself is responsible for the content in this Folder.
 #
+# 2021-06-30 Added new INI Option/Command for Display Rotation ("CMDROT,[Parameter]")
 #
 #
 
@@ -55,8 +56,16 @@ dbug() {
 
 # Send-Contrast-Data function
 sendcontrast() {
-  dbug "Sending: CMDCON,${CONTRAST}" > ${TTYDEV}                                         # Some Debug
+  dbug "Sending: CMDCON,${CONTRAST}" > ${TTYDEV}
   echo "CMDCON,${CONTRAST}" > ${TTYDEV}                                         # Send Contrast Command and Value
+}
+
+# Rotate Display function
+sendrotation() {
+  if [ "${ROTATE}" = "yes" ]; then
+    dbug "Sending: CMDROT,1" > ${TTYDEV}
+    echo "CMDROT,1" > ${TTYDEV}                                                 # Send Rotation if set to "yes"
+  fi
 }
 
 
@@ -110,7 +119,8 @@ if [ -c "${TTYDEV}" ]; then							# check for tty device
   echo "QWERTZ" > ${TTYDEV}							# First Transmission to clear serial send buffer
   dbug "Send QWERTZ as first transmission"					# some debug output
   sleep ${WAITSECS}								# sleep needed here ?!
-  sendcontrast
+  sendcontrast                                                                  # Set Contrast
+  sendrotation                                                                  # Set Display Rotation
   while true; do								# main loop
     if [ -r ${corenamefile} ]; then						# proceed if file exists and is readable (-r)
       newcore=$(cat ${corenamefile})						# get CORENAME

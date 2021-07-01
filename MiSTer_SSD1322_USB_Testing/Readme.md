@@ -1,6 +1,7 @@
 **Testing-Version**  
   
 Updated tty2oled Daemon Script, new Scripts and updated Arduino Code.  
+Use the INI Script from the Main folder.  
   
 -tty2oled Daemon  
 * Make a Backup and replace "/usr/bin/tty2oled" with the one from this directory.  
@@ -52,6 +53,10 @@ Updated tty2oled Daemon Script, new Scripts and updated Arduino Code.
  Parameter-Format = "p"  
  p = Power Save Mode 0=Disabled/Display ON (Default), 1=Enabled/Display OFF  
   
+* "CMDROT,[Parameter]" Enable Rotation  
+ Parameter-Format = "r"  
+ r = Rotation 180° 0=Disabled (Default), 1=Enabled  
+  
 Examples Command Line (CLI/SSH):  
 `echo "CMDCLS" > /dev/ttyUSB0`                             Clear Screen  
 `echo "CMDCON,211" > /dev/ttyUSB0`                         Send Contrast Value 211  
@@ -63,6 +68,9 @@ Examples Command Line (CLI/SSH):
 `echo "CMDRESET" > /dev/ttyUSB0`                           Reset/Reboot ESP32  
 `echo "CMDOFF,1" > /dev/ttyUSB0`                           Enable Power Save/Display OFF  
 `echo "CMDOFF,0" > /dev/ttyUSB0`                           Disable Power Save/Display ON  
+`echo "CMDROT,1" > /dev/ttyUSB0`                           Rotate Display 180 degrees  
+`echo "CMDROT,0" > /dev/ttyUSB0`                           Do not Rotate Display  
+
 
 
   

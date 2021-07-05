@@ -36,11 +36,13 @@ if [ $(/bin/mount | head -n1 | grep -c "(ro,") = 1 ]; then
   MOUNTRO="true"
 fi
 
-# Create Work-Folders, delete old Work-Folders, move Deamon
+# Create Work-Folders
 [[ -d ${picturefolder} ]] || mkdir -p -m 777 ${picturefolder}
 [[ -d ${picturefolder_pri} ]] || mkdir -p -m 777 ${picturefolder_pri}
-[[ -v oldpicturefolder ]] && [[ -d ${oldpicturefolder} ]] && mv ${oldpicturefolder}/* ${picturefolder} && rm -R ${oldpicturefolder}
-[[ -v OLDDAEMONSCRIPT ]] && [[ -e ${OLDDAEMONSCRIPT} ]] && mv ${OLDDAEMONSCRIPT} ${DAEMONSCRIPT} 
+
+# Currently disabled, delete old Work-Folders, move Deamon
+#[[ -v oldpicturefolder ]] && [[ -d ${oldpicturefolder} ]] && mv ${oldpicturefolder}/* ${picturefolder} && rm -R ${oldpicturefolder}
+#[[ -v OLDDAEMONSCRIPT ]] && [[ -e ${OLDDAEMONSCRIPT} ]] && mv ${OLDDAEMONSCRIPT} ${DAEMONSCRIPT} 
 
 
 echo -e "\n\e[1;32mtty2oled update script"

@@ -36,10 +36,6 @@ if [ $(/bin/mount | head -n1 | grep -c "(ro,") = 1 ]; then
   MOUNTRO="true"
 fi
 
-# Create Work-Folders
-[[ -d ${picturefolder} ]] || mkdir -p -m 777 ${picturefolder}
-[[ -d ${picturefolder_pri} ]] || mkdir -p -m 777 ${picturefolder_pri}
-
 # Currently disabled, delete old Work-Folders, move Deamon
 #[[ -v oldpicturefolder ]] && [[ -d ${oldpicturefolder} ]] && mv ${oldpicturefolder}/* ${picturefolder} && rm -R ${oldpicturefolder}
 #[[ -v OLDDAEMONSCRIPT ]] && [[ -e ${OLDDAEMONSCRIPT} ]] && mv ${OLDDAEMONSCRIPT} ${DAEMONSCRIPT} 
@@ -87,6 +83,8 @@ fi
 
 # pictures
 if [ "${USBMODE}" = "yes" ]; then
+  [[ -d ${picturefolder} ]] || mkdir -p -m 777 ${picturefolder}
+  [[ -d ${picturefolder_pri} ]] || mkdir -p -m 777 ${picturefolder_pri}
   # [[ -d ${picturefolder} ]] || mkdir -p -m 777 ${picturefolder}
   # Text-Based Pictures download
   if [ "${USE_TEXT_PICTURE}" = "yes" ]; then

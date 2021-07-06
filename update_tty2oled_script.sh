@@ -21,6 +21,7 @@
 
 
 # Changelog:
+# v1.5 Changed Script Download for install and update
 # v1.4 New Option USE_US_PICTURE
 # v1.3 More Text Output (Pictures)
 # v1.2 New Option USE_TEXT_PICTURE & some Cosmetics

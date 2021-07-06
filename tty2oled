@@ -31,8 +31,16 @@
 #            Example: /usr/bin/tty2oled /dev/ttyUSB1 SD 
 #            Example: /usr/bin/tty2oled /dev/ttyUSB1 USB 921600
 #
+# 2021-06-22 New Command Mode (Testing)
+#            "CMCOR,[Corename]", "CMDCON,[Contrast]",  "CMDTEX,[Parameter]", "CMDGEO,[Parmeter]", "CMDRST", "CMDOTA"
 #
-
+# 2021-06-24 Adding folder "/media/fat/Scripts/.tty2oled/pics_pri"  
+#            Pictures found in this folder will be used before the "common" pictures.
+#            The User himself is responsible for the content in this Folder.
+#
+# 2021-06-30 Added new INI Option/Command for Display Rotation ("CMDROT,[Parameter]")
+#
+#
 
 . /media/fat/Scripts/tty2oled.ini
 
@@ -48,21 +56,36 @@ dbug() {
 
 # Send-Contrast-Data function
 sendcontrast() {
-  echo "att" > ${TTYDEV}                                                    # Send an "att" to the MiSTer annoucing another Command
-  sleep ${WAITSECS}                                                         # sleep needed here ?!
-  echo "CONTRAST" > ${TTYDEV}                                               # Send "CONTRAST" annoucing the OLED Contrast Data as next
-  sleep ${WAITSECS}                                                         # sleep needed here ?!
-  echo ${CONTRAST} > ${TTYDEV}                                              # Send Contrast Value
+  dbug "Sending: CMDCON,${CONTRAST}" > ${TTYDEV}
+  echo "CMDCON,${CONTRAST}" > ${TTYDEV}                                         # Send Contrast Command and Value
+}
+
+# Rotate Display function
+sendrotation() {
+  if [ "${ROTATE}" = "yes" ]; then
+    dbug "Sending: CMDROT,1" > ${TTYDEV}
+    echo "CMDROT,1" > ${TTYDEV}                                                 # Send Rotation if set to "yes"
+    sleep ${WAITSECS}
+    echo "CMDSORG" > ${TTYDEV}                                                  # Show Start Screen rotated
+    sleep 2
+#  else
+#    dbug "Sending: CMDROT,1" > ${TTYDEV}
+#    echo "CMDROT,0" > ${TTYDEV}                                                 # No Rotation
+  fi
 }
 
 
 # USB Send-Picture-Data function
 senddata() {
   if [ "${USBMODE}" = "yes" ]; then						# Check the tty2xxx mode
-    if [ -f "${picturefolder}/${1}.xbm" ]; then					# Lookup for an existing XBM and proceed
-      echo "att" > ${TTYDEV}							# Send an "att" to the MiSTer annoucing another Command
-      sleep ${WAITSECS}								# sleep needed here ?!
-      echo "CORECHANGE" > ${TTYDEV}						# Send "CORECHANGE" annoucing XBM Data to the ESP/Arduino
+    if [ -f "${picturefolder_pri}/${1}.xbm" ]; then                             # Lookup for an existing XBM in PRI and proceed
+      dbug "Sending: CMDCOR,${1}"                                               
+      echo "CMDCOR,${1}" > ${TTYDEV}                                            # Send CORECHANGE" Command and Corename
+      sleep ${WAITSECS}                                                         # sleep needed here ?!
+      tail -n +4 "${picturefolder_pri}/${1}.xbm" | xxd -r -p > ${TTYDEV}        # The Magic, send the Picture-Data up from Line 4 and proces$
+    elif [ -f "${picturefolder}/${1}.xbm" ]; then				# Lookup for an existing XBM and proceed
+      dbug "Sending: CMDCOR,${1}"						
+      echo "CMDCOR,${1}" > ${TTYDEV}						# Send CORECHANGE" Command and Corename
       sleep ${WAITSECS}								# sleep needed here ?!
       tail -n +4 "${picturefolder}/${1}.xbm" | xxd -r -p > ${TTYDEV}		# The Magic, send the Picture-Data up from Line 4 and process them with xxd
     else									# No Picture available!
@@ -102,7 +125,8 @@ if [ -c "${TTYDEV}" ]; then							# check for tty device
   echo "QWERTZ" > ${TTYDEV}							# First Transmission to clear serial send buffer
   dbug "Send QWERTZ as first transmission"					# some debug output
   sleep ${WAITSECS}								# sleep needed here ?!
-  sendcontrast
+  sendcontrast                                                                  # Set Contrast
+  sendrotation                                                                  # Set Display Rotation
   while true; do								# main loop
     if [ -r ${corenamefile} ]; then						# proceed if file exists and is readable (-r)
       newcore=$(cat ${corenamefile})						# get CORENAME

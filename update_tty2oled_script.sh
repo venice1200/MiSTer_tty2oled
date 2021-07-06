@@ -100,7 +100,7 @@ if [ "${USBMODE}" = "yes" ]; then
       fi
     done
   else
-    echo -e "\e[1;33mSkipping Text-Based Picture download because of the \e[1;36mUSE_TEXT_PICTURE\e[1;33m INI-Option\e[0m"
+    echo -e "\e[1;31mSkipping\e[1;33m Text-Based Picture download because of the \e[1;36mUSE_TEXT_PICTURE\e[1;33m INI-Option\e[0m"
   fi
   
   # Graphic-Based Pictures (as Second = Higher Priority)
@@ -130,7 +130,7 @@ if [ "${USBMODE}" = "yes" ]; then
       fi
     done
   else
-    echo -e "\e[1;33mSkipping US-Version Picture download because of the \e[1;36mUSE_US_PICTURE\e[1;33m INI-Option\e[0m"
+    echo -e "\e[1;31mSkipping\e[1;33m US-Version Picture download because of the \e[1;36mUSE_US_PICTURE\e[1;33m INI-Option\e[0m"
   fi
 else
   echo -e "\e[5;31mSkipping\e[25;1;33m Picture download because of the \e[1;36mUSBMODE\e[1;33m INI-Option\e[0m"

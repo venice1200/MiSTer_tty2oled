@@ -31,7 +31,6 @@
 #            Example: /usr/bin/tty2oled /dev/ttyUSB1 SD 
 #            Example: /usr/bin/tty2oled /dev/ttyUSB1 USB 921600
 #
-# Testing 1
 #
 
 

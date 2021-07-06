@@ -45,7 +45,7 @@ fi
 echo -e '\n /----------\';
 echo -e ' | \e[1;34mtty\e[1;31m2\e[1;33moled\e[0m |----[';
 echo -e ' \----------/\n';
-echo -e "e[1;33moled\e[1;32m Update Script"
+echo -e "\e[1;32m Update Script"
 echo -e "---------------\e[0m"
 
 #echo -e "\n\e[1;34mtty\e[1;31m2\e[1;33moled\e[1;32m update script"

@@ -52,25 +52,35 @@ echo -e "\e[1;32mChecking for available tty2oled updates...\e[0m"
 
 # init script
 wget ${NODEBUG} "${REPOSITORY_URL}/S60tty2oled" -O /tmp/S60tty2oled
-#if ! cmp -s /tmp/S60tty2oled ${INITSCRIPT}; then
-if  ! [ -f ${INITSCRIPT} ] || ( ! cmp -s /tmp/S60tty2oled ${INITSCRIPT} &&  [ "${SCRIPT_UPDATE}" = "yes" ] ); then
-  echo -e "\e[1;33mInstalling or updating init script \e[1;35mS60tty2oled\e[0m"
+if  ! [ -f ${INITSCRIPT} ]; then
+  echo -e "\e[1;33mInstalling init script \e[1;35mS60tty2oled\e[0m"
+  mv -f /tmp/S60tty2oled ${INITSCRIPT}
+  chmod +x ${INITSCRIPT}
+fi
+if  ( ! cmp -s /tmp/S60tty2oled ${INITSCRIPT} &&  [ "${SCRIPT_UPDATE}" = "yes" ] ); then
+  echo -e "\e[1;33mUpdating init script \e[1;35mS60tty2oled\e[0m"
   mv -f /tmp/S60tty2oled ${INITSCRIPT}
   chmod +x ${INITSCRIPT}
 else
-  rm /tmp/S60tty2oled
+  echo -e "\e[1;33mSkipping available init script update because of INI setting\e[1;35mtty2oled\e[0m"
 fi
+rm /tmp/S60tty2oled
 
 # daemon
 wget ${NODEBUG} "${REPOSITORY_URL}/tty2oled" -O /tmp/tty2oled
-#if ! cmp -s /tmp/tty2oled ${DAEMONSCRIPT}; then
-if  ! [ -f ${DAEMONSCRIPT} ] || ( ! cmp -s /tmp/tty2oled ${DAEMONSCRIPT} &&  [ "${SCRIPT_UPDATE}" = "yes" ] ); then
-  echo -e "\e[1;33mInstalling or updating daemon script \e[1;35mtty2oled\e[0m"
+if  ! [ -f ${DAEMONSCRIPT} ]; then
+  echo -e "\e[1;33mInstalling daemon script \e[1;35mtty2oled\e[0m"
+  mv -f /tmp/tty2oled ${DAEMONSCRIPT}
+  chmod +x ${DAEMONSCRIPT}
+fi
+if ( ! cmp -s /tmp/tty2oled ${DAEMONSCRIPT} &&  [ "${SCRIPT_UPDATE}" = "yes" ] ); then
+  echo -e "\e[1;33mUpdating daemon script \e[1;35mtty2oled\e[0m"
   mv -f /tmp/tty2oled ${DAEMONSCRIPT}
   chmod +x ${DAEMONSCRIPT}
 else
-  rm /tmp/tty2oled
+  echo -e "\e[1;33mSkipping available daemon script update because of INI setting\e[1;35mtty2oled\e[0m"
 fi
+rm /tmp/tty2oled
 
 # pictures
 if [ "${USBMODE}" = "yes" ]; then

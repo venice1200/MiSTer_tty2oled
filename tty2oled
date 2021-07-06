@@ -40,7 +40,6 @@
 #
 # 2021-06-30 Added new INI Option/Command for Display Rotation ("CMDROT,[Parameter]")
 #
-# Change 1
 #
 
 . /media/fat/Scripts/tty2oled.ini

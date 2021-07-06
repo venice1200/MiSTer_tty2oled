@@ -65,7 +65,7 @@ fi
 wget ${NODEBUG} "${REPOSITORY_URL}/tty2oled" -O /tmp/tty2oled
 #if ! cmp -s /tmp/tty2oled ${DAEMONSCRIPT}; then
 if  ! [ -f ${DAEMONSCRIPT} ] || ( ! cmp -s /tmp/tty2oled ${DAEMONSCRIPT} &&  [ "${SCRIPT_UPDATE}" = "yes" ] ); then
-  echo -e "\e[1;33mInstalling or updating daemon script\e[1;35mtty2oled\e[0m"
+  echo -e "\e[1;33mInstalling or updating daemon script \e[1;35mtty2oled\e[0m"
   mv -f /tmp/tty2oled ${DAEMONSCRIPT}
   chmod +x ${DAEMONSCRIPT}
 else

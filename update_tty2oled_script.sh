@@ -53,7 +53,7 @@ echo -e "\e[1;32mChecking for available updates...\e[0m"
 # init script
 wget ${NODEBUG} "${REPOSITORY_URL}/S60tty2oled" -O /tmp/S60tty2oled
 #if ! cmp -s /tmp/S60tty2oled ${INITSCRIPT}; then
-if  ! [ -f ${INITSCRIPT} ] || ( ! cmp -s /tmp/S60tty2oled ${INITSCRIPT} &&  [ "${SCRIPT_UPDATE}" = "yes" ] ); then bzw.
+if  ! [ -f ${INITSCRIPT} ] || ( ! cmp -s /tmp/S60tty2oled ${INITSCRIPT} &&  [ "${SCRIPT_UPDATE}" = "yes" ] ); then
   echo -e "\e[1;33mUpdating init script \e[1;35mS60tty2oled\e[0m"
   mv -f /tmp/S60tty2oled ${INITSCRIPT}
   chmod +x ${INITSCRIPT}

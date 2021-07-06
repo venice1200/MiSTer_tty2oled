@@ -59,7 +59,7 @@ elif ! cmp -s /tmp/S60tty2oled ${INITSCRIPT}; then
     mv -f /tmp/S60tty2oled ${INITSCRIPT}
     chmod +x ${INITSCRIPT}
   else
-    echo -e "\e[5;31mSkipping\e[25;1;33m available init script update because of \e[1;36mSCRIPT_UPDATE\e[1;33m INI-Option\e[0m"
+    echo -e "\e[5;31mSkipping\e[25;1;33m available init script update because of the \e[1;36mSCRIPT_UPDATE\e[1;33m INI-Option\e[0m"
   fi
 fi
 [[ -f /tmp/S60tty2oled ]] && rm /tmp/S60tty2oled
@@ -77,7 +77,7 @@ elif ! cmp -s /tmp/tty2oled ${DAEMONSCRIPT}; then
     mv -f /tmp/tty2oled ${DAEMONSCRIPT}
     chmod +x ${DAEMONSCRIPT}
   else
-    echo -e "\e[5;31mSkipping\e[25;1;33m available daemon script update because of \e[1;36mSCRIPT_UPDATE\e[1;33m INI-Option\e[0m"
+    echo -e "\e[5;31mSkipping\e[25;1;33m available daemon script update because of the \e[1;36mSCRIPT_UPDATE\e[1;33m INI-Option\e[0m"
   fi
 fi
 [[ -f /tmp/tty2oled ]] && rm /tmp/tty2oled
@@ -100,7 +100,7 @@ if [ "${USBMODE}" = "yes" ]; then
       fi
     done
   else
-    echo -e "\e[1;33mSkipping Text-Based Picture download because of \e[1;36mUSE_TEXT_PICTURE\e[1;33m INI-Option\e[0m"
+    echo -e "\e[1;33mSkipping Text-Based Picture download because of the \e[1;36mUSE_TEXT_PICTURE\e[1;33m INI-Option\e[0m"
   fi
   
   # Graphic-Based Pictures (as Second = Higher Priority)
@@ -130,10 +130,10 @@ if [ "${USBMODE}" = "yes" ]; then
       fi
     done
   else
-    echo -e "\e[1;33mSkipping US-Version Picture download because of \e[1;36mUSE_US_PICTURE\e[1;33m INI-Option\e[0m"
+    echo -e "\e[1;33mSkipping US-Version Picture download because of the \e[1;36mUSE_US_PICTURE\e[1;33m INI-Option\e[0m"
   fi
 else
-  echo -e "\e[5;31mSkipping\e[25;1;33m Picture Download because of \e[1;36mUSBMODE\e[1;33m INI-Option\e[0m"
+  echo -e "\e[5;31mSkipping\e[25;1;33m Picture download because of the \e[1;36mUSBMODE\e[1;33m INI-Option\e[0m"
 fi
 
 sync

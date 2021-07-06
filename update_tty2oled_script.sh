@@ -42,7 +42,7 @@ fi
 #[[ -v OLDDAEMONSCRIPT ]] && [[ -e ${OLDDAEMONSCRIPT} ]] && mv ${OLDDAEMONSCRIPT} ${DAEMONSCRIPT} 
 
 
-echo -e "\n\e[1;31mt\e[1;33mt\e[1;34my\e[1;35m2\e[1;34mo\e[1;33ml\e[1;32me\e[1;31md\e[1;32m update script"
+echo -e "\n\e[1;33mtty\e[1;35m2\e[1;34moled\e[1;32m update script"
 echo -e "----------------------\e[0m"
 
 echo -e "\e[1;32mChecking for available tty2oled updates...\e[0m"

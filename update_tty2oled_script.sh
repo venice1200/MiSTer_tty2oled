@@ -48,13 +48,13 @@ fi
 echo -e "\n\e[1;32mtty2oled update script"
 echo -e "----------------------\e[0m"
 
-echo -e "\e[1;32mChecking for available updates...\e[0m"
+echo -e "\e[1;32mChecking for available tty2oled updates...\e[0m"
 
 # init script
 wget ${NODEBUG} "${REPOSITORY_URL}/S60tty2oled" -O /tmp/S60tty2oled
 #if ! cmp -s /tmp/S60tty2oled ${INITSCRIPT}; then
 if  ! [ -f ${INITSCRIPT} ] || ( ! cmp -s /tmp/S60tty2oled ${INITSCRIPT} &&  [ "${SCRIPT_UPDATE}" = "yes" ] ); then
-  echo -e "\e[1;33mUpdating init script \e[1;35mS60tty2oled\e[0m"
+  echo -e "\e[1;33mInstalling or Updating init script \e[1;35mS60tty2oled\e[0m"
   mv -f /tmp/S60tty2oled ${INITSCRIPT}
   chmod +x ${INITSCRIPT}
 else
@@ -65,7 +65,7 @@ fi
 wget ${NODEBUG} "${REPOSITORY_URL}/tty2oled" -O /tmp/tty2oled
 #if ! cmp -s /tmp/tty2oled ${DAEMONSCRIPT}; then
 if  ! [ -f ${DAEMONSCRIPT} ] || ( ! cmp -s /tmp/tty2oled ${DAEMONSCRIPT} &&  [ "${SCRIPT_UPDATE}" = "yes" ] ); then
-  echo -e "\e[1;33mUpdating daemon \e[1;35mtty2oled\e[0m"
+  echo -e "\e[1;33mInstalling or Updating daemon script\e[1;35mtty2oled\e[0m"
   mv -f /tmp/tty2oled ${DAEMONSCRIPT}
   chmod +x ${DAEMONSCRIPT}
 else

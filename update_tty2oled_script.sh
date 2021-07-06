@@ -56,14 +56,13 @@ if  ! [ -f ${INITSCRIPT} ]; then
   echo -e "\e[1;33mInstalling init script \e[1;35mS60tty2oled\e[0m"
   mv -f /tmp/S60tty2oled ${INITSCRIPT}
   chmod +x ${INITSCRIPT}
-fi
-if ! cmp -s /tmp/S60tty2oled ${INITSCRIPT}; then
+elif ! cmp -s /tmp/S60tty2oled ${INITSCRIPT}; then
   if [ "${SCRIPT_UPDATE}" = "yes" ]; then
     echo -e "\e[1;33mUpdating init script \e[1;35mS60tty2oled\e[0m"
     mv -f /tmp/S60tty2oled ${INITSCRIPT}
     chmod +x ${INITSCRIPT}
   else
-    echo -e "\e[1;33mSkipping available init script because of INI setting\e[0m"
+    echo -e "\e[1;33mSkipping available init script update because of SCRIPT_UPDATE INI setting\e[0m"
   fi
 fi
 [[ -f /tmp/S60tty2oled ]] && rm /tmp/S60tty2oled
@@ -75,14 +74,13 @@ if  ! [ -f ${DAEMONSCRIPT} ]; then
   echo -e "\e[1;33mInstalling daemon script \e[1;35mtty2oled\e[0m"
   mv -f /tmp/tty2oled ${DAEMONSCRIPT}
   chmod +x ${DAEMONSCRIPT}
-fi
-if ! cmp -s /tmp/tty2oled ${DAEMONSCRIPT}; then
+elif ! cmp -s /tmp/tty2oled ${DAEMONSCRIPT}; then
   if [ "${SCRIPT_UPDATE}" = "yes" ]; then
     echo -e "\e[1;33mUpdating daemon script \e[1;35mtty2oled\e[0m"
     mv -f /tmp/tty2oled ${DAEMONSCRIPT}
     chmod +x ${DAEMONSCRIPT}
   else
-    echo -e "\e[1;33mSkipping available daemon script because of INI setting\e[0m"
+    echo -e "\e[1;33mSkipping available daemon script update because of SCRIPT_UPDATE INI setting\e[0m"
   fi
 fi
 [[ -f /tmp/tty2oled ]] && rm /tmp/tty2oled

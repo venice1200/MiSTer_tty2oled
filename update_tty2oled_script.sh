@@ -59,7 +59,7 @@ elif ! cmp -s /tmp/S60tty2oled ${INITSCRIPT}; then
     mv -f /tmp/S60tty2oled ${INITSCRIPT}
     chmod +x ${INITSCRIPT}
   else
-    echo -e "\e[1;33mSkipping available init script update because of SCRIPT_UPDATE INI setting\e[0m"
+    echo -e "\e[5;31mSkipping \e[1;33mavailable init script update because of SCRIPT_UPDATE INI setting\e[0m"
   fi
 fi
 [[ -f /tmp/S60tty2oled ]] && rm /tmp/S60tty2oled
@@ -77,7 +77,7 @@ elif ! cmp -s /tmp/tty2oled ${DAEMONSCRIPT}; then
     mv -f /tmp/tty2oled ${DAEMONSCRIPT}
     chmod +x ${DAEMONSCRIPT}
   else
-    echo -e "\e[1;33mSkipping available daemon script update because of SCRIPT_UPDATE INI setting\e[0m"
+    echo -e "\e[5;31mSkipping \e[1;33mavailable daemon script update because of SCRIPT_UPDATE INI setting\e[0m"
   fi
 fi
 [[ -f /tmp/tty2oled ]] && rm /tmp/tty2oled
@@ -133,7 +133,7 @@ if [ "${USBMODE}" = "yes" ]; then
     echo -e "\e[1;33mSkipping US-Version Picture download because of USE_US_PICTURE INI-Option\e[0m"
   fi
 else
-  echo -e "\e[1;33mSkipping Picture Download because of USBMODE INI-Option\e[0m"
+  echo -e "\e[5;31mSkipping \e[1;33mPicture Download because of USBMODE INI-Option\e[0m"
 fi
 
 sync

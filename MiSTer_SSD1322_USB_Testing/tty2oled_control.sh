@@ -20,7 +20,7 @@ fgreen=`tput setf 2`
 fred=`tput setf 4`
 fblue=`tput setf 1`
 
-PARAM="espota espreset dispoff dispon ttystop ttystart ttybooton ttybootoff dispron disproff"
+PARAM="ttyset,espota,espreset,dispoff,dispon,ttystop,ttystart,ttybooton,ttybootoff,dispron,disproff,sendpic [picture]"
 
 # Debug function
 dbug() {
@@ -33,20 +33,20 @@ dbug() {
 }
 
 # ** Main **
-if [ -c "${TTYDEV}" ]; then                         # check for tty device  
-  echo "${TTYDEV} detected, setting Parameter."					
-  dbug "${TTYDEV} detected, setting Parameter."					
-  stty -F ${TTYDEV} ${TTYPARAM}	                    # set tty parameter
-else
-  echo "${TTYDEV} not detected, exit."
-  dbug "${TTYDEV} not detected, exit."					
-  exit 1
-fi
-  
- 
 if [ "${#}" -ge 1 ]; then                           # At least one Command Line Parameter given
   case "${1}" in
-    "espota")
+    "ttyset")
+      if [ -c "${TTYDEV}" ]; then
+       echo "${TTYDEV} detected, setting Parameter."
+       dbug "${TTYDEV} detected, setting Parameter."
+       stty -F ${TTYDEV} ${TTYPARAM}
+     else
+       echo "${TTYDEV} not detected, exit."
+       dbug "${TTYDEV} not detected, exit."
+       exit 1
+     fi
+    ;;
+     "espota")
       echo "Enable ${fblue}${blink}OTA${freset} on ESP32"
       echo "CMDENOTA" > ${TTYDEV}
     ;;
@@ -97,6 +97,22 @@ if [ "${#}" -ge 1 ]; then                           # At least one Command Line 
       else
         echo "...${fred}error!${freset}"
       fi      
+    ;;
+    "sendpic")
+      if [ -f "${picturefolder_pri}/${2}.xbm" ]; then
+        echo "${fgreen}Send Private Picture ${2} to ${TTYDEV}${freset}"
+        echo "CMDCOR,${2}" > ${TTYDEV}
+        sleep ${WAITSECS}
+        tail -n +4 "${picturefolder_pri}/${2}.xbm" | xxd -r -p > ${TTYDEV}
+      elif [ -f "${picturefolder}/${2}.xbm" ]; then
+        echo "${fgreen}Send Picture ${2} to ${TTYDEV}${freset}"
+        echo "CMDCOR,${2}" > ${TTYDEV}
+        sleep ${WAITSECS}
+        tail -n +4 "${picturefolder}/${2}.xbm" | xxd -r -p > ${TTYDEV}
+      else
+        echo "${fred}Picture ${2} not found, sending corename${freset}"
+        echo "${2}" > ${TTYDEV}
+      fi
     ;;
     *)
       echo -e "${fred}${fblink}Wrong Commandline Parameter given!${freset}"

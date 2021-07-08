@@ -9,18 +9,18 @@ Use the INI File from the main folder.
 * ! An Update after using the Testing-Version downloads the "old" tty2oled Daemon again !  
   
 -Over The Air (OTA) Updates for ESP32  
-* Copy the "Testing Folder" to your local Arduino Project Folder  
+* Copy the folder "MiSTer_SSD1322_USB_Testing" to your local Arduino Project Folder  
  You need only the .ino  File and all .h files.  
  You need to add your Wireless Credentials to the "cred.h" file.  
  Update your ESP32 with the new Program. After this Version was applied you can use OTA for future Updates.  
  Copy the Scripts "tty2oled_enable_OTA.sh" and "tty2oled_RESET.sh" from this folder to "media/fat/Scripts".  
   
 * Using OTA  
- Enable OTA from the command line (see Command Examples below) or run the Script "tty2oled_enable_OTA.sh".  
+ Enable OTA from the command line (see Command Examples below) or run the Script "tty2oled_control.sh espota".  
  The Arduino IDE should show you an new Network "Port" for Uploads after OTA is active.  
  Use the new Port for the upload of the new Program.  
  See https://misterfpga.org/viewtopic.php?p=28423#p28423  
- If you like to stop OTA, Reset the ESP32 (see Command Examples below) or run the Script "tty2oled_RESET.sh".  
+ If you like to stop OTA, Reset the ESP32 (see Command Examples below) or run the Script "tty2oled_control.sh espreset".  
   
 -New Command Structure for "external" Commands  
 * "CMDCLS"  

@@ -190,12 +190,17 @@
    "CMDROT,[Parameter]" Set Display Rotation (0=180° (My Standard), 1=0 degrees) Rotation after Start
    You will see the Command Result after the next Write/Draw Command.
 
-  2021-07-07
+  2021-07-07/08
   -New Command "CMDTEST"
    "CMDTEST" just show an fullscreen test-picture
-  -Check of transferred picture bytes and in case of an error an error pictcure is shown
+  -Count of transferred picture bytes and if it doesn't match show an error pictcure
+  -Change Command processing from "if (newCore!=oldCore)" to "if (updateDisplay)" 
+   to prevent a blank screen if multiple data packs are sent.
+  -Add (Micro Font) Build Version to Start Screen
 
 */
+
+#define BuildVersion 210708
 
 // Uncomment to get some Debugging Infos over Serial especially for SD Debugging
 //#define XDEBUG
@@ -455,6 +460,10 @@ void oled_mistertext(void) {
   Serial.println("Show Startscreen");
 #endif
   u8g2.clearBuffer();
+  u8g2.setFont(u8g2_font_5x7_tr);            // 6 Pixel Font
+  u8g2.setCursor(1,62);
+  u8g2.print(BuildVersion);
+  u8g2.setFont(u8g2_font_tenfatguys_tr);     // 10 Pixel Font
   u8g2.setCursor(DispWidth/2-(u8g2.getStrWidth("MiSTer FPGA")/2), ( DispHeight/2 - u8g2.getAscent() ) / 2 + u8g2.getAscent() );
   u8g2.print("MiSTer FPGA");
   u8g2.setCursor(DispWidth/2-(u8g2.getStrWidth("by Sorgelig")/2), ( DispHeight/2 - u8g2.getAscent() ) / 2 + u8g2.getAscent() + DispHeight/2 );

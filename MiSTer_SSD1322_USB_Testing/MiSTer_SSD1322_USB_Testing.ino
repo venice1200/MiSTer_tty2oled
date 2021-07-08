@@ -266,6 +266,7 @@ String newCore = "";             // Received Text, from MiSTer without "\n\r" cu
 String oldCore = "";             // Buffer String for Text change detection
 uint8_t contrast = 5;            // Contrast (brightness) of display, range: 0 (no contrast) to 255 (maximum)
 char *newCoreChar;
+bool updateDisplay = false;
 
 // Display Vars
 u8g2_uint_t DispWidth, DispHeight, DispLineBytes;
@@ -314,13 +315,15 @@ void loop(void) {
   // Serial Data
   if (Serial.available()) {
     newCore = Serial.readStringUntil('\n');                  // Read string from serial until NewLine "\n" (from MiSTer's echo command) is detected or timeout (1000ms) happens.
+    updateDisplay=true;                                      // Set Update-Display Flag
 
 #ifdef XDEBUG
     Serial.printf("Received Corename or Command: %s\n", (char*)newCore.c_str());
 #endif
   }  // end serial available
     
-  if (newCore!=oldCore) {                                    // Proceed only if Core Name changed
+//  if (newCore!=oldCore) {                                    // Proceed only if Core Name changed
+  if (updateDisplay) {                                    // Proceed only if it's allowed because of new data from serial
     // Many if an elses as switch/case is not working (maybe later with an array).
 
     // -- First Transmission --
@@ -439,8 +442,9 @@ void loop(void) {
       u8g2.setFont(old_font);
     }  // end ifs
     oldCore=newCore;                         // Update Buffer
+    updateDisplay=false;                     // Clear Update-Display Flag
     // Serial.println("tty2oledready");      // Handshake ??
-  } // end newCore!=oldCore
+  } // end newCore!=oldCore or updateDisplay
 } // End Main Loop
 
 //=================== Functions =========================
@@ -1005,7 +1009,7 @@ int usb2oled_readndrawlogo2(int effect) {
   unsigned char logoByteValue;
   int w,x,y,x2;
   String cN="";
-  size_t bytesCount=0;
+  size_t bytesReadCount=0;
   //unsigned char *logoBin;
 
 #ifdef XDEBUG
@@ -1019,10 +1023,10 @@ int usb2oled_readndrawlogo2(int effect) {
 #endif
   
   //logoBin = (unsigned char *) malloc(logoBytes);    // Reserve Memory for Picture-Data
-  bytesCount = Serial.readBytes(logoBin, logoBytes);  // Read 2048 Bytes from Serial
+  bytesReadCount = Serial.readBytes(logoBin, logoBytes);  // Read 2048 Bytes from Serial
 
   // Check if 2048 Bytes read
-  if (bytesCount != logoBytes) {
+  if (bytesReadCount != logoBytes) {
     oled_drawlogo64h(transfererror_width, transfererror);
   }
   else {

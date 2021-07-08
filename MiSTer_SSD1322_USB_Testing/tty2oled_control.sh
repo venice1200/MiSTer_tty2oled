@@ -20,7 +20,7 @@ fgreen=`tput setf 2`
 fred=`tput setf 4`
 fblue=`tput setf 1`
 
-PARAM="ttyset,espota,espreset,dispoff,dispon,ttystop,ttystart,ttybooton,ttybootoff,dispron,disproff,sendpic [picture]"
+PARAM="ttyset,espota,espreset,dispoff,dispon,ttystop,ttystart,ttyrestart,ttybooton,ttybootoff,dispron,disproff,sendpic [picture]"
 
 # Debug function
 dbug() {
@@ -80,7 +80,13 @@ if [ "${#}" -ge 1 ]; then                           # At least one Command Line 
       echo "${fgreen}Start${freset} ${DAEMONNAME}"
       ${INITSCRIPT} start
     ;;
-    "ttybooton")
+    "ttyrestart")
+      echo "${fred}Stop${freset} ${DAEMONNAME}"
+      ${INITSCRIPT} stop
+      echo "${fgreen}Start${freset} ${DAEMONNAME}"
+      ${INITSCRIPT} start
+    ;;
+      "ttybooton")
       echo "${fgreen}Enable${freset} tty2oled at boot time"
       [[ -e ${INITDISABLED} ]] && mv ${INITDISABLED} ${INITSCRIPT}
       if [ $? -eq 0 ]; then

@@ -190,13 +190,12 @@
    "CMDROT,[Parameter]" Set Display Rotation (0=180° (My Standard), 1=0 degrees) Rotation after Start
    You will see the Command Result after the next Write/Draw Command.
 
-  2021-07-07/08
-  -New Command "CMDTEST"
-   "CMDTEST" just show an fullscreen test-picture
-  -Count of transferred picture bytes and if it doesn't match show an error pictcure
-  -Change Command processing from "if (newCore!=oldCore)" to "if (updateDisplay)" 
-   to prevent a blank screen if multiple data packs are sent.
+  2021-07-07..09
+  -New Command "CMDTEST" whcih just show an fullscreen test-picture
+  -Count of transferred picture bytes and if it doesn't match show an error picture
+  -Change Command processing from "if (newCore!=oldCore)" to "if (updateDisplay)" to prevent a blank screen if multiple data packs are sent.
   -Add (Micro Font) Build Version to Start Screen
+  -Some yield() fixes for ESP8266
 
 */
 
@@ -275,8 +274,8 @@ bool updateDisplay = false;
 
 // Display Vars
 u8g2_uint_t DispWidth, DispHeight, DispLineBytes;
-unsigned char *logoBin;
-int logoBytes=0;
+unsigned char *logoBin;  // <<== For malloc in Setup
+unsigned int logoBytes=0;
 // ================ SETUP ==================
 void setup(void) {
   // Init Serial
@@ -392,8 +391,9 @@ void loop(void) {
 
     // -- Get Data via USB from the MiSTer and show them
     else if (newCore.startsWith("CMDCOR,")) {                            // Command from Serial to receive Data via USB Serial from the MiSTer
-      usb2oled_readndrawlogo2(random(1,11));                             // Receive Picture Data and show them on the OLED, Transition Effect Random Number 1..10
+      usb2oled_readndrawlogo2(random(1,11));                             // ESP32 Receive Picture Data and show them on the OLED, Transition Effect Random Number 1..10
     }
+    
     // -- Get Contrast Data via USB from the MiSTer and set them
     else if (newCore.startsWith("CMDCON,")) {                            // Command from Serial to receive Contrast-Level Data from the MiSTer
       usb2oled_readnsetcontrast2();                                      // Read and Set contrast                                   
@@ -704,10 +704,17 @@ int usb2oled_readndrawlogo(int effect) {
 #ifdef XDEBUG
     Serial.println("Called Function CORECHANGE");
 #endif
-  
-  //logoBin = (unsigned char *) malloc(logoBytes);    // Reserve Memory for Picture-Data
+
+#if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
+    yield();
+#endif
+
   Serial.readBytes(logoBin, logoBytes);             // Read 2048 Bytes from Serial
-  
+
+#if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
+    yield();
+#endif
+
   // Draw the Picture
   // -------------------- Effects -----------------------
   switch (effect) {
@@ -928,6 +935,9 @@ int usb2oled_readndrawlogo(int effect) {
 
 // Draw one XBM Byte, called from the Effects in function sd2oled_readndrawlogo
 void drawEightBit(int x, int y, unsigned char b) {
+#if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
+  yield();
+#endif
   for (int i=0; i<8; i++){
     if (bitRead(b, i)) {
       // Set Pixel
@@ -939,9 +949,6 @@ void drawEightBit(int x, int y, unsigned char b) {
       u8g2.drawPixel(x+i,y);
       u8g2.setDrawColor(1);        
     }  // end bit read
-#if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
-    yield();
-#endif
   }  // end for j
 }
 
@@ -993,7 +1000,7 @@ void usb2oled_readnsetrotation(void) {
   rT=newCore.substring(7);
 
 #ifdef XDEBUG
-  Serial.printf("Received Text: %s\n", (char*)pT.c_str());
+  Serial.printf("Received Text: %s\n", (char*)rT.c_str());
 #endif
 
   r=rT.toInt();
@@ -1030,13 +1037,20 @@ int usb2oled_readndrawlogo2(int effect) {
 #ifdef XDEBUG
   Serial.printf("Received Text: %s\n", (char*)cN.c_str());
 #endif
-  
-  //logoBin = (unsigned char *) malloc(logoBytes);    // Reserve Memory for Picture-Data
+
+#if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
+    yield();
+#endif
+
   bytesReadCount = Serial.readBytes(logoBin, logoBytes);  // Read 2048 Bytes from Serial
+
+#if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
+    yield();
+#endif
 
   // Check if 2048 Bytes read
   if (bytesReadCount != logoBytes) {
-    oled_drawlogo64h(transfererror_width, transfererror);
+    oled_drawlogo64h(transfererror_width, transfererror_pic);
   }
   else {
     // Draw the Picture

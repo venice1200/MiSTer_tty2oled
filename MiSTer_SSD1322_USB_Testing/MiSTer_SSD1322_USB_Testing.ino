@@ -235,7 +235,7 @@ bool OTAEN=false;                // Will be set to "true" by Command "CMDENABLEO
 // TTGO-T8 Display Constructor HW-SPI OLED & integrated SD Card, 180° Rotation => U8G2_R2
 // Using VSPI SCLK = 18, MISO = 19, MOSI = 23 and...
 #ifdef ARDUINO_ESP32_DEV
-U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 26, /* dc=*/ 25, /* reset=*/ 27);      // 270° Rotation
+  U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 26, /* dc=*/ 25, /* reset=*/ 27);      // 270° Rotation
 //U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R0, /* cs=*/ 26, /* dc=*/ 25, /* reset=*/ 27);      // 0° Rotation
 #endif
 
@@ -243,30 +243,30 @@ U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 26, /* dc=*/ 25, /* r
 // Devkitc V4 works as well with these settings.
 // Using VSPI SCLK = 18, MISO = 19, MOSI = 23, SS = 5 and...
 #ifdef ARDUINO_LOLIN32
-U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 5, /* dc=*/ 16, /* reset=*/ 17);  // Better because original SPI SS = 5
+  U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 5, /* dc=*/ 16, /* reset=*/ 17);  // Better because original SPI SS = 5
 #endif
 
 // ESP8266-Board (NodeMCU v3) Display Constructor HW-SPI 180° Rotation => U8G2_R2
 #if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
-U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 15, /* dc=*/ 4, /* reset=*/ 5);
+  U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 15, /* dc=*/ 4, /* reset=*/ 5);
 #endif
 
 // ------------ Display Objects for Manual Mode -----------------
 
 // Display Constructor HW-SPI ESP32-Board TTGO T8 OLED & integrated SD Card, 180° Rotation => U8G2_R2
 // Using VSPI SCLK = 18, MISO = 19, MOSI = 23 and...
-//U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 26, /* dc=*/ 25, /* reset=*/ 27);
+// U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 26, /* dc=*/ 25, /* reset=*/ 27);
 
 // WEMOS LOLIN32 Display Constructor HW-SPI & Adafruit SD_MMC Adapter, 180° Rotation => U8G2_R2
 // Using VSPI SCLK = 18, MISO = 19, MOSI = 23, SS = 5 and...
-//U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 5, /* dc=*/ 16, /* reset=*/ 17);
+// U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 5, /* dc=*/ 16, /* reset=*/ 17);
 
 // Devkitc V4 Display Constructor HW-SPI, 180° Rotation => U8G2_R2
 // Using VSPI SCLK = 18, MISO = 19, MOSI = 23 and...
-//U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 5, /* dc=*/ 16, /* reset=*/ 17);
+// U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 5, /* dc=*/ 16, /* reset=*/ 17);
 
 // ESP8266-Board (NodeMCU v3) Display Constructor HW-SPI, 180° Rotation => U8G2_R2
-//U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 15, /* dc=*/ 4, /* reset=*/ 5);
+// U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 15, /* dc=*/ 4, /* reset=*/ 5);
 
 // ------------ Variables ----------------
 
@@ -327,9 +327,9 @@ void loop(void) {
     newCore = Serial.readStringUntil('\n');                  // Read string from serial until NewLine "\n" (from MiSTer's echo command) is detected or timeout (1000ms) happens.
     updateDisplay=true;                                      // Set Update-Display Flag
 
-#ifdef XDEBUG
-    Serial.printf("Received Corename or Command: %s\n", (char*)newCore.c_str());
-#endif
+    #ifdef XDEBUG
+      Serial.printf("Received Corename or Command: %s\n", (char*)newCore.c_str());
+    #endif
   }  // end serial available
     
 //  if (newCore!=oldCore) {                                    // Proceed only if Core Name changed
@@ -356,11 +356,11 @@ void loop(void) {
 
     // -- Get Data via USB from the MiSTer and show them
     else if (newCore=="CORECHANGE") {                                    // Command from Serial to receive Data via USB Serial from the MiSTer
-#if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
-      usb2oled_readndrawlogo(random(1,5));                              // ESP8266 Receive Picture Data and show them on the OLED, Transition Effect Random Number 1..4
-#else
-      usb2oled_readndrawlogo(random(1,11));                             // ESP32 Receive Picture Data and show them on the OLED, Transition Effect Random Number 1..10
-#endif
+      #if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
+        usb2oled_readndrawlogo(random(1,5));                              // ESP8266 Receive Picture Data and show them on the OLED, Transition Effect Random Number 1..4
+      #else
+        usb2oled_readndrawlogo(random(1,11));                             // ESP32 Receive Picture Data and show them on the OLED, Transition Effect Random Number 1..10
+      #endif
     }
  
     // -- Get Contrast Data via USB from the MiSTer and set them
@@ -401,12 +401,11 @@ void loop(void) {
 
     // -- Get Data via USB from the MiSTer and show them
     else if (newCore.startsWith("CMDCOR,")) {                            // Command from Serial to receive Data via USB Serial from the MiSTer
-#if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
-      usb2oled_readndrawlogo2(random(1,5));                              // ESP8266 Receive Picture Data and show them on the OLED, Transition Effect Random Number 1..4
-#else
-      usb2oled_readndrawlogo2(random(1,11));                             // ESP32 Receive Picture Data and show them on the OLED, Transition Effect Random Number 1..10
-#endif
-
+      #if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
+        usb2oled_readndrawlogo2(random(1,5));                              // ESP8266 Receive Picture Data and show them on the OLED, Transition Effect Random Number 1..4
+      #else
+        usb2oled_readndrawlogo2(random(1,11));                             // ESP32 Receive Picture Data and show them on the OLED, Transition Effect Random Number 1..10
+      #endif
     }
     
     // -- Get Contrast Data via USB from the MiSTer and set them
@@ -434,18 +433,18 @@ void loop(void) {
       usb2oled_readnsetrotation();                                      // Set Rotation
     }
 
-// The following Commands are only for ESP32
-#ifdef ESP32  // OTA and Reset only for ESP32
-    // -- Enable (Basic) OTA
-    else if (newCore=="CMDENOTA") {                                     // Command from Serial to enable OTA on the ESP
-      enableOTA();                                                      // Setup Wireless and enable OTA
-    }
+    // The following Commands are only for ESP32
+    #ifdef ESP32  // OTA and Reset only for ESP32
+     // -- Enable (Basic) OTA
+      else if (newCore=="CMDENOTA") {                                     // Command from Serial to enable OTA on the ESP
+        enableOTA();                                                      // Setup Wireless and enable OTA
+      }
 
-    // -- Reset ESP by Command
-    else if (newCore=="CMDRESET") {                                     // Command from Serial for Resetting the ESP
-      ESP.restart();                                                    // Reset ESP
-    }
-#endif
+      // -- Reset ESP by Command
+      else if (newCore=="CMDRESET") {                                     // Command from Serial for Resetting the ESP
+        ESP.restart();                                                    // Reset ESP
+      }
+    #endif
 
     // -- Unidentified Core Name, just write it on screen
     else {
@@ -471,9 +470,9 @@ void loop(void) {
 
 // ---- oled_mistertext -- Show the Start-Up Text ----
 void oled_mistertext(void) {
-#ifdef XDEBUG
-  Serial.println("Show Startscreen");
-#endif
+  #ifdef XDEBUG
+    Serial.println("Show Startscreen");
+  #endif
   u8g2.clearBuffer();
   u8g2.setFont(u8g2_font_5x7_tr);            // 6 Pixel Font
   u8g2.setCursor(1,62);
@@ -498,9 +497,9 @@ void oled_drawlogo64h(u8g2_uint_t w, const uint8_t *bitmap) {
 
 // --- usb2oled_readnsetcontrast -- Receive and set Display Contrast ----
 void usb2oled_readnsetcontrast(void) {
-#ifdef XDEBUG
+  #ifdef XDEBUG
     Serial.println("Called Function CONTRAST");
-#endif
+  #endif
   while (!Serial.available()) {                                          //
     // Just wait here
   }
@@ -514,17 +513,17 @@ void usb2oled_readnwritetext(void) {
   String TextIn="", xPos="", yPos="", FontType="", TextOut="";
   //char *TextOutChar;
   
-#ifdef XDEBUG
+  #ifdef XDEBUG
     Serial.println("Called Function TEXTOUTXY");
-#endif
+  #endif
  
   while (!Serial.available()) {                                          //
     // Just wait here for the Text
   }
   TextIn = Serial.readStringUntil('\n');                                // Read Text
-#ifdef XDEBUG
-  Serial.printf("Received Text: %s\n", (char*)TextIn.c_str());
-#endif
+  #ifdef XDEBUG
+    Serial.printf("Received Text: %s\n", (char*)TextIn.c_str());
+  #endif
 
   //Searching for the "," delimiter
   d1 = TextIn.indexOf(',');                 // Find location of first ","
@@ -537,9 +536,9 @@ void usb2oled_readnwritetext(void) {
   FontType = TextIn.substring(d2+1, d3);    // Get String for Font-Type
   TextOut = TextIn.substring(d3+1);         // Get String for Text
   
-#ifdef XDEBUG
-  Serial.printf("Created Strings: X: %s Y: %s F: %s T: %s\n", (char*)xPos.c_str(), (char*)yPos.c_str(), (char*)FontType.c_str(), (char*)TextOut.c_str());
-#endif
+  #ifdef XDEBUG
+    Serial.printf("Created Strings: X: %s Y: %s F: %s T: %s\n", (char*)xPos.c_str(), (char*)yPos.c_str(), (char*)FontType.c_str(), (char*)TextOut.c_str());
+  #endif
 
   // Convert Strings to Integer
   x = xPos.toInt();
@@ -608,17 +607,17 @@ void usb2oled_readndrawgeo(void) {
   String TextIn="",gT="",cT="",xT="",yT="",iT="",jT="",kT="";
   bool pError=false;
   
-#ifdef XDEBUG
+  #ifdef XDEBUG
     Serial.println("Called Function GEOOUTXY");
-#endif
+  #endif
  
   while (!Serial.available()) {                                          //
     // Just wait here for the Text
   }
   TextIn = Serial.readStringUntil('\n');                                // Read Text
-#ifdef XDEBUG
-  Serial.printf("Received Text: %s\n", (char*)TextIn.c_str());
-#endif
+  #ifdef XDEBUG
+    Serial.printf("Received Text: %s\n", (char*)TextIn.c_str());
+  #endif
   
   //Searching for the "," delimiter
   d1 = TextIn.indexOf(',');                 // Find location of first ","
@@ -637,9 +636,9 @@ void usb2oled_readndrawgeo(void) {
   jT = TextIn.substring(d5+1, d6);        // Get String for Parameter j
   kT = TextIn.substring(d6+1);            // Get String for Parameter k
 
-#ifdef XDEBUG
-  Serial.printf("Part-Strings: G:%s C:%s X:%s Y:%s I:%s J:%s K:%s\n", (char*)gT.c_str(), (char*)cT.c_str(), (char*)xT.c_str(), (char*)yT.c_str(), (char*)iT.c_str(), (char*)jT.c_str(), (char*)kT.c_str() );
-#endif
+  #ifdef XDEBUG
+    Serial.printf("Part-Strings: G:%s C:%s X:%s Y:%s I:%s J:%s K:%s\n", (char*)gT.c_str(), (char*)cT.c_str(), (char*)xT.c_str(), (char*)yT.c_str(), (char*)iT.c_str(), (char*)jT.c_str(), (char*)kT.c_str() );
+  #endif
 
   // Convert Strings to Integer
   g = gT.toInt();
@@ -650,9 +649,9 @@ void usb2oled_readndrawgeo(void) {
   j = jT.toInt();
   k = kT.toInt();
 
-#ifdef XDEBUG
-  Serial.printf("Values: G:%i C:%i X:%i Y:%i I:%i J:%i K:%i\n", g,c,x,y,i,j,k);
-#endif
+  #ifdef XDEBUG
+    Serial.printf("Values: G:%i C:%i X:%i Y:%i I:%i J:%i K:%i\n", g,c,x,y,i,j,k);
+  #endif
 
   // Enough Parameter given / Parameter Check
   if (g<1 || g>10 || c<0 || c>2 || x<0 || x>DispWidth-1 || y<0 || y>DispHeight-1 || d1==-1 || d2==-1 || d3==-1  || d4==-1 || d5==-1  || d6==-1) {
@@ -716,19 +715,19 @@ int usb2oled_readndrawlogo(int effect) {
   int w,x,y,x2;
   //unsigned char *logoBin;
 
-#ifdef XDEBUG
+  #ifdef XDEBUG
     Serial.println("Called Function CORECHANGE");
-#endif
+  #endif
 
-#if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
+  #if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
     yield();
-#endif
+  #endif
 
   Serial.readBytes(logoBin, logoBytes);             // Read 2048 Bytes from Serial
 
-#if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
+  #if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
     yield();
-#endif
+  #endif
 
   // Draw the Picture
   // -------------------- Effects -----------------------
@@ -915,9 +914,11 @@ int usb2oled_readndrawlogo(int effect) {
 
 // Draw one XBM Byte, called from the Effects in function sd2oled_readndrawlogo
 void drawEightBit(int x, int y, unsigned char b) {
-#if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
-  yield();
-#endif
+
+  #if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
+    yield();
+  #endif
+
   for (int i=0; i<8; i++){
     if (bitRead(b, i)) {
       // Set Pixel
@@ -956,15 +957,16 @@ void usb2oled_readnsetcontrast2(void) {
 // ----------------- Command Read an Set Power Save Mode ------------------------------
 void usb2oled_readnopowersave(void) {
   String pT="";
-#ifdef XDEBUG
+
+  #ifdef XDEBUG
     Serial.println("Called Command CMDOFF");
-#endif
+  #endif
   
   pT=newCore.substring(7);
 
-#ifdef XDEBUG
-  Serial.printf("Received Text: %s\n", (char*)pT.c_str());
-#endif
+  #ifdef XDEBUG
+    Serial.printf("Received Text: %s\n", (char*)pT.c_str());
+  #endif
 
   u8g2.setPowerSave(pT.toInt());            // Set Power Save Modecontrast  
 }
@@ -973,15 +975,16 @@ void usb2oled_readnopowersave(void) {
 void usb2oled_readnsetrotation(void) {
   String rT="";
   int r=0;
-#ifdef XDEBUG
+  
+  #ifdef XDEBUG
     Serial.println("Called Command CMDROT");
-#endif
+  #endif
   
   rT=newCore.substring(7);
 
-#ifdef XDEBUG
-  Serial.printf("Received Text: %s\n", (char*)rT.c_str());
-#endif
+  #ifdef XDEBUG
+    Serial.printf("Received Text: %s\n", (char*)rT.c_str());
+  #endif
 
   r=rT.toInt();
   
@@ -1008,25 +1011,25 @@ int usb2oled_readndrawlogo2(int effect) {
   size_t bytesReadCount=0;
   //unsigned char *logoBin;
 
-#ifdef XDEBUG
+  #ifdef XDEBUG
     Serial.println("Called Command CMDCOR");
-#endif
+  #endif
 
   cN=newCore.substring(7);  // Cre
 
-#ifdef XDEBUG
-  Serial.printf("Received Text: %s\n", (char*)cN.c_str());
-#endif
+  #ifdef XDEBUG
+    Serial.printf("Received Text: %s\n", (char*)cN.c_str());
+  #endif
 
-#if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
+  #if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
     yield();
-#endif
+  #endif
 
   bytesReadCount = Serial.readBytes(logoBin, logoBytes);  // Read 2048 Bytes from Serial
 
-#if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
+  #if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
     yield();
-#endif
+  #endif
 
   // Check if 2048 Bytes read
   if (bytesReadCount != logoBytes) {
@@ -1190,7 +1193,7 @@ int usb2oled_readndrawlogo2(int effect) {
       }  // end for x
       break;  // end case 10
 
-    case 10:                                        // Left to Right Diagonally
+    case 10:                                       // Left to Right Diagonally
       for (x=0; x<DispWidth+DispHeight; x++) {
         for (y=0; y<DispHeight; y++) {
           // x2 calculation = Angle
@@ -1225,15 +1228,15 @@ void usb2oled_readnwritetext2(void) {
   String TextIn="", fT="", cT="", xT="", yT="", TextOut="";
   //char *TextOutChar;
   
-#ifdef XDEBUG
+  #ifdef XDEBUG
     Serial.println("Called Command CMDTEX");
-#endif
+  #endif
  
   TextIn = newCore.substring(7);            // Get Command Text from "newCore"
   
-#ifdef XDEBUG
-  Serial.printf("Received Text: %s\n", (char*)TextIn.c_str());
-#endif
+  #ifdef XDEBUG
+    Serial.printf("Received Text: %s\n", (char*)TextIn.c_str());
+  #endif
 
   //Searching for the "," delimiter
   d1 = TextIn.indexOf(',');                 // Find location of first ","
@@ -1248,9 +1251,9 @@ void usb2oled_readnwritetext2(void) {
   yT = TextIn.substring(d3+1, d4);          // Get String for Y-Position
   TextOut = TextIn.substring(d4+1);         // Get String for Text
   
-#ifdef XDEBUG
-  Serial.printf("Created Strings: F:%s C%s X:%s Y:%s T:%s\n", (char*)fT.c_str(), (char*)cT.c_str(), (char*)xT.c_str(), (char*)yT.c_str(), (char*)TextOut.c_str());
-#endif
+  #ifdef XDEBUG
+    Serial.printf("Created Strings: F:%s C%s X:%s Y:%s T:%s\n", (char*)fT.c_str(), (char*)cT.c_str(), (char*)xT.c_str(), (char*)yT.c_str(), (char*)TextOut.c_str());
+  #endif
 
   // Convert Strings to Integer
   f = fT.toInt();
@@ -1327,15 +1330,15 @@ void usb2oled_readndrawgeo2(void) {
   String TextIn="",gT="",cT="",xT="",yT="",iT="",jT="",kT="";
   bool pError=false;
   
-#ifdef XDEBUG
+  #ifdef XDEBUG
     Serial.println("Called Command CMDGEO");
-#endif
+  #endif
 
   TextIn = newCore.substring(7);             // Get Command Text from "newCore"
   
-#ifdef XDEBUG
-  Serial.printf("Received Text: %s\n", (char*)TextIn.c_str());
-#endif
+  #ifdef XDEBUG
+    Serial.printf("Received Text: %s\n", (char*)TextIn.c_str());
+  #endif
   
   //Searching for the "," delimiter
   d1 = TextIn.indexOf(',');                 // Find location of first ","
@@ -1354,9 +1357,9 @@ void usb2oled_readndrawgeo2(void) {
   jT = TextIn.substring(d5+1, d6);        // Get String for Parameter j
   kT = TextIn.substring(d6+1);            // Get String for Parameter k
 
-#ifdef XDEBUG
-  Serial.printf("Part-Strings: G:%s C:%s X:%s Y:%s I:%s J:%s K:%s\n", (char*)gT.c_str(), (char*)cT.c_str(), (char*)xT.c_str(), (char*)yT.c_str(), (char*)iT.c_str(), (char*)jT.c_str(), (char*)kT.c_str() );
-#endif
+  #ifdef XDEBUG
+    Serial.printf("Part-Strings: G:%s C:%s X:%s Y:%s I:%s J:%s K:%s\n", (char*)gT.c_str(), (char*)cT.c_str(), (char*)xT.c_str(), (char*)yT.c_str(), (char*)iT.c_str(), (char*)jT.c_str(), (char*)kT.c_str() );
+  #endif
 
   // Convert Strings to Integer
   g = gT.toInt();
@@ -1367,9 +1370,9 @@ void usb2oled_readndrawgeo2(void) {
   j = jT.toInt();
   k = kT.toInt();
 
-#ifdef XDEBUG
-  Serial.printf("Values: G:%i C:%i X:%i Y:%i I:%i J:%i K:%i\n", g,c,x,y,i,j,k);
-#endif
+  #ifdef XDEBUG
+    Serial.printf("Values: G:%i C:%i X:%i Y:%i I:%i J:%i K:%i\n", g,c,x,y,i,j,k);
+  #endif
 
   // Enough Parameter given / Parameter Check
   if (g<1 || g>10 || c<0 || c>2 || x<0 || x>DispWidth-1 || y<0 || y>DispHeight-1 || d1==-1 || d2==-1 || d3==-1  || d4==-1 || d5==-1  || d6==-1) {
@@ -1426,6 +1429,7 @@ void usb2oled_readndrawgeo2(void) {
 
 
 // ---------------- Command Enable OTA ---------------------- 
+
 #ifdef ESP32  // OTA and Reset only for ESP32
 void enableOTA (void) {
   Serial.println("Connecting to Wireless..");
@@ -1475,12 +1479,12 @@ void enableOTA (void) {
       Serial.println("\nEnd");
     })
     .onProgress([](unsigned int progress, unsigned int total) {
-#ifdef XDEBUG
+    #ifdef XDEBUG
       Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
-#endif
-      u8g2.setCursor(10,60);
-      u8g2.printf("Progress: %u%%", (progress / (total / 100)));
-      u8g2.sendBuffer();
+    #endif
+    u8g2.setCursor(10,60);
+    u8g2.printf("Progress: %u%%", (progress / (total / 100)));
+    u8g2.sendBuffer();
     })
     .onError([](ota_error_t error) {
       Serial.printf("Error[%u]: ", error);
@@ -1493,11 +1497,11 @@ void enableOTA (void) {
 
   ArduinoOTA.begin();
   
-#ifdef XDEBUG
-  Serial.println("Ready");
-  Serial.print("IP address: ");
-  Serial.println(WiFi.localIP());
-#endif
+  #ifdef XDEBUG
+    Serial.println("Ready");
+    Serial.print("IP address: ");
+    Serial.println(WiFi.localIP());
+  #endif
   
   u8g2.clearBuffer();
   u8g2.setCursor(10,20);

@@ -107,6 +107,46 @@
     (uvia_drill 0.1)
   )
 
+  (module _my_footprints:PAD_0805 (layer F.Cu) (tedit 60CDD228) (tstamp 60E98F68)
+    (at 158.8262 135.636)
+    (descr "Resistor SMD 0805, reflow soldering, Vishay (see dcrcw.pdf)")
+    (tags "resistor 0805")
+    (attr smd)
+    (fp_text reference REF** (at 0 -1.25) (layer F.SilkS) hide
+      (effects (font (size 1 1) (thickness 0.15)))
+    )
+    (fp_text value PADS_0805 (at 0 1.3) (layer F.Fab) hide
+      (effects (font (size 1 1) (thickness 0.15)))
+    )
+    (pad 1 smd rect (at -0.4318 0) (size 0.7 1.3) (layers F.Cu F.Paste F.Mask))
+    (pad 2 smd rect (at 0.4318 0) (size 0.7 1.3) (layers F.Cu F.Paste F.Mask))
+    (model ${KISYS3DMOD}/Resistors_SMD.3dshapes/R_0805.wrl
+      (at (xyz 0 0 0))
+      (scale (xyz 1 1 1))
+      (rotate (xyz 0 0 0))
+    )
+  )
+
+  (module _my_footprints:PAD_0805 (layer F.Cu) (tedit 60CDD228) (tstamp 60E98A90)
+    (at 158.8262 128.016)
+    (descr "Resistor SMD 0805, reflow soldering, Vishay (see dcrcw.pdf)")
+    (tags "resistor 0805")
+    (attr smd)
+    (fp_text reference REF** (at 0 -1.25) (layer F.SilkS) hide
+      (effects (font (size 1 1) (thickness 0.15)))
+    )
+    (fp_text value PADS_0805 (at 0 1.3) (layer F.Fab) hide
+      (effects (font (size 1 1) (thickness 0.15)))
+    )
+    (pad 1 smd rect (at -0.4318 0) (size 0.7 1.3) (layers F.Cu F.Paste F.Mask))
+    (pad 2 smd rect (at 0.4318 0) (size 0.7 1.3) (layers F.Cu F.Paste F.Mask))
+    (model ${KISYS3DMOD}/Resistors_SMD.3dshapes/R_0805.wrl
+      (at (xyz 0 0 0))
+      (scale (xyz 1 1 1))
+      (rotate (xyz 0 0 0))
+    )
+  )
+
   (module Wire_Pads:SolderWirePad_single_0-8mmDrill (layer F.Cu) (tedit 60D1F5FC) (tstamp 60D1FC77)
     (at 165.1 143.256)
     (fp_text reference REF** (at 0 -2.54) (layer F.SilkS) hide
@@ -391,26 +431,6 @@
   )
 
   (module _my_footprints:PAD_0805 (layer F.Cu) (tedit 60CDD228) (tstamp 60AB4A18)
-    (at 158.8262 127.9652)
-    (descr "Resistor SMD 0805, reflow soldering, Vishay (see dcrcw.pdf)")
-    (tags "resistor 0805")
-    (attr smd)
-    (fp_text reference REF** (at 0 -1.25) (layer F.SilkS) hide
-      (effects (font (size 1 1) (thickness 0.15)))
-    )
-    (fp_text value PADS_0805 (at 0 1.3) (layer F.Fab) hide
-      (effects (font (size 1 1) (thickness 0.15)))
-    )
-    (pad 2 smd rect (at 0.4318 0) (size 0.7 1.3) (layers F.Cu F.Paste F.Mask))
-    (pad 1 smd rect (at -0.4318 0) (size 0.7 1.3) (layers F.Cu F.Paste F.Mask))
-    (model ${KISYS3DMOD}/Resistors_SMD.3dshapes/R_0805.wrl
-      (at (xyz 0 0 0))
-      (scale (xyz 1 1 1))
-      (rotate (xyz 0 0 0))
-    )
-  )
-
-  (module _my_footprints:PAD_0805 (layer F.Cu) (tedit 60CDD228) (tstamp 60AB4A18)
     (at 158.8262 133.096)
     (descr "Resistor SMD 0805, reflow soldering, Vishay (see dcrcw.pdf)")
     (tags "resistor 0805")
@@ -423,26 +443,6 @@
     )
     (pad 2 smd rect (at 0.4318 0) (size 0.7 1.3) (layers F.Cu F.Paste F.Mask))
     (pad 1 smd rect (at -0.4318 0) (size 0.7 1.3) (layers F.Cu F.Paste F.Mask))
-    (model ${KISYS3DMOD}/Resistors_SMD.3dshapes/R_0805.wrl
-      (at (xyz 0 0 0))
-      (scale (xyz 1 1 1))
-      (rotate (xyz 0 0 0))
-    )
-  )
-
-  (module _my_footprints:PAD_0805 (layer F.Cu) (tedit 60CDD168) (tstamp 60CDD656)
-    (at 158.8516 135.636)
-    (descr "Resistor SMD 0805, reflow soldering, Vishay (see dcrcw.pdf)")
-    (tags "resistor 0805")
-    (attr smd)
-    (fp_text reference REF** (at 0 -1.65) (layer F.SilkS) hide
-      (effects (font (size 1 1) (thickness 0.15)))
-    )
-    (fp_text value PADS_0805 (at 0 1.75) (layer F.Fab) hide
-      (effects (font (size 1 1) (thickness 0.15)))
-    )
-    (pad 2 smd rect (at 0.4064 0) (size 0.7 1.3) (layers F.Cu F.Paste F.Mask))
-    (pad 1 smd rect (at -0.4064 0) (size 0.7 1.3) (layers F.Cu F.Paste F.Mask))
     (model ${KISYS3DMOD}/Resistors_SMD.3dshapes/R_0805.wrl
       (at (xyz 0 0 0))
       (scale (xyz 1 1 1))

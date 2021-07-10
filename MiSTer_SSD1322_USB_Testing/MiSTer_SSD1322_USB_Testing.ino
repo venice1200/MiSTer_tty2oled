@@ -190,16 +190,21 @@
    "CMDROT,[Parameter]" Set Display Rotation (0=180° (My Standard), 1=0 degrees) Rotation after Start
    You will see the Command Result after the next Write/Draw Command.
 
-  2021-07-07..09
+  2021-07-07/08
   -New Command "CMDTEST" whcih just show an fullscreen test-picture
   -Count of transferred picture bytes and if it doesn't match show an error picture
   -Change Command processing from "if (newCore!=oldCore)" to "if (updateDisplay)" to prevent a blank screen if multiple data packs are sent.
   -Add (Micro Font) Build Version to Start Screen
+  
+  2021-07-09
   -Some yield() fixes for ESP8266
+  
+  2021-07-10
+  -Add Serial.flush to "Setup" to clear the transmit buffer, see https://misterfpga.org/viewtopic.php?p=29703#p29703
 
 */
 
-#define BuildVersion 210708
+#define BuildVersion 210710
 
 // Uncomment to get some Debugging Infos over Serial especially for SD Debugging
 //#define XDEBUG
@@ -279,9 +284,10 @@ unsigned int logoBytes=0;
 // ================ SETUP ==================
 void setup(void) {
   // Init Serial
-  //Serial.begin(57600);                       // 57600 for MiSTer ttyUSBx Device CP2102 Chip on ESP32
+  //Serial.begin(57600);                     // 57600 for MiSTer ttyUSBx Device CP2102 Chip on ESP32
   Serial.begin(115200);                      // 115200 for MiSTer ttyUSBx Device CP2102 Chip on ESP32
-  //Serial.begin(921600);                     // 921600 for MiSTer ttyUSBx Device CP2102 Chip on ESP32
+  //Serial.begin(921600);                    // 921600 for MiSTer ttyUSBx Device CP2102 Chip on ESP32
+  Serial.flush();                            // Clear the transmit buffer
 
   randomSeed(analogRead(34));                // Init Random Generator with empty Analog Port value
 
@@ -350,7 +356,11 @@ void loop(void) {
 
     // -- Get Data via USB from the MiSTer and show them
     else if (newCore=="CORECHANGE") {                                    // Command from Serial to receive Data via USB Serial from the MiSTer
-      usb2oled_readndrawlogo(random(1,11));                              // Receive Picture Data and show them on the OLED, Transition Effect Random Number 1..10
+#if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
+      usb2oled_readndrawlogo(random(1,5));                              // ESP8266 Receive Picture Data and show them on the OLED, Transition Effect Random Number 1..4
+#else
+      usb2oled_readndrawlogo(random(1,11));                             // ESP32 Receive Picture Data and show them on the OLED, Transition Effect Random Number 1..10
+#endif
     }
  
     // -- Get Contrast Data via USB from the MiSTer and set them
@@ -391,7 +401,12 @@ void loop(void) {
 
     // -- Get Data via USB from the MiSTer and show them
     else if (newCore.startsWith("CMDCOR,")) {                            // Command from Serial to receive Data via USB Serial from the MiSTer
+#if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
+      usb2oled_readndrawlogo2(random(1,5));                              // ESP8266 Receive Picture Data and show them on the OLED, Transition Effect Random Number 1..4
+#else
       usb2oled_readndrawlogo2(random(1,11));                             // ESP32 Receive Picture Data and show them on the OLED, Transition Effect Random Number 1..10
+#endif
+
     }
     
     // -- Get Contrast Data via USB from the MiSTer and set them
@@ -718,7 +733,97 @@ int usb2oled_readndrawlogo(int effect) {
   // Draw the Picture
   // -------------------- Effects -----------------------
   switch (effect) {
-    case 1:                                      // Particle Effect
+    case 1:                                        // Left to Right
+      for (x=0; x<DispLineBytes; x++) {
+        for (y=0; y<DispHeight; y++) {
+          logoByteValue = logoBin[x+y*DispLineBytes];
+          drawEightBit(x*8, y, logoByteValue);
+        }  // end for y
+        u8g2.sendBuffer();
+      }  // end for x
+      break;
+    
+    case 2:                                       // Top to Bottom
+      for (y=0; y<DispHeight; y++) {
+        for (x=0; x<DispLineBytes; x++) {
+          logoByteValue = logoBin[x+y*DispLineBytes];
+          drawEightBit(x*8, y, logoByteValue);
+        }  // end for y
+        u8g2.sendBuffer();
+      }  // end for x
+      break;
+
+    case 3:                                        // Right to Left
+      for (x=DispLineBytes-1; x>=0; x--) {
+        for (y=0; y<DispHeight; y++) {
+          logoByteValue = logoBin[x+y*DispLineBytes];
+          drawEightBit(x*8, y, logoByteValue);
+        }  // end for y
+        u8g2.sendBuffer();
+      }  // end for x
+      break;
+
+    case 4:                                       // Bottom to Top
+      for (y=DispHeight-1; y>=0; y--) {
+        for (x=0; x<DispLineBytes; x++) {
+          logoByteValue = logoBin[x+y*DispLineBytes];
+          drawEightBit(x*8, y, logoByteValue);
+        }  // end for y
+        u8g2.sendBuffer();
+      }  // end for x
+      break;
+    
+    case 5:                                     // Even Line Left to Right / Odd Line Right to Left
+      for (x=0; x<DispLineBytes; x++) {
+        for (y=0; y<DispHeight; y++) {
+          if ((y % 2) == 0) {
+            x2 = x;
+          }
+          else {
+            x2 = x*-1 + DispLineBytes -1;
+          }
+          logoByteValue = logoBin[x2+y*DispLineBytes];
+          drawEightBit(x2*8, y, logoByteValue);
+        }  // end for y
+        u8g2.sendBuffer();
+      }  // end for x
+      break;
+    
+    case 6:                                     // Top Part Left to Right / Bottom Part Right to Left
+      for (x=0; x<DispLineBytes; x++) {
+        for (y=0; y<DispHeight; y++) {
+          if (y < DispLineBytes) {
+            x2 = x;
+          }
+          else {
+            x2 = x*-1 + DispLineBytes -1;
+          }
+          logoByteValue = logoBin[x2+y*DispLineBytes];
+          drawEightBit(x2*8, y, logoByteValue);
+        }  // end for y
+        u8g2.sendBuffer();
+      }  // end for x
+      break;
+    
+    case 7:                                     // Four Parts Left to Right to Left to Right...
+      for (w=0; w<4; w++) {
+        for (x=0; x<DispLineBytes; x++) {
+          for (y=0; y<DispHeight/4; y++) {
+            if ((w%2) == 0) {
+              x2 = x;
+            }
+            else {
+              x2 = x*-1 + DispLineBytes -1;
+            }
+            logoByteValue = logoBin[x2+(y+w*16)*DispLineBytes];
+            drawEightBit(x2*8, y+w*16, logoByteValue);
+          }  // end for y
+          u8g2.sendBuffer();
+        }  // end for x
+      }
+      break;
+
+    case 8:                                      // Particle Effect
       for (w=0; w<10000; w++) {
         logoByte = random(logoBytes); // Value logoBytes = 2048 => Get 0..2047
         logoByteValue = logoBin[logoByte];
@@ -743,115 +848,9 @@ int usb2oled_readndrawlogo(int effect) {
       // Finally overwrite the Screen with fill Size Picture
       u8g2.drawXBM(0, 0, DispWidth, DispHeight, logoBin);
       u8g2.sendBuffer();
-	  break;  // end case 1
-  
-    case 2:                                        // Left to Right
-      for (x=0; x<DispLineBytes; x++) {
-        for (y=0; y<DispHeight; y++) {
-          logoByteValue = logoBin[x+y*DispLineBytes];
-          drawEightBit(x*8, y, logoByteValue);
-        }  // end for y
-        u8g2.sendBuffer();
-      }  // end for x
-      break;  // end case 2
-    
-    case 3:                                       // Top to Bottom
-      for (y=0; y<DispHeight; y++) {
-        for (x=0; x<DispLineBytes; x++) {
-          logoByteValue = logoBin[x+y*DispLineBytes];
-          drawEightBit(x*8, y, logoByteValue);
-        }  // end for y
-        u8g2.sendBuffer();
-      }  // end for x
-      break;  // end case 3
+    break;
 
-    case 4:                                        // Right to Left
-      for (x=DispLineBytes-1; x>=0; x--) {
-        for (y=0; y<DispHeight; y++) {
-          logoByteValue = logoBin[x+y*DispLineBytes];
-          drawEightBit(x*8, y, logoByteValue);
-        }  // end for y
-        u8g2.sendBuffer();
-      }  // end for x
-      break;  // end case 4
-
-    case 5:                                       // Bottom to Top
-      for (y=DispHeight-1; y>=0; y--) {
-        for (x=0; x<DispLineBytes; x++) {
-          logoByteValue = logoBin[x+y*DispLineBytes];
-          drawEightBit(x*8, y, logoByteValue);
-        }  // end for y
-        u8g2.sendBuffer();
-      }  // end for x
-      break;  // end case 5
-
-    case 6:                                        // Left to Right Diagonally
-      for (x=0; x<DispWidth+DispHeight; x++) {
-        for (y=0; y<DispHeight; y++) {
-          // x2 calculation = Angle
-          //x2=x-y;                                // Long Diagonal
-          //x2=x-y/2;                              // Middle Diagonal
-          x2=x-y/4;                                // Short Diagonal
-          if ((x2>=0) && (x2<DispLineBytes)) {
-            logoByteValue = logoBin[x2+y*DispLineBytes];
-            drawEightBit(x2*8, y, logoByteValue);
-          }  // end for x2
-        }  // end for y
-        u8g2.sendBuffer();
-      }  // end for x
-      break;  // end case 6
-    
-    case 7:                                     // Even Line Left to Right / Odd Line Right to Left
-      for (x=0; x<DispLineBytes; x++) {
-        for (y=0; y<DispHeight; y++) {
-          if ((y % 2) == 0) {
-            x2 = x;
-          }
-          else {
-            x2 = x*-1 + DispLineBytes -1;
-          }
-          logoByteValue = logoBin[x2+y*DispLineBytes];
-          drawEightBit(x2*8, y, logoByteValue);
-        }  // end for y
-        u8g2.sendBuffer();
-      }  // end for x
-      break;  // end case 7
-    
-    case 8:                                     // Top Part Left to Right / Bottom Part Right to Left
-      for (x=0; x<DispLineBytes; x++) {
-        for (y=0; y<DispHeight; y++) {
-          if (y < DispLineBytes) {
-            x2 = x;
-          }
-          else {
-            x2 = x*-1 + DispLineBytes -1;
-          }
-          logoByteValue = logoBin[x2+y*DispLineBytes];
-          drawEightBit(x2*8, y, logoByteValue);
-        }  // end for y
-        u8g2.sendBuffer();
-      }  // end for x
-      break;  // end case 8
-    
-    case 9:                                     // Four Parts Left to Right to Left to Right...
-      for (w=0; w<4; w++) {
-        for (x=0; x<DispLineBytes; x++) {
-          for (y=0; y<DispHeight/4; y++) {
-            if ((w%2) == 0) {
-              x2 = x;
-            }
-            else {
-              x2 = x*-1 + DispLineBytes -1;
-            }
-            logoByteValue = logoBin[x2+(y+w*16)*DispLineBytes];
-            drawEightBit(x2*8, y+w*16, logoByteValue);
-          }  // end for y
-          u8g2.sendBuffer();
-        }  // end for x
-      }
-      break;  // end case 9
-
-    case 10:                                     // 4 Parts, Top-Left => Bottom-Right => Top-Right => Bottom-Left
+    case 9:                                     // 4 Parts, Top-Left => Bottom-Right => Top-Right => Bottom-Left
       // Part 1 Top Left
       for (x=0; x<DispLineBytes/2; x++) {
         for (y=0; y<DispHeight/2; y++) {
@@ -887,41 +886,22 @@ int usb2oled_readndrawlogo(int effect) {
         u8g2.sendBuffer();
       }  // end for x
       break;  // end case 10
-      
-      case 11:                                     // Circles(Snake)
-      for (w=0; w<4; w++) {
-        // To the right
-        for (x=0+w; x<DispLineBytes-w; x++) {
-          for (y=0; y<8; y++) {
-            logoByteValue = logoBin[x+(y+w*8)*DispLineBytes];
-            drawEightBit(x*8, y+w*8, logoByteValue);
-          }
+
+    case 10:                                        // Left to Right Diagonally
+      for (x=0; x<DispWidth+DispHeight; x++) {
+        for (y=0; y<DispHeight; y++) {
+          // x2 calculation = Angle
+          //x2=x-y;                                // Long Diagonal
+          //x2=x-y/2;                              // Middle Diagonal
+          x2=x-y/4;                                // Short Diagonal
+          if ((x2>=0) && (x2<DispLineBytes)) {
+            logoByteValue = logoBin[x2+y*DispLineBytes];
+            drawEightBit(x2*8, y, logoByteValue);
+          }  // end for x2
+        }  // end for y
         u8g2.sendBuffer();
-        } 
-        // Down
-        x=DispLineBytes-1-w;
-        for (y=(1+w)*8; y<DispHeight-(1+w)*8; y++) {
-          logoByteValue = logoBin[x+y*DispLineBytes];
-          drawEightBit(x*8, y, logoByteValue);
-          if ((y+1) % 4 == 0) u8g2.sendBuffer();              // Modulo Factor = Speed, 2(slow), 4(middle), 8(fast), none(Hyperspeed)
-        }
-        // To the left
-        for (x=DispLineBytes-1-w; x>=0+w; x--) {
-          for (y=0; y<8; y++) {
-            logoByteValue = logoBin[x+(DispHeight-1-y-w*8)*DispLineBytes];
-            drawEightBit(x*8, DispHeight-1-y-w*8, logoByteValue);
-          }
-        u8g2.sendBuffer();
-        } 
-        // Up
-        x=0+w;
-        for (y=DispHeight-1-(1+w)*8; y>=0+(1+w)*8; y--) {
-          logoByteValue = logoBin[x+y*DispLineBytes];
-          drawEightBit(x*8, y, logoByteValue);
-          if (y % 4 == 0) u8g2.sendBuffer();                  // Modulo Factor = Speed, 2(slow), 4(middle), 8(fast), none(Hyperspeed)
-        }
-      }  // end for w
-      break;  // end case 11
+      }  // end for x
+      break;
 
     default:                                     // Just overwrite the whole screen
 	    //u8g2.clearBuffer();
@@ -1056,208 +1036,175 @@ int usb2oled_readndrawlogo2(int effect) {
     // Draw the Picture
     // -------------------- Effects -----------------------
     switch (effect) {
-      case 1:                                      // Particle Effect
-        for (w=0; w<10000; w++) {
-          logoByte = random(logoBytes); // Value logoBytes = 2048 => Get 0..2047
-          logoByteValue = logoBin[logoByte];
-          x = (logoByte % DispLineBytes) * 8;
-          y = logoByte / DispLineBytes;
-          drawEightBit(x, y, logoByteValue);
-          // For different speed
-          // if ((w % (w/10)) == 0) u8g2.sendBuffer();
-          if (w<=1000) {
-            if ((w % 25)==0) u8g2.sendBuffer();
-          }
-          if ((w>1000) && (w<=2000)) {
-            if ((w % 50)==0) u8g2.sendBuffer();
-          }
-          if ((w>2000) && (w<=5000)) { 
-            if ((w % 200)==0) u8g2.sendBuffer();
-          }
-          if (w>5000) { 
-            if ((w % 400)==0) u8g2.sendBuffer();
-          }
-        }
-        // Finally overwrite the Screen with fill Size Picture
-        u8g2.drawXBM(0, 0, DispWidth, DispHeight, logoBin);
-        u8g2.sendBuffer();
-      break;  // end case 1
-  
-      case 2:                                        // Left to Right
-        for (x=0; x<DispLineBytes; x++) {
-          for (y=0; y<DispHeight; y++) {
-            logoByteValue = logoBin[x+y*DispLineBytes];
-            drawEightBit(x*8, y, logoByteValue);
-          }  // end for y
-          u8g2.sendBuffer();
-        }  // end for x
-        break;  // end case 2
-    
-      case 3:                                       // Top to Bottom
+    case 1:                                        // Left to Right
+      for (x=0; x<DispLineBytes; x++) {
         for (y=0; y<DispHeight; y++) {
-          for (x=0; x<DispLineBytes; x++) {
-            logoByteValue = logoBin[x+y*DispLineBytes];
-            drawEightBit(x*8, y, logoByteValue);
-          }  // end for y
-          u8g2.sendBuffer();
-        }  // end for x
-        break;  // end case 3
-
-      case 4:                                        // Right to Left
-        for (x=DispLineBytes-1; x>=0; x--) {
-          for (y=0; y<DispHeight; y++) {
-            logoByteValue = logoBin[x+y*DispLineBytes];
-            drawEightBit(x*8, y, logoByteValue);
-          }  // end for y
-          u8g2.sendBuffer();
-        }  // end for x
-        break;  // end case 4
-
-      case 5:                                       // Bottom to Top
-        for (y=DispHeight-1; y>=0; y--) {
-          for (x=0; x<DispLineBytes; x++) {
-            logoByteValue = logoBin[x+y*DispLineBytes];
-            drawEightBit(x*8, y, logoByteValue);
-          }  // end for y
-          u8g2.sendBuffer();
-        }  // end for x
-        break;  // end case 5
-
-      case 6:                                        // Left to Right Diagonally
-        for (x=0; x<DispWidth+DispHeight; x++) {
-          for (y=0; y<DispHeight; y++) {
-            // x2 calculation = Angle
-            //x2=x-y;                                // Long Diagonal
-            //x2=x-y/2;                              // Middle Diagonal
-            x2=x-y/4;                                // Short Diagonal
-            if ((x2>=0) && (x2<DispLineBytes)) {
-              logoByteValue = logoBin[x2+y*DispLineBytes];
-              drawEightBit(x2*8, y, logoByteValue);
-            }  // end for x2
-          }  // end for y
-          u8g2.sendBuffer();
-        }  // end for x
-        break;  // end case 6
+          logoByteValue = logoBin[x+y*DispLineBytes];
+          drawEightBit(x*8, y, logoByteValue);
+        }  // end for y
+        u8g2.sendBuffer();
+      }  // end for x
+      break;
     
-      case 7:                                     // Even Line Left to Right / Odd Line Right to Left
+    case 2:                                       // Top to Bottom
+      for (y=0; y<DispHeight; y++) {
         for (x=0; x<DispLineBytes; x++) {
-          for (y=0; y<DispHeight; y++) {
-            if ((y % 2) == 0) {
+          logoByteValue = logoBin[x+y*DispLineBytes];
+          drawEightBit(x*8, y, logoByteValue);
+        }  // end for y
+        u8g2.sendBuffer();
+      }  // end for x
+      break;
+
+    case 3:                                        // Right to Left
+      for (x=DispLineBytes-1; x>=0; x--) {
+        for (y=0; y<DispHeight; y++) {
+          logoByteValue = logoBin[x+y*DispLineBytes];
+          drawEightBit(x*8, y, logoByteValue);
+        }  // end for y
+        u8g2.sendBuffer();
+      }  // end for x
+      break;
+
+    case 4:                                       // Bottom to Top
+      for (y=DispHeight-1; y>=0; y--) {
+        for (x=0; x<DispLineBytes; x++) {
+          logoByteValue = logoBin[x+y*DispLineBytes];
+          drawEightBit(x*8, y, logoByteValue);
+        }  // end for y
+        u8g2.sendBuffer();
+      }  // end for x
+      break;
+    
+    case 5:                                     // Even Line Left to Right / Odd Line Right to Left
+      for (x=0; x<DispLineBytes; x++) {
+        for (y=0; y<DispHeight; y++) {
+          if ((y % 2) == 0) {
+            x2 = x;
+          }
+          else {
+            x2 = x*-1 + DispLineBytes -1;
+          }
+          logoByteValue = logoBin[x2+y*DispLineBytes];
+          drawEightBit(x2*8, y, logoByteValue);
+        }  // end for y
+        u8g2.sendBuffer();
+      }  // end for x
+      break;
+    
+    case 6:                                     // Top Part Left to Right / Bottom Part Right to Left
+      for (x=0; x<DispLineBytes; x++) {
+        for (y=0; y<DispHeight; y++) {
+          if (y < DispLineBytes) {
+            x2 = x;
+          }
+          else {
+            x2 = x*-1 + DispLineBytes -1;
+          }
+          logoByteValue = logoBin[x2+y*DispLineBytes];
+          drawEightBit(x2*8, y, logoByteValue);
+        }  // end for y
+        u8g2.sendBuffer();
+      }  // end for x
+      break;
+    
+    case 7:                                     // Four Parts Left to Right to Left to Right...
+      for (w=0; w<4; w++) {
+        for (x=0; x<DispLineBytes; x++) {
+          for (y=0; y<DispHeight/4; y++) {
+            if ((w%2) == 0) {
               x2 = x;
             }
             else {
               x2 = x*-1 + DispLineBytes -1;
             }
-            logoByteValue = logoBin[x2+y*DispLineBytes];
-            drawEightBit(x2*8, y, logoByteValue);
-          }  // end for y
-          u8g2.sendBuffer();
-         }  // end for x
-        break;  // end case 7
-    
-      case 8:                                     // Top Part Left to Right / Bottom Part Right to Left
-        for (x=0; x<DispLineBytes; x++) {
-          for (y=0; y<DispHeight; y++) {
-            if (y < DispLineBytes) {
-              x2 = x;
-            }
-            else {
-              x2 = x*-1 + DispLineBytes -1;
-            }
-            logoByteValue = logoBin[x2+y*DispLineBytes];
-            drawEightBit(x2*8, y, logoByteValue);
+            logoByteValue = logoBin[x2+(y+w*16)*DispLineBytes];
+            drawEightBit(x2*8, y+w*16, logoByteValue);
           }  // end for y
           u8g2.sendBuffer();
         }  // end for x
-        break;  // end case 8
-    
-      case 9:                                     // Four Parts Left to Right to Left to Right...
-        for (w=0; w<4; w++) {
-          for (x=0; x<DispLineBytes; x++) {
-            for (y=0; y<DispHeight/4; y++) {
-              if ((w%2) == 0) {
-                x2 = x;
-              }
-              else {
-                x2 = x*-1 + DispLineBytes -1;
-              }
-              logoByteValue = logoBin[x2+(y+w*16)*DispLineBytes];
-              drawEightBit(x2*8, y+w*16, logoByteValue);
-            }  // end for y
-            u8g2.sendBuffer();
-          }  // end for x
+      }
+      break;
+
+    case 8:                                      // Particle Effect
+      for (w=0; w<10000; w++) {
+        logoByte = random(logoBytes); // Value logoBytes = 2048 => Get 0..2047
+        logoByteValue = logoBin[logoByte];
+        x = (logoByte % DispLineBytes) * 8;
+        y = logoByte / DispLineBytes;
+        drawEightBit(x, y, logoByteValue);
+        // For different speed
+        // if ((w % (w/10)) == 0) u8g2.sendBuffer();
+        if (w<=1000) {
+          if ((w % 25)==0) u8g2.sendBuffer();
         }
-        break;  // end case 9
+        if ((w>1000) && (w<=2000)) {
+          if ((w % 50)==0) u8g2.sendBuffer();
+        }
+        if ((w>2000) && (w<=5000)) { 
+          if ((w % 200)==0) u8g2.sendBuffer();
+        }
+        if (w>5000) { 
+          if ((w % 400)==0) u8g2.sendBuffer();
+        }
+      }
+      // Finally overwrite the Screen with fill Size Picture
+      u8g2.drawXBM(0, 0, DispWidth, DispHeight, logoBin);
+      u8g2.sendBuffer();
+    break;
 
-      case 10:                                     // 4 Parts, Top-Left => Bottom-Right => Top-Right => Bottom-Left
-        // Part 1 Top Left
-        for (x=0; x<DispLineBytes/2; x++) {
-          for (y=0; y<DispHeight/2; y++) {
-            logoByteValue = logoBin[x+y*DispLineBytes];
-            drawEightBit(x*8, y, logoByteValue);
-          }  // end for y
-          u8g2.sendBuffer();
-        }  // end for x
-        // Part 2 Bottom Right
-        for (x=DispLineBytes/2; x<DispLineBytes; x++) {
-          for (y=DispHeight/2; y<DispHeight; y++) {
-            logoByteValue = logoBin[x+y*DispLineBytes];
-            drawEightBit(x*8, y, logoByteValue);
-          }  // end for y
-          u8g2.sendBuffer();
-        }  // end for x
-        // Part 3 Top Right
-        for (x=DispLineBytes-1; x>=DispLineBytes/2; x--) {
-          for (y=0; y<DispHeight/2; y++) {
-            logoByteValue = logoBin[x+y*DispLineBytes];
-            drawEightBit(x*8, y, logoByteValue);
-          }  // end for y
-          u8g2.sendBuffer();
-        }  // end for x
-        // Part 4 Bottom Left
-        for (x=DispLineBytes/2-1; x>=0; x--) {
-          for (y=DispHeight/2; y<DispHeight; y++) {
-            logoByteValue = logoBin[x+y*DispLineBytes];
-            drawEightBit(x*8, y, logoByteValue);
-          }  // end for y
-          u8g2.sendBuffer();
-        }  // end for x
-        break;  // end case 10
-      
-      case 11:                                     // Circles(Snake)
-        for (w=0; w<4; w++) {
-          // To the right
-          for (x=0+w; x<DispLineBytes-w; x++) {
-            for (y=0; y<8; y++) {
-              logoByteValue = logoBin[x+(y+w*8)*DispLineBytes];
-              drawEightBit(x*8, y+w*8, logoByteValue);
-            }
-          u8g2.sendBuffer();
-          } 
-          // Down
-          x=DispLineBytes-1-w;
-          for (y=(1+w)*8; y<DispHeight-(1+w)*8; y++) {
-            logoByteValue = logoBin[x+y*DispLineBytes];
-            drawEightBit(x*8, y, logoByteValue);
-            if ((y+1) % 4 == 0) u8g2.sendBuffer();              // Modulo Factor = Speed, 2(slow), 4(middle), 8(fast), none(Hyperspeed)
-          }
-          // To the left
-          for (x=DispLineBytes-1-w; x>=0+w; x--) {
-            for (y=0; y<8; y++) {
-              logoByteValue = logoBin[x+(DispHeight-1-y-w*8)*DispLineBytes];
-              drawEightBit(x*8, DispHeight-1-y-w*8, logoByteValue);
-            }
-          u8g2.sendBuffer();
-          } 
-          // Up
-          x=0+w;
-          for (y=DispHeight-1-(1+w)*8; y>=0+(1+w)*8; y--) {
-            logoByteValue = logoBin[x+y*DispLineBytes];
-            drawEightBit(x*8, y, logoByteValue);
-            if (y % 4 == 0) u8g2.sendBuffer();                  // Modulo Factor = Speed, 2(slow), 4(middle), 8(fast), none(Hyperspeed)
-          }
-        }  // end for w
-        break;  // end case 11
+    case 9:                                     // 4 Parts, Top-Left => Bottom-Right => Top-Right => Bottom-Left
+      // Part 1 Top Left
+      for (x=0; x<DispLineBytes/2; x++) {
+        for (y=0; y<DispHeight/2; y++) {
+          logoByteValue = logoBin[x+y*DispLineBytes];
+          drawEightBit(x*8, y, logoByteValue);
+        }  // end for y
+        u8g2.sendBuffer();
+      }  // end for x
+      // Part 2 Bottom Right
+      for (x=DispLineBytes/2; x<DispLineBytes; x++) {
+        for (y=DispHeight/2; y<DispHeight; y++) {
+          logoByteValue = logoBin[x+y*DispLineBytes];
+          drawEightBit(x*8, y, logoByteValue);
+        }  // end for y
+        u8g2.sendBuffer();
+      }  // end for x
+      // Part 3 Top Right
+      //for (x=DispLineBytes/2; x<DispLineBytes; x++) {
+      for (x=DispLineBytes-1; x>=DispLineBytes/2; x--) {
+        for (y=0; y<DispHeight/2; y++) {
+          logoByteValue = logoBin[x+y*DispLineBytes];
+          drawEightBit(x*8, y, logoByteValue);
+        }  // end for y
+        u8g2.sendBuffer();
+      }  // end for x
+      // Part 4 Bottom Left
+      //for (x=0; x<DispLineBytes/2; x++) {
+      for (x=DispLineBytes/2-1; x>=0; x--) {
+        for (y=DispHeight/2; y<DispHeight; y++) {
+          logoByteValue = logoBin[x+y*DispLineBytes];
+          drawEightBit(x*8, y, logoByteValue);
+        }  // end for y
+        u8g2.sendBuffer();
+      }  // end for x
+      break;  // end case 10
+
+    case 10:                                        // Left to Right Diagonally
+      for (x=0; x<DispWidth+DispHeight; x++) {
+        for (y=0; y<DispHeight; y++) {
+          // x2 calculation = Angle
+          //x2=x-y;                                // Long Diagonal
+          //x2=x-y/2;                              // Middle Diagonal
+          x2=x-y/4;                                // Short Diagonal
+          if ((x2>=0) && (x2<DispLineBytes)) {
+            logoByteValue = logoBin[x2+y*DispLineBytes];
+            drawEightBit(x2*8, y, logoByteValue);
+          }  // end for x2
+        }  // end for y
+        u8g2.sendBuffer();
+      }  // end for x
+      break;
 
       default:                                                 // Just overwrite the whole screen
         //u8g2.clearBuffer();

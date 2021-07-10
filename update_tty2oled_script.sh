@@ -42,9 +42,9 @@ fi
 #[[ -v OLDDAEMONSCRIPT ]] && [[ -e ${OLDDAEMONSCRIPT} ]] && mv ${OLDDAEMONSCRIPT} ${DAEMONSCRIPT} 
 
 
-echo -e '\n /----------\';
+echo -e '\n +----------+';
 echo -e ' | \e[1;34mtty2oled\e[0m |---[]';
-echo -e ' \----------/\n';
+echo -e ' +----------+\n';
 echo -e "\e[1;32m Update Script"
 echo -e "---------------\e[0m"
 

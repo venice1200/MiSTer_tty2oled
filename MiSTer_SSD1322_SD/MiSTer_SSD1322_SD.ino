@@ -125,6 +125,7 @@ void setup(void) {
   //Serial.begin(9600);              // 9600 for MiSTer ttyUSBx Device FTDI Chip or manual set Speed
   //Serial.begin(57600);           // 57600 Common Modem Speed :-)
   Serial.begin(115200);          // 115200 for MiSTer ttyUSBx Device CP2102 Chip on ESP32
+  Serial.flush();
 
   //Init Random Generator with empty Analog Port value
   randomSeed(analogRead(34));

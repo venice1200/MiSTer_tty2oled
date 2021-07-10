@@ -1,8 +1,7 @@
 #!/bin/sh
 
-# 
+# By venice & ojaksch
 #
-# By venice
 # 2021-01-12 First release
 # 2021-01-15 Adding debug to /tmp/tty2oled, device check else part
 # 2021-01-16 Change send command "echo -ne ${newcore} >" to "echo ${newcore} >" without -ne to send "\n" (newline)

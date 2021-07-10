@@ -40,7 +40,7 @@
 #
 # 2021-06-30 Added new INI Option/Command for Display Rotation ("CMDROT,[Parameter]")
 #
-# 2021-07-10 Fix Baudrate Parameter cia CLI
+# 2021-07-10 Fix Baudrate CLI Parameter
 #
 #
 
@@ -120,8 +120,8 @@ fi                                                                              
 
 
 if [ -c "${TTYDEV}" ]; then										# check for tty device
-  echo "${TTYDEV} detected, setting Parameter: ${BAUDRATE} baud, ${TTYPARAM}."
-  dbug "${TTYDEV} detected, setting Parameter: ${BAUDRATE} baud, ${TTYPARAM}."
+  echo "${TTYDEV} detected, setting Parameter: ${BAUDRATE} ${TTYPARAM}."
+  dbug "${TTYDEV} detected, setting Parameter: ${BAUDRATE} ${TTYPARAM}."
   stty -F ${TTYDEV} ${BAUDRATE} ${TTYPARAM}						# set tty parameter
   sleep ${WAITSECS}												# sleep needed here ?!
   echo "QWERTZ" > ${TTYDEV}										# First Transmission to clear serial send buffer

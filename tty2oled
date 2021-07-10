@@ -111,8 +111,8 @@ if [ -c "${TTYDEV}" ]; then							# check for tty device
       if [ "${newcore}" != "${oldcore}" ]; then					# proceed only if Core has changed
 	echo "Send -${newcore}- to ${TTYDEV}."					# some output
 	dbug "Send -${newcore}- to ${TTYDEV}."					# some debug output
-	senddata ${newcore}							# The "Magic"
-	oldcore=${newcore}							# update oldcore variable
+	senddata "${newcore}"							# The "Magic"
+	oldcore="${newcore}"							# update oldcore variable
       fi									# end if core check
       inotifywait -e modify "${corenamefile}"					# wait here for next change of corename
     else									# CORENAME file not found

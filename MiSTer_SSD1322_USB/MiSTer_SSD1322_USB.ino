@@ -228,6 +228,7 @@ void setup(void) {
   //Serial.begin(57600);                       // 57600 for MiSTer ttyUSBx Device CP2102 Chip on ESP32
   Serial.begin(115200);                      // 115200 for MiSTer ttyUSBx Device CP2102 Chip on ESP32
   //Serial.begin(921600);                     // 921600 for MiSTer ttyUSBx Device CP2102 Chip on ESP32
+  Serial.flush();                            // Clear the transmit buffer
 
   randomSeed(analogRead(34));                // Init Random Generator with empty Analog Port value
 

@@ -191,7 +191,7 @@
    You will see the Command Result after the next Write/Draw Command.
 
   2021-07-07/08
-  -New Command "CMDTEST" whcih just show an fullscreen test-picture
+  -New Command "CMDTEST" which just show an fullscreen test-picture
   -Count of transferred picture bytes and if it doesn't match show an error picture
   -Change Command processing from "if (newCore!=oldCore)" to "if (updateDisplay)" to prevent a blank screen if multiple data packs are sent.
   -Add (Micro Font) Build Version to Start Screen
@@ -202,9 +202,13 @@
   2021-07-10
   -Add Serial.flush to "Setup" to clear the transmit buffer, see https://misterfpga.org/viewtopic.php?p=29703#p29703
 
+  2021-07-11
+  -Some more yield() fixes for ESP8266
+  -Fix Effekt 10 (Diagonal)
+
 */
 
-#define BuildVersion 210710
+#define BuildVersion 210711
 
 // Uncomment to get some Debugging Infos over Serial especially for SD Debugging
 //#define XDEBUG
@@ -327,9 +331,9 @@ void loop(void) {
     newCore = Serial.readStringUntil('\n');                  // Read string from serial until NewLine "\n" (from MiSTer's echo command) is detected or timeout (1000ms) happens.
     updateDisplay=true;                                      // Set Update-Display Flag
 
-    #ifdef XDEBUG
-      Serial.printf("Received Corename or Command: %s\n", (char*)newCore.c_str());
-    #endif
+#ifdef XDEBUG
+    Serial.printf("Received Corename or Command: %s\n", (char*)newCore.c_str());
+#endif
   }  // end serial available
     
 //  if (newCore!=oldCore) {                                    // Proceed only if Core Name changed
@@ -356,11 +360,11 @@ void loop(void) {
 
     // -- Get Data via USB from the MiSTer and show them
     else if (newCore=="CORECHANGE") {                                    // Command from Serial to receive Data via USB Serial from the MiSTer
-      #if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
-        usb2oled_readndrawlogo(random(1,5));                              // ESP8266 Receive Picture Data and show them on the OLED, Transition Effect Random Number 1..4
-      #else
-        usb2oled_readndrawlogo(random(1,11));                             // ESP32 Receive Picture Data and show them on the OLED, Transition Effect Random Number 1..10
-      #endif
+//#if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
+    //  usb2oled_readndrawlogo(random(1,5));                              // ESP8266 Receive Picture Data and show them on the OLED, Transition Effect Random Number 1..4
+//#else
+      usb2oled_readndrawlogo(random(1,11));                             // ESP32 Receive Picture Data and show them on the OLED, Transition Effect Random Number 1..10
+//#endif
     }
  
     // -- Get Contrast Data via USB from the MiSTer and set them
@@ -401,11 +405,11 @@ void loop(void) {
 
     // -- Get Data via USB from the MiSTer and show them
     else if (newCore.startsWith("CMDCOR,")) {                            // Command from Serial to receive Data via USB Serial from the MiSTer
-      #if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
-        usb2oled_readndrawlogo2(random(1,5));                              // ESP8266 Receive Picture Data and show them on the OLED, Transition Effect Random Number 1..4
-      #else
-        usb2oled_readndrawlogo2(random(1,11));                             // ESP32 Receive Picture Data and show them on the OLED, Transition Effect Random Number 1..10
-      #endif
+//#if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
+  //  usb2oled_readndrawlogo2(random(1,5));                              // ESP8266 Receive Picture Data and show them on the OLED, Transition Effect Random Number 1..4
+//#else
+      usb2oled_readndrawlogo2(random(1,11));                             // ESP32 Receive Picture Data and show them on the OLED, Transition Effect Random Number 1..10
+//#endif
     }
     
     // -- Get Contrast Data via USB from the MiSTer and set them
@@ -434,17 +438,17 @@ void loop(void) {
     }
 
     // The following Commands are only for ESP32
-    #ifdef ESP32  // OTA and Reset only for ESP32
-     // -- Enable (Basic) OTA
-      else if (newCore=="CMDENOTA") {                                     // Command from Serial to enable OTA on the ESP
-        enableOTA();                                                      // Setup Wireless and enable OTA
-      }
+#ifdef ESP32  // OTA and Reset only for ESP32
+    // -- Enable (Basic) OTA
+    else if (newCore=="CMDENOTA") {                                     // Command from Serial to enable OTA on the ESP
+      enableOTA();                                                      // Setup Wireless and enable OTA
+    }
 
-      // -- Reset ESP by Command
-      else if (newCore=="CMDRESET") {                                     // Command from Serial for Resetting the ESP
-        ESP.restart();                                                    // Reset ESP
-      }
-    #endif
+    // -- Reset ESP by Command
+    else if (newCore=="CMDRESET") {                                     // Command from Serial for Resetting the ESP
+      ESP.restart();                                                    // Reset ESP
+    }
+#endif
 
     // -- Unidentified Core Name, just write it on screen
     else {
@@ -470,9 +474,9 @@ void loop(void) {
 
 // ---- oled_mistertext -- Show the Start-Up Text ----
 void oled_mistertext(void) {
-  #ifdef XDEBUG
-    Serial.println("Show Startscreen");
-  #endif
+#ifdef XDEBUG
+  Serial.println("Show Startscreen");
+#endif
   u8g2.clearBuffer();
   u8g2.setFont(u8g2_font_5x7_tr);            // 6 Pixel Font
   u8g2.setCursor(1,62);
@@ -497,9 +501,9 @@ void oled_drawlogo64h(u8g2_uint_t w, const uint8_t *bitmap) {
 
 // --- usb2oled_readnsetcontrast -- Receive and set Display Contrast ----
 void usb2oled_readnsetcontrast(void) {
-  #ifdef XDEBUG
-    Serial.println("Called Function CONTRAST");
-  #endif
+#ifdef XDEBUG
+  Serial.println("Called Function CONTRAST");
+#endif
   while (!Serial.available()) {                                          //
     // Just wait here
   }
@@ -513,17 +517,17 @@ void usb2oled_readnwritetext(void) {
   String TextIn="", xPos="", yPos="", FontType="", TextOut="";
   //char *TextOutChar;
   
-  #ifdef XDEBUG
-    Serial.println("Called Function TEXTOUTXY");
-  #endif
+#ifdef XDEBUG
+  Serial.println("Called Function TEXTOUTXY");
+#endif
  
   while (!Serial.available()) {                                          //
     // Just wait here for the Text
   }
   TextIn = Serial.readStringUntil('\n');                                // Read Text
-  #ifdef XDEBUG
-    Serial.printf("Received Text: %s\n", (char*)TextIn.c_str());
-  #endif
+#ifdef XDEBUG
+  Serial.printf("Received Text: %s\n", (char*)TextIn.c_str());
+#endif
 
   //Searching for the "," delimiter
   d1 = TextIn.indexOf(',');                 // Find location of first ","
@@ -536,9 +540,9 @@ void usb2oled_readnwritetext(void) {
   FontType = TextIn.substring(d2+1, d3);    // Get String for Font-Type
   TextOut = TextIn.substring(d3+1);         // Get String for Text
   
-  #ifdef XDEBUG
-    Serial.printf("Created Strings: X: %s Y: %s F: %s T: %s\n", (char*)xPos.c_str(), (char*)yPos.c_str(), (char*)FontType.c_str(), (char*)TextOut.c_str());
-  #endif
+#ifdef XDEBUG
+  Serial.printf("Created Strings: X: %s Y: %s F: %s T: %s\n", (char*)xPos.c_str(), (char*)yPos.c_str(), (char*)FontType.c_str(), (char*)TextOut.c_str());
+#endif
 
   // Convert Strings to Integer
   x = xPos.toInt();
@@ -607,17 +611,18 @@ void usb2oled_readndrawgeo(void) {
   String TextIn="",gT="",cT="",xT="",yT="",iT="",jT="",kT="";
   bool pError=false;
   
-  #ifdef XDEBUG
-    Serial.println("Called Function GEOOUTXY");
-  #endif
+#ifdef XDEBUG
+  Serial.println("Called Function GEOOUTXY");
+#endif
  
   while (!Serial.available()) {                                          //
     // Just wait here for the Text
   }
   TextIn = Serial.readStringUntil('\n');                                // Read Text
-  #ifdef XDEBUG
-    Serial.printf("Received Text: %s\n", (char*)TextIn.c_str());
-  #endif
+
+#ifdef XDEBUG
+  Serial.printf("Received Text: %s\n", (char*)TextIn.c_str());
+#endif
   
   //Searching for the "," delimiter
   d1 = TextIn.indexOf(',');                 // Find location of first ","
@@ -636,9 +641,9 @@ void usb2oled_readndrawgeo(void) {
   jT = TextIn.substring(d5+1, d6);        // Get String for Parameter j
   kT = TextIn.substring(d6+1);            // Get String for Parameter k
 
-  #ifdef XDEBUG
-    Serial.printf("Part-Strings: G:%s C:%s X:%s Y:%s I:%s J:%s K:%s\n", (char*)gT.c_str(), (char*)cT.c_str(), (char*)xT.c_str(), (char*)yT.c_str(), (char*)iT.c_str(), (char*)jT.c_str(), (char*)kT.c_str() );
-  #endif
+#ifdef XDEBUG
+  Serial.printf("Part-Strings: G:%s C:%s X:%s Y:%s I:%s J:%s K:%s\n", (char*)gT.c_str(), (char*)cT.c_str(), (char*)xT.c_str(), (char*)yT.c_str(), (char*)iT.c_str(), (char*)jT.c_str(), (char*)kT.c_str() );
+#endif
 
   // Convert Strings to Integer
   g = gT.toInt();
@@ -649,9 +654,9 @@ void usb2oled_readndrawgeo(void) {
   j = jT.toInt();
   k = kT.toInt();
 
-  #ifdef XDEBUG
-    Serial.printf("Values: G:%i C:%i X:%i Y:%i I:%i J:%i K:%i\n", g,c,x,y,i,j,k);
-  #endif
+#ifdef XDEBUG
+  Serial.printf("Values: G:%i C:%i X:%i Y:%i I:%i J:%i K:%i\n", g,c,x,y,i,j,k);
+#endif
 
   // Enough Parameter given / Parameter Check
   if (g<1 || g>10 || c<0 || c>2 || x<0 || x>DispWidth-1 || y<0 || y>DispHeight-1 || d1==-1 || d2==-1 || d3==-1  || d4==-1 || d5==-1  || d6==-1) {
@@ -713,323 +718,22 @@ int usb2oled_readndrawlogo(int effect) {
   int logoByte;
   unsigned char logoByteValue;
   int w,x,y,x2;
-  //unsigned char *logoBin;
-
-  #ifdef XDEBUG
-    Serial.println("Called Function CORECHANGE");
-  #endif
-
-  #if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
-    yield();
-  #endif
-
-  Serial.readBytes(logoBin, logoBytes);             // Read 2048 Bytes from Serial
-
-  #if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
-    yield();
-  #endif
-
-  // Draw the Picture
-  // -------------------- Effects -----------------------
-  switch (effect) {
-    case 1:                                        // Left to Right
-      for (x=0; x<DispLineBytes; x++) {
-        for (y=0; y<DispHeight; y++) {
-          logoByteValue = logoBin[x+y*DispLineBytes];
-          drawEightBit(x*8, y, logoByteValue);
-        }  // end for y
-        u8g2.sendBuffer();
-      }  // end for x
-      break;
-    
-    case 2:                                       // Top to Bottom
-      for (y=0; y<DispHeight; y++) {
-        for (x=0; x<DispLineBytes; x++) {
-          logoByteValue = logoBin[x+y*DispLineBytes];
-          drawEightBit(x*8, y, logoByteValue);
-        }  // end for y
-        u8g2.sendBuffer();
-      }  // end for x
-      break;
-
-    case 3:                                        // Right to Left
-      for (x=DispLineBytes-1; x>=0; x--) {
-        for (y=0; y<DispHeight; y++) {
-          logoByteValue = logoBin[x+y*DispLineBytes];
-          drawEightBit(x*8, y, logoByteValue);
-        }  // end for y
-        u8g2.sendBuffer();
-      }  // end for x
-      break;
-
-    case 4:                                       // Bottom to Top
-      for (y=DispHeight-1; y>=0; y--) {
-        for (x=0; x<DispLineBytes; x++) {
-          logoByteValue = logoBin[x+y*DispLineBytes];
-          drawEightBit(x*8, y, logoByteValue);
-        }  // end for y
-        u8g2.sendBuffer();
-      }  // end for x
-      break;
-    
-    case 5:                                     // Even Line Left to Right / Odd Line Right to Left
-      for (x=0; x<DispLineBytes; x++) {
-        for (y=0; y<DispHeight; y++) {
-          if ((y % 2) == 0) {
-            x2 = x;
-          }
-          else {
-            x2 = x*-1 + DispLineBytes -1;
-          }
-          logoByteValue = logoBin[x2+y*DispLineBytes];
-          drawEightBit(x2*8, y, logoByteValue);
-        }  // end for y
-        u8g2.sendBuffer();
-      }  // end for x
-      break;
-    
-    case 6:                                     // Top Part Left to Right / Bottom Part Right to Left
-      for (x=0; x<DispLineBytes; x++) {
-        for (y=0; y<DispHeight; y++) {
-          if (y < DispLineBytes) {
-            x2 = x;
-          }
-          else {
-            x2 = x*-1 + DispLineBytes -1;
-          }
-          logoByteValue = logoBin[x2+y*DispLineBytes];
-          drawEightBit(x2*8, y, logoByteValue);
-        }  // end for y
-        u8g2.sendBuffer();
-      }  // end for x
-      break;
-    
-    case 7:                                     // Four Parts Left to Right to Left to Right...
-      for (w=0; w<4; w++) {
-        for (x=0; x<DispLineBytes; x++) {
-          for (y=0; y<DispHeight/4; y++) {
-            if ((w%2) == 0) {
-              x2 = x;
-            }
-            else {
-              x2 = x*-1 + DispLineBytes -1;
-            }
-            logoByteValue = logoBin[x2+(y+w*16)*DispLineBytes];
-            drawEightBit(x2*8, y+w*16, logoByteValue);
-          }  // end for y
-          u8g2.sendBuffer();
-        }  // end for x
-      }
-      break;
-
-    case 8:                                      // Particle Effect
-      for (w=0; w<10000; w++) {
-        logoByte = random(logoBytes); // Value logoBytes = 2048 => Get 0..2047
-        logoByteValue = logoBin[logoByte];
-        x = (logoByte % DispLineBytes) * 8;
-        y = logoByte / DispLineBytes;
-        drawEightBit(x, y, logoByteValue);
-        // For different speed
-        // if ((w % (w/10)) == 0) u8g2.sendBuffer();
-        if (w<=1000) {
-          if ((w % 25)==0) u8g2.sendBuffer();
-        }
-        if ((w>1000) && (w<=2000)) {
-          if ((w % 50)==0) u8g2.sendBuffer();
-        }
-        if ((w>2000) && (w<=5000)) { 
-          if ((w % 200)==0) u8g2.sendBuffer();
-        }
-        if (w>5000) { 
-          if ((w % 400)==0) u8g2.sendBuffer();
-        }
-      }
-      // Finally overwrite the Screen with fill Size Picture
-      u8g2.drawXBM(0, 0, DispWidth, DispHeight, logoBin);
-      u8g2.sendBuffer();
-    break;
-
-    case 9:                                     // 4 Parts, Top-Left => Bottom-Right => Top-Right => Bottom-Left
-      // Part 1 Top Left
-      for (x=0; x<DispLineBytes/2; x++) {
-        for (y=0; y<DispHeight/2; y++) {
-          logoByteValue = logoBin[x+y*DispLineBytes];
-          drawEightBit(x*8, y, logoByteValue);
-        }  // end for y
-        u8g2.sendBuffer();
-      }  // end for x
-      // Part 2 Bottom Right
-      for (x=DispLineBytes/2; x<DispLineBytes; x++) {
-        for (y=DispHeight/2; y<DispHeight; y++) {
-          logoByteValue = logoBin[x+y*DispLineBytes];
-          drawEightBit(x*8, y, logoByteValue);
-        }  // end for y
-        u8g2.sendBuffer();
-      }  // end for x
-      // Part 3 Top Right
-      //for (x=DispLineBytes/2; x<DispLineBytes; x++) {
-      for (x=DispLineBytes-1; x>=DispLineBytes/2; x--) {
-        for (y=0; y<DispHeight/2; y++) {
-          logoByteValue = logoBin[x+y*DispLineBytes];
-          drawEightBit(x*8, y, logoByteValue);
-        }  // end for y
-        u8g2.sendBuffer();
-      }  // end for x
-      // Part 4 Bottom Left
-      //for (x=0; x<DispLineBytes/2; x++) {
-      for (x=DispLineBytes/2-1; x>=0; x--) {
-        for (y=DispHeight/2; y<DispHeight; y++) {
-          logoByteValue = logoBin[x+y*DispLineBytes];
-          drawEightBit(x*8, y, logoByteValue);
-        }  // end for y
-        u8g2.sendBuffer();
-      }  // end for x
-      break;  // end case 10
-
-    case 10:                                        // Left to Right Diagonally
-      for (x=0; x<DispWidth+DispHeight; x++) {
-        for (y=0; y<DispHeight; y++) {
-          // x2 calculation = Angle
-          //x2=x-y;                                // Long Diagonal
-          //x2=x-y/2;                              // Middle Diagonal
-          x2=x-y/4;                                // Short Diagonal
-          if ((x2>=0) && (x2<DispLineBytes)) {
-            logoByteValue = logoBin[x2+y*DispLineBytes];
-            drawEightBit(x2*8, y, logoByteValue);
-          }  // end for x2
-        }  // end for y
-        u8g2.sendBuffer();
-      }  // end for x
-      break;
-
-    default:                                     // Just overwrite the whole screen
-	    //u8g2.clearBuffer();
-      u8g2.drawXBM(0, 0, DispWidth, DispHeight, logoBin);
-      u8g2.sendBuffer();
-      break;  // endcase default
-  }  // end switch effect
-  //free(logoBin);
-  return 1;                      // Everything OK
-}  // end sd2oled_readndrawlogo
-
-// Draw one XBM Byte, called from the Effects in function sd2oled_readndrawlogo
-void drawEightBit(int x, int y, unsigned char b) {
-
-  #if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
-    yield();
-  #endif
-
-  for (int i=0; i<8; i++){
-    if (bitRead(b, i)) {
-      // Set Pixel
-      u8g2.drawPixel(x+i,y);
-    }
-    else {
-      // Clear Pixel
-      u8g2.setDrawColor(0);
-      u8g2.drawPixel(x+i,y);
-      u8g2.setDrawColor(1);        
-    }  // end bit read
-  }  // end for j
-}
-
-// -----------------------------------------------------------------------------
-// -------------------------- Commands V2 --------------------------------------
-// ------------------- Commands Starting with "CMD"-----------------------------
-// -----------------------------------------------------------------------------
-
-// ----------------- Command Read an Set Contrast ------------------------------
-void usb2oled_readnsetcontrast2(void) {
-  String cT="";
-#ifdef XDEBUG
-    Serial.println("Called Command CMDCON");
-#endif
-  
-  cT=newCore.substring(7);
-
-#ifdef XDEBUG
-  Serial.printf("Received Text: %s\n", (char*)cT.c_str());
-#endif
-
-  u8g2.setContrast(cT.toInt());            // Read and Set contrast  
-}
-
-// ----------------- Command Read an Set Power Save Mode ------------------------------
-void usb2oled_readnopowersave(void) {
-  String pT="";
-
-  #ifdef XDEBUG
-    Serial.println("Called Command CMDOFF");
-  #endif
-  
-  pT=newCore.substring(7);
-
-  #ifdef XDEBUG
-    Serial.printf("Received Text: %s\n", (char*)pT.c_str());
-  #endif
-
-  u8g2.setPowerSave(pT.toInt());            // Set Power Save Modecontrast  
-}
-
-// ----------------- Command Read an Set Rotation ------------------------------
-void usb2oled_readnsetrotation(void) {
-  String rT="";
-  int r=0;
-  
-  #ifdef XDEBUG
-    Serial.println("Called Command CMDROT");
-  #endif
-  
-  rT=newCore.substring(7);
-
-  #ifdef XDEBUG
-    Serial.printf("Received Text: %s\n", (char*)rT.c_str());
-  #endif
-
-  r=rT.toInt();
-  
-  switch (r) {
-    case 0:
-      u8g2.setDisplayRotation(U8G2_R2);
-    break;
-    case 1:
-      u8g2.setDisplayRotation(U8G2_R0);
-    break;
-    default:
-      u8g2.setDisplayRotation(U8G2_R2);
-    break;
-  }
-}
-
-// -----------------------Command Read an Draw Logo ----------------------------
-int usb2oled_readndrawlogo2(int effect) {
-  //const int logoBytes = DispWidth * DispHeight / 8; // Make it more universal, here 2048
-  int logoByte;
-  unsigned char logoByteValue;
-  int w,x,y,x2;
-  String cN="";
   size_t bytesReadCount=0;
   //unsigned char *logoBin;
 
-  #ifdef XDEBUG
-    Serial.println("Called Command CMDCOR");
-  #endif
+#ifdef XDEBUG
+  Serial.println("Called Function CORECHANGE");
+#endif
 
-  cN=newCore.substring(7);  // Cre
-
-  #ifdef XDEBUG
-    Serial.printf("Received Text: %s\n", (char*)cN.c_str());
-  #endif
-
-  #if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
-    yield();
-  #endif
+#if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
+  yield();
+#endif
 
   bytesReadCount = Serial.readBytes(logoBin, logoBytes);  // Read 2048 Bytes from Serial
 
-  #if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
-    yield();
-  #endif
+#if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
+  yield();
+#endif
 
   // Check if 2048 Bytes read
   if (bytesReadCount != logoBytes) {
@@ -1191,10 +895,11 @@ int usb2oled_readndrawlogo2(int effect) {
         }  // end for y
         u8g2.sendBuffer();
       }  // end for x
-      break;  // end case 10
+      break; 
 
     case 10:                                       // Left to Right Diagonally
-      for (x=0; x<DispWidth+DispHeight; x++) {
+//      for (x=0; x<DispWidth+DispHeight; x++) {
+      for (x=0; x<DispLineBytes+DispHeight; x++) {
         for (y=0; y<DispHeight; y++) {
           // x2 calculation = Angle
           //x2=x-y;                                // Long Diagonal
@@ -1204,6 +909,327 @@ int usb2oled_readndrawlogo2(int effect) {
             logoByteValue = logoBin[x2+y*DispLineBytes];
             drawEightBit(x2*8, y, logoByteValue);
           }  // end for x2
+#if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
+          else {
+            yield();
+          }
+#endif
+        }  // end for y
+        u8g2.sendBuffer();
+      }  // end for x
+      break;
+
+      default:                                                 // Just overwrite the whole screen
+        //u8g2.clearBuffer();
+        u8g2.drawXBM(0, 0, DispWidth, DispHeight, logoBin);
+        u8g2.sendBuffer();
+        break;  // endcase default
+    }  // end switch effect
+  }                              // endif bytesCount
+  //free(logoBin);
+  return 1;                      // Everything OK
+}  // end sd2oled_readndrawlogo
+
+
+// Draw one XBM Byte, called from the Effects in function sd2oled_readndrawlogo
+void drawEightBit(int x, int y, unsigned char b) {
+
+  for (int i=0; i<8; i++){
+    if (bitRead(b, i)) {
+      // Set Pixel
+      u8g2.drawPixel(x+i,y);
+    }
+    else {
+      // Clear Pixel
+      u8g2.setDrawColor(0);
+      u8g2.drawPixel(x+i,y);
+      u8g2.setDrawColor(1);        
+    }  // end bit read
+  }  // end for j
+
+#if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
+  yield();
+#endif
+
+}
+
+// -----------------------------------------------------------------------------
+// -------------------------- Commands V2 --------------------------------------
+// ------------------- Commands Starting with "CMD"-----------------------------
+// -----------------------------------------------------------------------------
+
+// ----------------- Command Read an Set Contrast ------------------------------
+void usb2oled_readnsetcontrast2(void) {
+  String cT="";
+#ifdef XDEBUG
+  Serial.println("Called Command CMDCON");
+#endif
+  
+  cT=newCore.substring(7);
+
+#ifdef XDEBUG
+  Serial.printf("Received Text: %s\n", (char*)cT.c_str());
+#endif
+
+  u8g2.setContrast(cT.toInt());            // Read and Set contrast  
+}
+
+// ----------------- Command Read an Set Power Save Mode ------------------------------
+void usb2oled_readnopowersave(void) {
+  String pT="";
+
+#ifdef XDEBUG
+  Serial.println("Called Command CMDOFF");
+#endif
+  
+  pT=newCore.substring(7);
+
+#ifdef XDEBUG
+  Serial.printf("Received Text: %s\n", (char*)pT.c_str());
+#endif
+
+  u8g2.setPowerSave(pT.toInt());            // Set Power Save Modecontrast  
+}
+
+// ----------------- Command Read an Set Rotation ------------------------------
+void usb2oled_readnsetrotation(void) {
+  String rT="";
+  int r=0;
+  
+#ifdef XDEBUG
+  Serial.println("Called Command CMDROT");
+#endif
+  
+  rT=newCore.substring(7);
+
+#ifdef XDEBUG
+  Serial.printf("Received Text: %s\n", (char*)rT.c_str());
+#endif
+
+  r=rT.toInt();
+  
+  switch (r) {
+    case 0:
+      u8g2.setDisplayRotation(U8G2_R2);
+    break;
+    case 1:
+      u8g2.setDisplayRotation(U8G2_R0);
+    break;
+    default:
+      u8g2.setDisplayRotation(U8G2_R2);
+    break;
+  }
+}
+
+// -----------------------Command Read an Draw Logo ----------------------------
+int usb2oled_readndrawlogo2(int effect) {
+  //const int logoBytes = DispWidth * DispHeight / 8; // Make it more universal, here 2048
+  int logoByte;
+  unsigned char logoByteValue;
+  int w,x,y,x2;
+  String cN="";
+  size_t bytesReadCount=0;
+  //unsigned char *logoBin;
+
+#ifdef XDEBUG
+  Serial.println("Called Command CMDCOR");
+#endif
+
+  cN=newCore.substring(7);  // Cre
+
+#ifdef XDEBUG
+  Serial.printf("Received Text: %s\n", (char*)cN.c_str());
+#endif
+
+#if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
+  yield();
+#endif
+
+  bytesReadCount = Serial.readBytes(logoBin, logoBytes);  // Read 2048 Bytes from Serial
+
+#if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
+  yield();
+#endif
+
+  // Check if 2048 Bytes read
+  if (bytesReadCount != logoBytes) {
+    oled_drawlogo64h(transfererror_width, transfererror_pic);
+  }
+  else {
+    // Draw the Picture
+    // -------------------- Effects -----------------------
+    switch (effect) {
+    case 1:                                        // Left to Right
+      for (x=0; x<DispLineBytes; x++) {
+        for (y=0; y<DispHeight; y++) {
+          logoByteValue = logoBin[x+y*DispLineBytes];
+          drawEightBit(x*8, y, logoByteValue);
+        }  // end for y
+        u8g2.sendBuffer();
+      }  // end for x
+      break;
+    
+    case 2:                                       // Top to Bottom
+      for (y=0; y<DispHeight; y++) {
+        for (x=0; x<DispLineBytes; x++) {
+          logoByteValue = logoBin[x+y*DispLineBytes];
+          drawEightBit(x*8, y, logoByteValue);
+        }  // end for y
+        u8g2.sendBuffer();
+      }  // end for x
+      break;
+
+    case 3:                                        // Right to Left
+      for (x=DispLineBytes-1; x>=0; x--) {
+        for (y=0; y<DispHeight; y++) {
+          logoByteValue = logoBin[x+y*DispLineBytes];
+          drawEightBit(x*8, y, logoByteValue);
+        }  // end for y
+        u8g2.sendBuffer();
+      }  // end for x
+      break;
+
+    case 4:                                       // Bottom to Top
+      for (y=DispHeight-1; y>=0; y--) {
+        for (x=0; x<DispLineBytes; x++) {
+          logoByteValue = logoBin[x+y*DispLineBytes];
+          drawEightBit(x*8, y, logoByteValue);
+        }  // end for y
+        u8g2.sendBuffer();
+      }  // end for x
+      break;
+    
+    case 5:                                     // Even Line Left to Right / Odd Line Right to Left
+      for (x=0; x<DispLineBytes; x++) {
+        for (y=0; y<DispHeight; y++) {
+          if ((y % 2) == 0) {
+            x2 = x;
+          }
+          else {
+            x2 = x*-1 + DispLineBytes -1;
+          }
+          logoByteValue = logoBin[x2+y*DispLineBytes];
+          drawEightBit(x2*8, y, logoByteValue);
+        }  // end for y
+        u8g2.sendBuffer();
+      }  // end for x
+      break;
+    
+    case 6:                                     // Top Part Left to Right / Bottom Part Right to Left
+      for (x=0; x<DispLineBytes; x++) {
+        for (y=0; y<DispHeight; y++) {
+          if (y < DispLineBytes) {
+            x2 = x;
+          }
+          else {
+            x2 = x*-1 + DispLineBytes -1;
+          }
+          logoByteValue = logoBin[x2+y*DispLineBytes];
+          drawEightBit(x2*8, y, logoByteValue);
+        }  // end for y
+        u8g2.sendBuffer();
+      }  // end for x
+      break;
+    
+    case 7:                                     // Four Parts Left to Right to Left to Right...
+      for (w=0; w<4; w++) {
+        for (x=0; x<DispLineBytes; x++) {
+          for (y=0; y<DispHeight/4; y++) {
+            if ((w%2) == 0) {
+              x2 = x;
+            }
+            else {
+              x2 = x*-1 + DispLineBytes -1;
+            }
+            logoByteValue = logoBin[x2+(y+w*16)*DispLineBytes];
+            drawEightBit(x2*8, y+w*16, logoByteValue);
+          }  // end for y
+          u8g2.sendBuffer();
+        }  // end for x
+      }
+      break;
+
+    case 8:                                      // Particle Effect
+      for (w=0; w<10000; w++) {
+        logoByte = random(logoBytes); // Value logoBytes = 2048 => Get 0..2047
+        logoByteValue = logoBin[logoByte];
+        x = (logoByte % DispLineBytes) * 8;
+        y = logoByte / DispLineBytes;
+        drawEightBit(x, y, logoByteValue);
+        // For different speed
+        // if ((w % (w/10)) == 0) u8g2.sendBuffer();
+        if (w<=1000) {
+          if ((w % 25)==0) u8g2.sendBuffer();
+        }
+        if ((w>1000) && (w<=2000)) {
+          if ((w % 50)==0) u8g2.sendBuffer();
+        }
+        if ((w>2000) && (w<=5000)) { 
+          if ((w % 200)==0) u8g2.sendBuffer();
+        }
+        if (w>5000) { 
+          if ((w % 400)==0) u8g2.sendBuffer();
+        }
+      }
+      // Finally overwrite the Screen with fill Size Picture
+      u8g2.drawXBM(0, 0, DispWidth, DispHeight, logoBin);
+      u8g2.sendBuffer();
+    break;
+
+    case 9:                                     // 4 Parts, Top-Left => Bottom-Right => Top-Right => Bottom-Left
+      // Part 1 Top Left
+      for (x=0; x<DispLineBytes/2; x++) {
+        for (y=0; y<DispHeight/2; y++) {
+          logoByteValue = logoBin[x+y*DispLineBytes];
+          drawEightBit(x*8, y, logoByteValue);
+        }  // end for y
+        u8g2.sendBuffer();
+      }  // end for x
+      // Part 2 Bottom Right
+      for (x=DispLineBytes/2; x<DispLineBytes; x++) {
+        for (y=DispHeight/2; y<DispHeight; y++) {
+          logoByteValue = logoBin[x+y*DispLineBytes];
+          drawEightBit(x*8, y, logoByteValue);
+        }  // end for y
+        u8g2.sendBuffer();
+      }  // end for x
+      // Part 3 Top Right
+      //for (x=DispLineBytes/2; x<DispLineBytes; x++) {
+      for (x=DispLineBytes-1; x>=DispLineBytes/2; x--) {
+        for (y=0; y<DispHeight/2; y++) {
+          logoByteValue = logoBin[x+y*DispLineBytes];
+          drawEightBit(x*8, y, logoByteValue);
+        }  // end for y
+        u8g2.sendBuffer();
+      }  // end for x
+      // Part 4 Bottom Left
+      //for (x=0; x<DispLineBytes/2; x++) {
+      for (x=DispLineBytes/2-1; x>=0; x--) {
+        for (y=DispHeight/2; y<DispHeight; y++) {
+          logoByteValue = logoBin[x+y*DispLineBytes];
+          drawEightBit(x*8, y, logoByteValue);
+        }  // end for y
+        u8g2.sendBuffer();
+      }  // end for x
+      break;
+
+    case 10:                                       // Left to Right Diagonally
+//      for (x=0; x<DispWidth+DispHeight; x++) {
+      for (x=0; x<DispLineBytes+DispHeight; x++) {
+        for (y=0; y<DispHeight; y++) {
+          // x2 calculation = Angle
+          //x2=x-y;                                // Long Diagonal
+          //x2=x-y/2;                              // Middle Diagonal
+          x2=x-y/4;                                // Short Diagonal
+          if ((x2>=0) && (x2<DispLineBytes)) {
+            logoByteValue = logoBin[x2+y*DispLineBytes];
+            drawEightBit(x2*8, y, logoByteValue);
+          }  // end for x2
+#if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
+          else {
+            yield();
+          }
+#endif
         }  // end for y
         u8g2.sendBuffer();
       }  // end for x
@@ -1228,15 +1254,15 @@ void usb2oled_readnwritetext2(void) {
   String TextIn="", fT="", cT="", xT="", yT="", TextOut="";
   //char *TextOutChar;
   
-  #ifdef XDEBUG
-    Serial.println("Called Command CMDTEX");
-  #endif
+#ifdef XDEBUG
+  Serial.println("Called Command CMDTEX");
+#endif
  
   TextIn = newCore.substring(7);            // Get Command Text from "newCore"
   
-  #ifdef XDEBUG
-    Serial.printf("Received Text: %s\n", (char*)TextIn.c_str());
-  #endif
+#ifdef XDEBUG
+  Serial.printf("Received Text: %s\n", (char*)TextIn.c_str());
+#endif
 
   //Searching for the "," delimiter
   d1 = TextIn.indexOf(',');                 // Find location of first ","
@@ -1251,9 +1277,9 @@ void usb2oled_readnwritetext2(void) {
   yT = TextIn.substring(d3+1, d4);          // Get String for Y-Position
   TextOut = TextIn.substring(d4+1);         // Get String for Text
   
-  #ifdef XDEBUG
-    Serial.printf("Created Strings: F:%s C%s X:%s Y:%s T:%s\n", (char*)fT.c_str(), (char*)cT.c_str(), (char*)xT.c_str(), (char*)yT.c_str(), (char*)TextOut.c_str());
-  #endif
+#ifdef XDEBUG
+  Serial.printf("Created Strings: F:%s C%s X:%s Y:%s T:%s\n", (char*)fT.c_str(), (char*)cT.c_str(), (char*)xT.c_str(), (char*)yT.c_str(), (char*)TextOut.c_str());
+#endif
 
   // Convert Strings to Integer
   f = fT.toInt();
@@ -1330,15 +1356,15 @@ void usb2oled_readndrawgeo2(void) {
   String TextIn="",gT="",cT="",xT="",yT="",iT="",jT="",kT="";
   bool pError=false;
   
-  #ifdef XDEBUG
-    Serial.println("Called Command CMDGEO");
-  #endif
+#ifdef XDEBUG
+  Serial.println("Called Command CMDGEO");
+#endif
 
   TextIn = newCore.substring(7);             // Get Command Text from "newCore"
   
-  #ifdef XDEBUG
-    Serial.printf("Received Text: %s\n", (char*)TextIn.c_str());
-  #endif
+#ifdef XDEBUG
+  Serial.printf("Received Text: %s\n", (char*)TextIn.c_str());
+#endif
   
   //Searching for the "," delimiter
   d1 = TextIn.indexOf(',');                 // Find location of first ","
@@ -1357,9 +1383,9 @@ void usb2oled_readndrawgeo2(void) {
   jT = TextIn.substring(d5+1, d6);        // Get String for Parameter j
   kT = TextIn.substring(d6+1);            // Get String for Parameter k
 
-  #ifdef XDEBUG
-    Serial.printf("Part-Strings: G:%s C:%s X:%s Y:%s I:%s J:%s K:%s\n", (char*)gT.c_str(), (char*)cT.c_str(), (char*)xT.c_str(), (char*)yT.c_str(), (char*)iT.c_str(), (char*)jT.c_str(), (char*)kT.c_str() );
-  #endif
+#ifdef XDEBUG
+  Serial.printf("Part-Strings: G:%s C:%s X:%s Y:%s I:%s J:%s K:%s\n", (char*)gT.c_str(), (char*)cT.c_str(), (char*)xT.c_str(), (char*)yT.c_str(), (char*)iT.c_str(), (char*)jT.c_str(), (char*)kT.c_str() );
+#endif
 
   // Convert Strings to Integer
   g = gT.toInt();
@@ -1370,9 +1396,9 @@ void usb2oled_readndrawgeo2(void) {
   j = jT.toInt();
   k = kT.toInt();
 
-  #ifdef XDEBUG
-    Serial.printf("Values: G:%i C:%i X:%i Y:%i I:%i J:%i K:%i\n", g,c,x,y,i,j,k);
-  #endif
+#ifdef XDEBUG
+  Serial.printf("Values: G:%i C:%i X:%i Y:%i I:%i J:%i K:%i\n", g,c,x,y,i,j,k);
+#endif
 
   // Enough Parameter given / Parameter Check
   if (g<1 || g>10 || c<0 || c>2 || x<0 || x>DispWidth-1 || y<0 || y>DispHeight-1 || d1==-1 || d2==-1 || d3==-1  || d4==-1 || d5==-1  || d6==-1) {
@@ -1479,9 +1505,9 @@ void enableOTA (void) {
       Serial.println("\nEnd");
     })
     .onProgress([](unsigned int progress, unsigned int total) {
-    #ifdef XDEBUG
-      Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
-    #endif
+#ifdef XDEBUG
+    Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+#endif
     u8g2.setCursor(10,60);
     u8g2.printf("Progress: %u%%", (progress / (total / 100)));
     u8g2.sendBuffer();
@@ -1497,11 +1523,11 @@ void enableOTA (void) {
 
   ArduinoOTA.begin();
   
-  #ifdef XDEBUG
-    Serial.println("Ready");
-    Serial.print("IP address: ");
-    Serial.println(WiFi.localIP());
-  #endif
+#ifdef XDEBUG
+  Serial.println("Ready");
+  Serial.print("IP address: ");
+  Serial.println(WiFi.localIP());
+#endif
   
   u8g2.clearBuffer();
   u8g2.setCursor(10,20);

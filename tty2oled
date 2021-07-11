@@ -105,7 +105,7 @@ senddata() {
 
 # ** Main **
 if [ "${#}" -ge 1 ]; then                                                       # Command Line Parameter given, override Parameter
-  echo "Using Command Line Parameter"                                           # Some Output
+  echo -e "\nUsing Command Line Parameter"                                           # Some Output
   TTYDEV=${1}                                                                   # Set TTYDEV with Parameter 1
   if [ -n "${2}" ]; then                                                        # Parameter 2 Baudrate
     BAUDRATE=${2}                                                               # Set Baudrate
@@ -124,7 +124,7 @@ if [ "${#}" -ge 1 ]; then                                                       
 fi                                                                              # end if command line Parameter 
 
 if [ -c "${TTYDEV}" ]; then										# check for tty device
-  echo "${TTYDEV} detected, setting Parameter: ${BAUDRATE} ${TTYPARAM}."
+  echo -e "\n${TTYDEV} detected, setting Parameter: ${BAUDRATE} ${TTYPARAM}."
   dbug "${TTYDEV} detected, setting Parameter: ${BAUDRATE} ${TTYPARAM}."
   stty -F ${TTYDEV} ${BAUDRATE} ${TTYPARAM}						# set tty parameter
   sleep ${WAITSECS}												# sleep needed here ?!

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# v1.4 - Copyright (c) 2021 ojaksch, venice
+# v1.5 - Copyright (c) 2021 ojaksch, venice
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,9 +21,11 @@
 
 
 # Changelog:
-# v1.4 New Option USE_US_PICTURE
+# v1.5 Splitted script download into install and update using new Option "SCRIPT_UPDATE"
+#      Check for disabled Init Script. If exists skip install.
+# v1.4 New Option "USE_US_PICTURE"
 # v1.3 More Text Output (Pictures)
-# v1.2 New Option USE_TEXT_PICTURE & some Cosmetics
+# v1.2 New Option "USE_TEXT_PICTURE" & some Cosmetics
 # v1.1 Use of an INI file (tty2oled.ini)
 # v1.0 Main updater script which completes all tasks.
 
@@ -36,43 +38,65 @@ if [ $(/bin/mount | head -n1 | grep -c "(ro,") = 1 ]; then
   MOUNTRO="true"
 fi
 
-# Create Work-Folders
-[[ -d ${picturefolder} ]] || mkdir -p -m 777 ${picturefolder}
-[[ -d ${picturefolder_pri} ]] || mkdir -p -m 777 ${picturefolder_pri}
-
 # Currently disabled, delete old Work-Folders, move Deamon
 #[[ -v oldpicturefolder ]] && [[ -d ${oldpicturefolder} ]] && mv ${oldpicturefolder}/* ${picturefolder} && rm -R ${oldpicturefolder}
 #[[ -v OLDDAEMONSCRIPT ]] && [[ -e ${OLDDAEMONSCRIPT} ]] && mv ${OLDDAEMONSCRIPT} ${DAEMONSCRIPT} 
 
 
-echo -e "\n\e[1;32mtty2oled update script"
-echo -e "----------------------\e[0m"
+echo -e '\n +----------+';
+echo -e ' | \e[1;34mtty2oled\e[0m |---[]';
+echo -e ' +----------+\n';
+echo -e "\e[1;32m Update Script"
+echo -e "---------------\e[0m"
 
-echo -e "\e[1;32mChecking for available updates...\e[0m"
+#echo -e "\n\e[1;34mtty\e[1;31m2\e[1;33moled\e[1;32m update script"
+#echo -e "----------------------\e[0m"
+
+echo -e "\e[1;32mChecking for available tty2oled updates...\e[0m"
 
 # init script
 wget ${NODEBUG} "${REPOSITORY_URL}/S60tty2oled" -O /tmp/S60tty2oled
-if ! cmp -s /tmp/S60tty2oled ${INITSCRIPT}; then
-  echo -e "\e[1;33mUpdating init script \e[1;35mS60tty2oled\e[0m"
-  mv -f /tmp/S60tty2oled ${INITSCRIPT}
-  chmod +x ${INITSCRIPT}
-else
-  rm /tmp/S60tty2oled
+if  ! [ -f ${INITSCRIPT} ]; then
+  if  [ -f ${INITDISABLED} ]; then
+    echo -e "\e[1;33mFound disabled init script, skipping Install\e[0m"
+  else
+    echo -e "\e[1;33mInstalling init script \e[1;35mS60tty2oled\e[0m"
+    mv -f /tmp/S60tty2oled ${INITSCRIPT}
+    chmod +x ${INITSCRIPT}
+  fi
+elif ! cmp -s /tmp/S60tty2oled ${INITSCRIPT}; then
+  if [ "${SCRIPT_UPDATE}" = "yes" ]; then
+    echo -e "\e[1;33mUpdating init script \e[1;35mS60tty2oled\e[0m"
+    mv -f /tmp/S60tty2oled ${INITSCRIPT}
+    chmod +x ${INITSCRIPT}
+  else
+    echo -e "\e[5;31mSkipping\e[25;1;33m available init script update because of the \e[1;36mSCRIPT_UPDATE\e[1;33m INI-Option\e[0m"
+  fi
 fi
+[[ -f /tmp/S60tty2oled ]] && rm /tmp/S60tty2oled
+
 
 # daemon
 wget ${NODEBUG} "${REPOSITORY_URL}/tty2oled" -O /tmp/tty2oled
-if ! cmp -s /tmp/tty2oled ${DAEMONSCRIPT}; then
-  echo -e "\e[1;33mUpdating daemon \e[1;35mtty2oled\e[0m"
+if  ! [ -f ${DAEMONSCRIPT} ]; then
+  echo -e "\e[1;33mInstalling daemon script \e[1;35mtty2oled\e[0m"
   mv -f /tmp/tty2oled ${DAEMONSCRIPT}
   chmod +x ${DAEMONSCRIPT}
-else
-  rm /tmp/tty2oled
+elif ! cmp -s /tmp/tty2oled ${DAEMONSCRIPT}; then
+  if [ "${SCRIPT_UPDATE}" = "yes" ]; then
+    echo -e "\e[1;33mUpdating daemon script \e[1;35mtty2oled\e[0m"
+    mv -f /tmp/tty2oled ${DAEMONSCRIPT}
+    chmod +x ${DAEMONSCRIPT}
+  else
+    echo -e "\e[5;31mSkipping\e[25;1;33m available daemon script update because of the \e[1;36mSCRIPT_UPDATE\e[1;33m INI-Option\e[0m"
+  fi
 fi
+[[ -f /tmp/tty2oled ]] && rm /tmp/tty2oled
 
 # pictures
 if [ "${USBMODE}" = "yes" ]; then
-  # [[ -d ${picturefolder} ]] || mkdir -p -m 777 ${picturefolder}
+  [[ -d ${picturefolder} ]] || mkdir -p -m 777 ${picturefolder}
+  [[ -d ${picturefolder_pri} ]] || mkdir -p -m 777 ${picturefolder_pri}
   # Text-Based Pictures download
   if [ "${USE_TEXT_PICTURE}" = "yes" ]; then
     echo -e "\e[1;32mChecking for available Text-Pictures...\e[0m"
@@ -87,7 +111,7 @@ if [ "${USBMODE}" = "yes" ]; then
       fi
     done
   else
-    echo -e "\e[1;33mSkipping Text-Based Picture download because of USE_TEXT_PICTURE INI-Option \e[1;35m${PICNAME}\e[0m"
+    echo -e "\e[1;31mSkipping\e[1;33m Text-Based Picture download because of the \e[1;36mUSE_TEXT_PICTURE\e[1;33m INI-Option\e[0m"
   fi
   
   # Graphic-Based Pictures (as Second = Higher Priority)
@@ -117,10 +141,10 @@ if [ "${USBMODE}" = "yes" ]; then
       fi
     done
   else
-    echo -e "\e[1;33mSkipping US-Version Picture download because of USE_US_PICTURE INI-Option \e[1;35m${PICNAME}\e[0m"
+    echo -e "\e[1;31mSkipping\e[1;33m US-Version Picture download because of the \e[1;36mUSE_US_PICTURE\e[1;33m INI-Option\e[0m"
   fi
 else
-  echo -e "\e[1;33mSkipping Picture Download because of USBMODE INI-Option \e[1;35m${PICNAME}\e[0m"
+  echo -e "\e[5;31mSkipping\e[25;1;33m Picture download because of the \e[1;36mUSBMODE\e[1;33m INI-Option\e[0m"
 fi
 
 sync

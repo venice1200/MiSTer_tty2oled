@@ -19,6 +19,7 @@ fred=`tput setf 4`
 
 slidewait=6
 menuwait=2
+counter=0
 
 function parse_cmd() {
   if [ ${#} -gt 1 ]; then # We don't accept more than 2 parameters
@@ -109,7 +110,6 @@ function parse_cmd() {
           break
           ;;
         slide)
-          clear
           tty_slideshow
           sleep ${menuwait}
           tty_menu
@@ -134,7 +134,7 @@ function tty_main() {
   clear
   echo -e ' +----------+';
   echo -e ' | \e[1;34mtty2oled\e[0m |---[]';
-  echo -e ' +----------+\n';
+  echo -e ' +----------+';
   echo ""
   echo " Press UP for Utility Menu"
   echo " Press DOWN or wait for Update"
@@ -177,17 +177,25 @@ function tty_menu() {
 }
 
 function tty_slideshow() {
+  clear
   ${INITSCRIPT} stop
-  # Private Pictures
-  cd ${picturefolder_pri}
-  for slidepic in *.xbm; do
-    counter=$((counter+1))
-    echo "Showing Picture ${counter}: ${fgreen}${slidepic}${freset} (pri Folder)"
-    echo "CMDCOR,${slidepic}" > ${TTYDEV}
-    sleep ${WAITSECS}
-    tail -n +4 "${slidepic}" | xxd -r -p > ${TTYDEV}
-    sleep ${slidewait}
-  done
+  echo "Show each ${slidewait} seconds a new Picture"
+  if [ -z "$(ls -A ${picturefolder_pri})" ]; then
+    echo "" 
+    echo "${fred}No Pictures found${freset} in your Private Picture Folder (pri) "
+    echo ""
+  else
+    # Private Pictures
+    cd ${picturefolder_pri}
+    for slidepic in *.xbm; do
+      counter=$((counter+1))
+      echo "Showing Picture ${counter}: ${fgreen}${slidepic}${freset} (pri Folder)"
+      echo "CMDCOR,${slidepic}" > ${TTYDEV}
+      sleep ${WAITSECS}
+      tail -n +4 "${slidepic}" | xxd -r -p > ${TTYDEV}
+      sleep ${slidewait}
+    done
+  fi
 
   # General Pictures
   cd ${picturefolder}

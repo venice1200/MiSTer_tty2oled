@@ -22,7 +22,7 @@ menuwait=2
 counter=0
 
 function parse_cmd() {
-  if [ ${#} -gt 1 ]; then # We don't accept more than 2 parameters
+  if [ ${#} -gt 2 ]; then # We don't accept more than 2 parameters
     echo "Too much parameter given"
   elif [ ${#} -eq 0 ]; then # Show Main
     tty_main
@@ -113,6 +113,10 @@ function parse_cmd() {
           tty_slideshow
           sleep ${menuwait}
           tty_menu
+          break
+          ;;
+        showpic)
+          tty_showpic ${2}
           break
           ;;
         exit)
@@ -208,6 +212,22 @@ function tty_slideshow() {
     sleep ${slidewait}
   done
   ${INITSCRIPT} start
+}
+
+function tty_showpic() {
+  echo "${fgreen}Showing Picture ${1}${freset}"
+  if [ -f "${picturefolder_pri}/${1}.xbm" ]; then
+    echo "CMDCOR,${1}" > ${TTYDEV}
+    sleep ${WAITSECS}
+    tail -n +4 "${picturefolder_pri}/${1}.xbm" | xxd -r -p > ${TTYDEV}
+  elif [ -f "${picturefolder}/${1}.xbm" ]; then
+    echo "CMDCOR,${1}" > ${TTYDEV}
+    sleep ${WAITSECS}
+    tail -n +4 "${picturefolder}/${1}.xbm" | xxd -r -p > ${TTYDEV}
+  else
+    echo "${fred}No Picture ${1} found${freset}"
+  fi
+  exit 0
 }
 
 function tty_update() {

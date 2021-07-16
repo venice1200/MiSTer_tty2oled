@@ -191,8 +191,8 @@
    You will see the Command Result after the next Write/Draw Command.
 
   2021-07-07/08
-  -New Command "CMDTEST" whcih just show an fullscreen test-picture
-  -Count of transferred picture bytes and if it doesn't match show an error picture
+  -New Command "CMDTEST" which just show an fullscreen test-picture
+  -Count amount of transferred picture bytes and if it doesn't match show an error picture
   -Change Command processing from "if (newCore!=oldCore)" to "if (updateDisplay)" to prevent a blank screen if multiple data packs are sent.
   -Add (Micro Font) Build Version to Start Screen
   
@@ -204,10 +204,10 @@
 
   2021-07-11
   -Some more yield() fixes for ESP8266
-  -Fix Effekt 10 (Diagonal)
+  -Bugfix Effekt 10 (Diagonal)
 
   2021-07-12
-  -Combine the two LogoDrawing functions (usb2oled_readndrawlogo/usb2oled_readndrawlogo2) into one (usb2oled_readndrawlogo2)
+  -Combine the two separate LogoDrawing functions (usb2oled_readndrawlogo/usb2oled_readndrawlogo2) into one (usb2oled_readndrawlogo2)
   
 */
 

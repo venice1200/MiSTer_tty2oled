@@ -62,7 +62,7 @@ dbug() {
 # Send-Contrast-Data function
 sendcontrast() {
   if [ "${USBMODE}" = "yes" ]; then                                               # Check the tty2xxx mode
-    dbug "Sending: CMDCON,${CONTRAST}" > ${TTYDEV}
+    dbug "Sending: CMDCON,${CONTRAST}"
     echo "CMDCON,${CONTRAST}" > ${TTYDEV}                                         # Send Contrast Command and Value
   else
     echo "att" > ${TTYDEV}                                                        # Send an "att" to the MiSTer annoucing another Command
@@ -77,7 +77,7 @@ sendcontrast() {
 sendrotation() {
   if [ "${USBMODE}" = "yes" ]; then                                               # Check the tty2xxx mode
     if [ "${ROTATE}" = "yes" ]; then
-      dbug "Sending: CMDROT,1" > ${TTYDEV}
+      dbug "Sending: CMDROT,1"
       echo "CMDROT,1" > ${TTYDEV}                                                 # Send Rotation if set to "yes"
       sleep ${WAITSECS}
       echo "CMDSORG" > ${TTYDEV}                                                  # Show Start Screen rotated

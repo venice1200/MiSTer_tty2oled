@@ -51,7 +51,7 @@ function parse_cmd() {
           ;;
         reset)
           clear
-          echo "${fred}Reboot${freset} ESP32"
+          echo "${fred}Reset${freset} ESP32"
           echo "CMDRESET" > ${TTYDEV}
           sleep ${menuwait}
           tty_menu
@@ -169,8 +169,8 @@ function tty_menu() {
   Stop "Stop tty2oled Daemon" \
   Start "Start tty2oled Daemon" \
   Restart "Restart tty2oled Daemon" \
-  Disable "Disable tty2oled Daemon at boot" \
-  Enable "Enable tty2oled Daemon at boot" \
+  Disable "Disable tty2oled at boot" \
+  Enable "Enable tty2oled at boot" \
   Slide "Start Slideshow" \
   Update "Update tty2oled" \
   Main "Back to Main Menu/Updater" \

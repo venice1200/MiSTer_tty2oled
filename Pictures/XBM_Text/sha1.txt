@@ -1,5 +1,4 @@
 86ee9ec845c93e60692d973756d4409dcbc84560 A.ASTROCADE.xbm
-e9bf414cef9d6c0ee1419abc390621ddec1b82f6 A.CCLIMB.xbm
 ca883f809c028abb198a07d501ffb6478b56c542 Billiard.xbm
 e43dd40f25283dfd0aa8278fb646cc16167cf6ac breakout.xbm
 4bb50783af89fdf535396ae3dafdbe6dbbf99476 brubber.xbm

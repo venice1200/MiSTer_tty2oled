@@ -100,44 +100,44 @@ if [ "${USBMODE}" = "yes" ]; then
   # Text-Based Pictures download
   if [ "${USE_TEXT_PICTURE}" = "yes" ]; then
     echo -e "\e[1;32mChecking for available Text-Pictures...\e[0m"
-    wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM_Text/sha1.txt" -O - | grep ".xbm" | \
+    wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM_Text/sha1.txt" -O - | grep ".xbm" | dos2unix | \
     while read SHA1PIC; do
-      PICNAME=$(echo ${SHA1PIC} | awk '{print $2}')
-      CHKSUM1=$(echo ${SHA1PIC,,} | awk '{print $1}')
-      [ -f ${picturefolder}/${PICNAME} ] && CHKSUM2=$(sha1sum ${picturefolder}/${PICNAME} | awk '{print $1}')
-      if ! [ -f ${picturefolder}/${PICNAME} ] || ([ "${CHKSUM1}" != "${CHKSUM2}" ] && [ "${OVERWRITE_PICTURE}" = "yes" ]); then
+      PICNAME=$(echo ${SHA1PIC} | cut -d " " -f 2-)
+      CHKSUM1=$(echo ${SHA1PIC,,} | cut -d " " -f 1)
+      [ -f "${picturefolder}/${PICNAME}" ] && CHKSUM2=$(sha1sum ${picturefolder}/${PICNAME} | awk '{print $1}')
+      if ! [ -f "${picturefolder}/${PICNAME}" ] || ([ "${CHKSUM1}" != "${CHKSUM2}" ] && [ "${OVERWRITE_PICTURE}" = "yes" ]); then
         echo -e "\e[1;33mDownloading Picture \e[1;35m${PICNAME}\e[0m"
-        wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM_Text/${PICNAME}" -O ${picturefolder}/${PICNAME}
+        wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM_Text/${PICNAME}" -O "${picturefolder}/${PICNAME}"
       fi
     done
   else
     echo -e "\e[1;31mSkipping\e[1;33m Text-Based Picture download because of the \e[1;36mUSE_TEXT_PICTURE\e[1;33m INI-Option\e[0m"
   fi
-  
+
   # Graphic-Based Pictures (as Second = Higher Priority)
   echo -e "\e[1;32mChecking for available Graphic-Pictures...\e[0m"
-  wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM/sha1.txt" -O - | grep ".xbm" | \
+  wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM/sha1.txt" -O - | grep ".xbm" | dos2unix | \
   while read SHA1PIC; do
-    PICNAME=$(echo ${SHA1PIC} | awk '{print $2}')
-    CHKSUM1=$(echo ${SHA1PIC,,} | awk '{print $1}')
-    [ -f ${picturefolder}/${PICNAME} ] && CHKSUM2=$(sha1sum ${picturefolder}/${PICNAME} | awk '{print $1}')
-    if ! [ -f ${picturefolder}/${PICNAME} ] || ([ "${CHKSUM1}" != "${CHKSUM2}" ] && [ "${OVERWRITE_PICTURE}" = "yes" ]); then
+    PICNAME=$(echo ${SHA1PIC} | cut -d " " -f 2-)
+    CHKSUM1=$(echo ${SHA1PIC,,} | cut -d " " -f 1)
+    [ -f "${picturefolder}/${PICNAME}" ] && CHKSUM2=$(sha1sum "${picturefolder}/${PICNAME}" | awk '{print $1}')
+    if ! [ -f "${picturefolder}/${PICNAME}" ] || ([ "${CHKSUM1}" != "${CHKSUM2}" ] && [ "${OVERWRITE_PICTURE}" = "yes" ]); then
       echo -e "\e[1;33mDownloading Picture \e[1;35m${PICNAME}\e[0m"
-      wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM/${PICNAME}" -O ${picturefolder}/${PICNAME}
+      wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM/${PICNAME}" -O "${picturefolder}/${PICNAME}"
     fi
   done
-  
+
   # Checking for US version of Graphic-Based Pictures (Genesis = MegaDrive ; Sega CD = Mega CD ; TurboGrafx16 = PCEngine)
   if [ "${USE_US_PICTURE}" = "yes" ]; then 
     echo -e "\e[1;32mChecking for available Graphic-Pictures US-Version...\e[0m"
-    wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM_US/sha1.txt" -O - | grep ".xbm" | \
+    wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM_US/sha1.txt" -O - | grep ".xbm" | dos2unix | \
     while read SHA1PIC; do
-      PICNAME=$(echo ${SHA1PIC} | awk '{print $2}')
-      CHKSUM1=$(echo ${SHA1PIC,,} | awk '{print $1}')
-      [ -f ${picturefolder}/${PICNAME} ] && CHKSUM2=$(sha1sum ${picturefolder}/${PICNAME} | awk '{print $1}')
-      if ! [ -f ${picturefolder}/${PICNAME} ] || ([ "${CHKSUM1}" != "${CHKSUM2}" ] && [ "${OVERWRITE_PICTURE}" = "yes" ]); then
+      PICNAME=$(echo ${SHA1PIC} | cut -d " " -f 2-)
+      CHKSUM1=$(echo ${SHA1PIC,,} | cut -d " " -f 1)
+      [ -f "${picturefolder}/${PICNAME}" ] && CHKSUM2=$(sha1sum ${picturefolder}/${PICNAME} | awk '{print $1}')
+      if ! [ -f "${picturefolder}/${PICNAME}" ] || ([ "${CHKSUM1}" != "${CHKSUM2}" ] && [ "${OVERWRITE_PICTURE}" = "yes" ]); then
         echo -e "\e[1;33mDownloading Picture \e[1;35m${PICNAME}\e[0m"
-        wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM_US/${PICNAME}" -O ${picturefolder}/${PICNAME}
+        wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM_US/${PICNAME}" -O "${picturefolder}/${PICNAME}"
       fi
     done
   else

@@ -217,10 +217,13 @@
   2021-07-12
   -New Command to set the Font Direction. 
    "CMDFOD,[Parameter]", Parameter Format "d", d: 0=Left to Right (0°, default), 1=Top to Down (90°), 2=Right to Left (180°), 3=Down to Top (270°)
+   
+  2021-08-03
+  -Some of the included Logo's miss their U8X8_PROGMEM.
   
 */
 
-#define BuildVersion "210728T"    // "T" for Testing
+#define BuildVersion "210803T"    // "T" for Testing
 
 // Uncomment to get some Debugging Infos over Serial especially for SD Debugging
 //#define XDEBUG

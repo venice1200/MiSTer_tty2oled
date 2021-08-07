@@ -48,7 +48,7 @@
 #            The Scripts waits for the serial response "ttyack" from tty2oled before proceeding.
 #            TTYPARAM got/need the additonal option "-echo" on MiSTer
 # 2021-07-22 Clearing Serial Input Buffer after setting Parameter
-#            Remove dbug's
+#            Removed dbug's
 #
 #
 
@@ -59,41 +59,44 @@ ttyresponse=""
 # Debug function
 dbug() {
   if [ "${debug}" = "true" ]; then
-    if [ ! -e ${debugfile} ]; then                                                # log file not (!) exists (-e) create it
+    if [ ! -e ${debugfile} ]; then                                              # log file not (!) exists (-e) create it
       echo "---------- tty2oled Debuglog ----------" > ${debugfile}
     fi 
-    echo "${1}" >> ${debugfile}                                                   # output debug text
+    echo "${1}" >> ${debugfile}                                                 # output debug text
   fi
 }
 
 # Send-Contrast-Data function
 sendcontrast() {
-  if [ "${USBMODE}" = "yes" ]; then                                               # Check the tty2xxx mode
+  if [ "${USBMODE}" = "yes" ]; then                                             # Check the tty2oled mode (SD/Non SD)
     echo "Sending Contrast: CMDCON,${CONTRAST}"
-    echo "CMDCON,${CONTRAST}" > ${TTYDEV}                                         # Send Contrast Command and Value
+    echo "CMDCON,${CONTRAST}" > ${TTYDEV}                                       # Send Contrast Command and Value
     waitforttyack
   else
-    echo "att" > ${TTYDEV}                                                        # Send an "att" to the MiSTer annoucing another Command
+    echo "att" > ${TTYDEV}                                                      # Send an "att" to the MiSTer annoucing another Command
     waitforttyack
-    echo "CONTRAST" > ${TTYDEV}                                                   # Send "CONTRAST" annoucing the OLED Contrast Data as next
+    echo "CONTRAST" > ${TTYDEV}                                                 # Send "CONTRAST" annoucing the OLED Contrast Data as next
     waitforttyack
-    echo ${CONTRAST} > ${TTYDEV}                                                  # Send Contrast Value
+    echo ${CONTRAST} > ${TTYDEV}                                                # Send Contrast Value
     waitforttyack
   fi
 }
 
 # Rotate Display function
 sendrotation() {
-  if [ "${USBMODE}" = "yes" ]; then                                               # Check the tty2xxx mode
+  if [ "${USBMODE}" = "yes" ]; then                                             # Check the tty2xxx mode
     if [ "${ROTATE}" = "yes" ]; then
       echo "Sending Rotation: CMDROT,1"
-      echo "CMDROT,1" > ${TTYDEV}                                                 # Send Rotation if set to "yes"
+      echo "CMDROT,1" > ${TTYDEV}                                               # Send Rotation if set to "yes"
       waitforttyack
-      echo "CMDSORG" > ${TTYDEV}                                                  # Show Start Screen rotated
+      echo "CMDSORG" > ${TTYDEV}                                                # Show Start Screen rotated
       waitforttyack
-    #else
-    #  ebug "Sending: CMDROT,1" > ${TTYDEV}
-    #  echo "CMDROT,0" > ${TTYDEV}                                                # No Rotation
+    #else                                                                       # Set Rotation back
+    #  echo "Sending: CMDROT,0"
+    #  echo "CMDROT,0" > ${TTYDEV}                                              # Set "No Rotation"
+    #  waitforttyack
+    #  echo "CMDSORG" > ${TTYDEV}                                               # Show Start Screen rotated
+    #  waitforttyack
     fi
   fi
 }
@@ -156,7 +159,7 @@ if [ -c "${TTYDEV}" ]; then                                                     
   echo -e "\n${TTYDEV} detected, setting Parameter: ${BAUDRATE} ${TTYPARAM}"
   stty -F ${TTYDEV} ${BAUDRATE} ${TTYPARAM}                                     # Set tty Parameter
 
-  echo -e "Clear Serial Input Buffer for Device ${TTYDEV}"                    # Clear Serial Input Buffer
+  echo -e "Clear Serial Input Buffer for Device ${TTYDEV}"                      # Clear Serial Input Buffer
   while read -t 0 sdummy < ${TTYDEV}; do continue; done
   sleep ${WAITSECS}
 

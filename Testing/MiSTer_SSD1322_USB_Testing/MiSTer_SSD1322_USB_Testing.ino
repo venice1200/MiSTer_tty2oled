@@ -220,10 +220,13 @@
    
   2021-08-03
   -Some of the included Logo's miss their U8X8_PROGMEM.
+
+  2021-08-07
+  -New USB Icon.
   
 */
 
-#define BuildVersion "210803T"    // "T" for Testing
+#define BuildVersion "210807T"    // "T" for Testing
 
 // Uncomment to get some Debugging Infos over Serial especially for SD Debugging
 //#define XDEBUG
@@ -483,7 +486,7 @@ void oled_mistertext(void) {
 #endif
   u8g2.clearBuffer();
   u8g2.setFont(u8g2_font_5x7_tr);            // 6 Pixel Font
-  u8g2.setCursor(1,62);
+  u8g2.setCursor(1,63);
   u8g2.print(BuildVersion);
   u8g2.setFont(u8g2_font_tenfatguys_tr);     // 10 Pixel Font
   u8g2.setCursor(DispWidth/2-(u8g2.getStrWidth("MiSTer FPGA")/2), ( DispHeight/2 - u8g2.getAscent() ) / 2 + u8g2.getAscent() );
@@ -491,7 +494,8 @@ void oled_mistertext(void) {
   u8g2.setCursor(DispWidth/2-(u8g2.getStrWidth("by Sorgelig")/2), ( DispHeight/2 - u8g2.getAscent() ) / 2 + u8g2.getAscent() + DispHeight/2 );
   u8g2.print("by Sorgelig");
 
-  u8g2.drawXBMP(DispWidth-usb_icon16_width-1, 0, usb_icon16_width, usb_icon16_height, usb_icon16);
+  //u8g2.drawXBMP(DispWidth-usb_icon16_width-1, 0, usb_icon16_width, usb_icon16_height, usb_icon16);
+  u8g2.drawXBMP(DispWidth-usb_icon_width, DispHeight-usb_icon_height, usb_icon_width, usb_icon_height, usb_icon);
   
   u8g2.sendBuffer();
 }

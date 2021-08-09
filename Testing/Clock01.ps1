@@ -66,6 +66,6 @@ while (1) {
       $secbit=1
     }
 	$mysecbuf=$mysec
+    Start-Sleep -s 0.95 # Without "sleep" = 5.5% CPU, with sleep 0.2%
   }
-  Start-Sleep -s 0.8 # Without this "sleep" my system has 5.5% CPU Load. With this sleep 0.1/0,2%.
 }

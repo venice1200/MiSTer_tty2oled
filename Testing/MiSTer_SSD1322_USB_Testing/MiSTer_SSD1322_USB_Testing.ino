@@ -222,21 +222,16 @@
   -Some of the included Logo's miss their U8X8_PROGMEM.
 
   2021-08-07
-  -New USB Icon.
+  -New/smaller USB Icon.
+
+  2021-08-10
+  -Reactivate System "#define USE_xxxx" set by Arduino's Board selection (Auto Mode) 
+   or by uncommenting only the needed "#define USEe_XXX" for your Hardware
+  -Add "XROTATE". Uncomment it for an Rotated Display.
   
 */
 
-#define BuildVersion "210807T"    // "T" for Testing
-
-// Uncomment to get some Debugging Infos over Serial especially for SD Debugging
-//#define XDEBUG
-
-// USE Parameter are currently unused !! 
-// Uncomment ONLY one Board !!
-//#define USE_TTGOT8             // TTGO-T8, Arduino: ESP32 Dev Module, xx MB Flash, def. Part. Schema
-//#define USE_LOLIN32            // Wemos LOLIN32, Arduino: WEMOS LOLIN32
-//#define USE_DEVKIT4            // Az-Delivery Devkitc_V4, Arduino: LOLIN32D or ESP32 Dev Module
-//#define USE_NODEMCU            // NODEMCU, Arduino: ESP8266 NodeMCU v3
+#define BuildVersion "210810T"    // "T" for Testing
 
 #include <Arduino.h>
 #include <U8g2lib.h>             // Display Library
@@ -252,43 +247,61 @@
 bool OTAEN=false;                // Will be set to "true" by Command "CMDENOTA"
 #endif
 
-// ------------ Display Objects for Automatic Board Detection Mode -----------------
+// ------------------------ System Config -------------------------------
+// Uncomment to get some Debugging Infos over Serial especially for SD Debugging
+//#define XDEBUG
 
-// TTGO-T8 Display Constructor HW-SPI OLED & integrated SD Card, 180° Rotation => U8G2_R2
-// Using VSPI SCLK = 18, MISO = 19, MOSI = 23 and...
+// Uncomment for 180° Rotation
+//#define XROTATED
+
+// Uncomment for Temperatur Sensor Support
+//#define XMIC184
+
+// ----------- Auto-Board-Config via Arduino Board Selection ------------
 #ifdef ARDUINO_ESP32_DEV
-  U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 26, /* dc=*/ 25, /* reset=*/ 27);      // 270° Rotation
-//U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R0, /* cs=*/ 26, /* dc=*/ 25, /* reset=*/ 27);      // 0° Rotation
+  #define USE_TTGOT8             // TTGO-T8. Set Arduino Board to "ESP32 Dev Module", chose your xx MB Flash
 #endif
 
-// WEMOS LOLIN32 Display Constructor HW-SPI & Adafruit SD_MMC Adapter 180° Rotation => U8G2_R2
-// Devkitc V4 works as well with these settings.
-// Using VSPI SCLK = 18, MISO = 19, MOSI = 23, SS = 5 and...
 #ifdef ARDUINO_LOLIN32
-  U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 5, /* dc=*/ 16, /* reset=*/ 17);  // Better because original SPI SS = 5
+  #define USE_LOLIN32            // Wemos LOLIN32, LOLIN32, DevKit_V4. Set Arduino Board to "WEMOS LOLIN32"
+#endif
+
+#if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
+  #define USE_NODEMCU            // ESP8266 NodeMCU v3. Set Arduino Board to "NodeMCU 1.0 (ESP-12E Module)"
+#endif
+
+// -------------------- Manual-Board-Config ----------------------------
+//#define USE_TTGOT8             // TTGO-T8. Set Arduino Board to ESP32 Dev Module, xx MB Flash, def. Part. Schema
+//#define USE_LOLIN32            // Wemos LOLIN32, LOLIN32, DevKit_V4. Set Arduino Board to "WEMOS LOLIN32"
+//#define USE_NODEMCU            // ESP8266 NodeMCU v3. Set Arduino Board to NodeMCU 1.0 (ESP-12E Module)
+
+// ------------ Display Objects -----------------
+// TTGO-T8 Display Constructor HW-SPI OLED & integrated SD Card, 180° Rotation => U8G2_R2, using VSPI SCLK = 18, MISO = 19, MOSI = 23 and...
+#ifdef USE_TTGOT8
+  #ifndef XROTATED
+    U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 26, /* dc=*/ 25, /* reset=*/ 27);      // 180° Rotation = Default/Display Connector down
+  #else
+    U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R0, /* cs=*/ 26, /* dc=*/ 25, /* reset=*/ 27);      // 0° Rotation = Display Connector up
+  #endif
+#endif
+
+// WEMOS LOLIN32/Devkit_V4 Display Constructor HW-SPI & Adafruit SD_MMC Adapter 180° Rotation => U8G2_R2, using VSPI SCLK = 18, MISO = 19, MOSI = 23, SS = 5 and...
+#ifdef USE_LOLIN32
+  #ifndef XROTATED
+    U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 5, /* dc=*/ 16, /* reset=*/ 17);  // Better because original SPI SS = 5
+  #else
+    U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R0, /* cs=*/ 5, /* dc=*/ 16, /* reset=*/ 17);  // Better because original SPI SS = 5
+  #endif
 #endif
 
 // ESP8266-Board (NodeMCU v3) Display Constructor HW-SPI 180° Rotation => U8G2_R2
-#if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
-  U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 15, /* dc=*/ 4, /* reset=*/ 5);
+#ifdef USE_NODEMCU
+  #ifndef XROTATED
+    U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 15, /* dc=*/ 4, /* reset=*/ 5);
+  #else
+    U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R0, /* cs=*/ 15, /* dc=*/ 4, /* reset=*/ 5);
+  #endif
 #endif
-
-// ------------ Display Objects for Manual Mode -----------------
-
-// Display Constructor HW-SPI ESP32-Board TTGO T8 OLED & integrated SD Card, 180° Rotation => U8G2_R2
-// Using VSPI SCLK = 18, MISO = 19, MOSI = 23 and...
-// U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 26, /* dc=*/ 25, /* reset=*/ 27);
-
-// WEMOS LOLIN32 Display Constructor HW-SPI & Adafruit SD_MMC Adapter, 180° Rotation => U8G2_R2
-// Using VSPI SCLK = 18, MISO = 19, MOSI = 23, SS = 5 and...
-// U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 5, /* dc=*/ 16, /* reset=*/ 17);
-
-// Devkitc V4 Display Constructor HW-SPI, 180° Rotation => U8G2_R2
-// Using VSPI SCLK = 18, MISO = 19, MOSI = 23 and...
-// U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 5, /* dc=*/ 16, /* reset=*/ 17);
-
-// ESP8266-Board (NodeMCU v3) Display Constructor HW-SPI, 180° Rotation => U8G2_R2
-// U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 15, /* dc=*/ 4, /* reset=*/ 5);
 
 // ------------ Variables ----------------
 
@@ -494,7 +507,7 @@ void oled_mistertext(void) {
   u8g2.setCursor(DispWidth/2-(u8g2.getStrWidth("by Sorgelig")/2), ( DispHeight/2 - u8g2.getAscent() ) / 2 + u8g2.getAscent() + DispHeight/2 );
   u8g2.print("by Sorgelig");
 
-  //u8g2.drawXBMP(DispWidth-usb_icon16_width-1, 0, usb_icon16_width, usb_icon16_height, usb_icon16);
+  //u8g2.drawXBMP(DispWidth-usb_icon_width, 0, usb_icon_width, usb_icon_height, usb_icon);
   u8g2.drawXBMP(DispWidth-usb_icon_width, DispHeight-usb_icon_height, usb_icon_width, usb_icon_height, usb_icon);
   
   u8g2.sendBuffer();
@@ -736,7 +749,7 @@ void drawEightBit(int x, int y, unsigned char b) {
     }  // end bit read
   }  // end for j
 
-#if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
+#ifdef USE_NODEMCU
   yield();
 #endif
 
@@ -871,13 +884,13 @@ int usb2oled_readndrawlogo2(int effect) {
 #endif    
   }
   
-#if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
+#ifdef USE_NODEMCU
   yield();
 #endif
 
   bytesReadCount = Serial.readBytes(logoBin, logoBytes);  // Read 2048 Bytes from Serial
 
-#if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
+#ifdef USE_NODEMCU
   yield();
 #endif
 
@@ -1055,7 +1068,7 @@ int usb2oled_readndrawlogo2(int effect) {
             drawEightBit(x2*8, y, logoByteValue);
           }  // end for x2
           else {
-#if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
+#ifdef USE_NODEMCU
             yield();
 #endif
           }

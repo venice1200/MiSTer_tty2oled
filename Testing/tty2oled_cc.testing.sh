@@ -186,8 +186,13 @@ function tty_slideshow() {
     for slidepic in *.xbm; do
       counter=$((counter+1))
       echo "Showing Picture ${counter}: ${fblue}${slidepic}${freset} (pri Folder)"
-      echo "CMDCOR,${slidepic}" > ${TTYDEV}
+      echo "CMDAPD,${slidepic}" > ${TTYDEV}
       tail -n +4 "${slidepic}" | xxd -r -p > ${TTYDEV}
+      waitforttyack
+      echo "CMDSNAM" > ${TTYDEV}
+      waitforttyack
+      sleep ${slidewait}
+      echo "CMDSPIC" > ${TTYDEV}
       waitforttyack
       sleep ${slidewait}
     done
@@ -198,8 +203,13 @@ function tty_slideshow() {
   for slidepic in *.xbm; do
     counter=$((counter+1))
     echo "Showing Picture ${counter}: ${fyellow}${slidepic}${freset}"
-    echo "CMDCOR,${slidepic}" > ${TTYDEV}
+    echo "CMDAPD,${slidepic}" > ${TTYDEV}
     tail -n +4 "${slidepic}" | xxd -r -p > ${TTYDEV}
+    waitforttyack
+    echo "CMDSNAM" > ${TTYDEV}
+    waitforttyack
+    sleep ${slidewait}
+    echo "CMDSPIC" > ${TTYDEV}
     waitforttyack
     sleep ${slidewait}
   done

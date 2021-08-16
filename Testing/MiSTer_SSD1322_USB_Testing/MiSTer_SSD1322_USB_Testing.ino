@@ -234,12 +234,12 @@
   -New Command "CMDSPIC" which just show the actual loaded Picture
   -New String Variable "actCore" containing the actual Corename
   -New Command "CMDSNAM" which just show the actual Corename as text.
-  -New Command "CMDRPI,[corename]" which is just for receiving Picture Data, nothing more.
+  -New Command "CMDAPD,[corename]" which is just for sending Picture Data, nothing more.
   -Remove old Commands Mode (att, CORECHANGE, CONTRAST, TEXTOUTXY, GEOOUTXY)
   
 */
 
-#define BuildVersion "210815T"    // "T" for Testing
+#define BuildVersion "210816T"    // "T" for Testing
 
 #include <Arduino.h>
 #include <U8g2lib.h>             // Display Library
@@ -418,8 +418,8 @@ void loop(void) {
       usb2oled_drawlogo(random(1,11));
     }
 
-    else if (newCore.startsWith("CMDRPI,")) {                            // Command from Serial to receive Picture Data via USB Serial from the MiSTer
-      usb2oled_readlogo();                                                // ESP32 Receive Picture Data... 
+    else if (newCore.startsWith("CMDAPD,")) {                            // Command from Serial to receive Picture Data via USB Serial from the MiSTer
+      usb2oled_readlogo();                                               // ESP32 Receive Picture Data... 
     }
 
     else if (newCore.startsWith("CMDCOR,")) {                            // Command from Serial to receive Picture Data via USB Serial from the MiSTer

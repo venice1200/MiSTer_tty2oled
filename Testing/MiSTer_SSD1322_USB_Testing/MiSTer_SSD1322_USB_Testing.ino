@@ -227,19 +227,22 @@
   2021-08-10
   -Reactivate System "#define USE_xxxx" set by Arduino's Board selection (Auto Mode) 
    or by uncommenting only the needed "#define USEe_XXX" for your Hardware
-  -Add "XROTATE". Uncomment it for an Rotated Display.
+  -Add #define "XROTATE", uncomment it for an 180° Rotated Display.
 
-  2021-08-15
+  2021-08-15/16
   -Separate the "Read and Draw Picture" function into two functions
-  -New Command "CMDSPIC" which just show the actual loaded Picture
+  -New Command "CMDSPIC" which just show the actual loaded Picture (SHOWPIC).
   -New String Variable "actCore" containing the actual Corename
-  -New Command "CMDSNAM" which just show the actual Corename as text.
-  -New Command "CMDAPD,[corename]" which is just for sending Picture Data, nothing more.
+  -New Command "CMDSNAM" which just show the actual Corename as text (SHOWNAME).
+  -New Command "CMDAPD,[corename]" which is just for sending Picture Data, nothing more (Attention Picture Data).
   -Remove old Commands Mode (att, CORECHANGE, CONTRAST, TEXTOUTXY, GEOOUTXY)
+
+  2021-08-23
+  -Moved Startscreen-Text into "defines"
+  -Add "#define XSENDACK"
+   Uncomment this Option to enable the Handshake with the MiSTer Daemon
   
 */
-
-#define BuildVersion "210816T"    // "T" for Testing
 
 #include <Arduino.h>
 #include <U8g2lib.h>             // Display Library
@@ -256,11 +259,21 @@ bool OTAEN=false;                // Will be set to "true" by Command "CMDENOTA"
 #endif
 
 // ------------------------ System Config -------------------------------
+// Version
+#define BuildVersion "210824T"    // "T" for Testing
+
+// Startscreen Text
+#define StartText1 "MiSTer FPGA"
+#define StartText2 "by Sorgelig"
+
 // Uncomment to get some Debugging Infos over Serial especially for SD Debugging
 //#define XDEBUG
 
 // Uncomment for 180° Rotation
 //#define XROTATED
+
+// Uncomment for "Send Acknowledge" (TESTING)
+//#define XSENDACK
 
 // Uncomment for Temperatur Sensor Support MIC184
 //#define XMIC184
@@ -479,9 +492,12 @@ void loop(void) {
       // Set font back
       u8g2.setFont(old_font);
     }  // end ifs
-    
+
+#ifdef XSENDACK
     delay(cDelay);                           // Command Response Delay
     Serial.print("ttyack;");                 // Handshake with delimiter; MiSTer: "read -d ";" ttyresponse < ${TTYDEVICE}"
+#endif
+
     Serial.flush();                          // Wait for sendbuffer is clear
     updateDisplay=false;                     // Clear Update-Display Flag
   } // end updateDisplay
@@ -499,10 +515,18 @@ void oled_mistertext(void) {
   u8g2.setCursor(1,63);
   u8g2.print(BuildVersion);
   u8g2.setFont(u8g2_font_tenfatguys_tr);     // 10 Pixel Font
+
+  u8g2.setCursor(DispWidth/2-(u8g2.getStrWidth(StartText1)/2), ( DispHeight/2 - u8g2.getAscent() ) / 2 + u8g2.getAscent() );
+  u8g2.print(StartText1);
+  u8g2.setCursor(DispWidth/2-(u8g2.getStrWidth(StartText2)/2), ( DispHeight/2 - u8g2.getAscent() ) / 2 + u8g2.getAscent() + DispHeight/2 );
+  u8g2.print(StartText2);
+
+/*
   u8g2.setCursor(DispWidth/2-(u8g2.getStrWidth("MiSTer FPGA")/2), ( DispHeight/2 - u8g2.getAscent() ) / 2 + u8g2.getAscent() );
   u8g2.print("MiSTer FPGA");
   u8g2.setCursor(DispWidth/2-(u8g2.getStrWidth("by Sorgelig")/2), ( DispHeight/2 - u8g2.getAscent() ) / 2 + u8g2.getAscent() + DispHeight/2 );
   u8g2.print("by Sorgelig");
+*/
 
   //u8g2.drawXBMP(DispWidth-usb_icon_width, 0, usb_icon_width, usb_icon_height, usb_icon);
   u8g2.drawXBMP(DispWidth-usb_icon_width, DispHeight-usb_icon_height, usb_icon_width, usb_icon_height, usb_icon);

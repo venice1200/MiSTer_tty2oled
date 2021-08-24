@@ -250,12 +250,12 @@
 
 // OTA and Reset only for ESP32
 #ifdef ESP32
-#include "cred.h"                // Load your WLAN Credentials for OTA
-#include <WiFi.h>
-#include <ESPmDNS.h>
-#include <WiFiUdp.h>
-#include <ArduinoOTA.h>
-bool OTAEN=false;                // Will be set to "true" by Command "CMDENOTA"
+  #include "cred.h"                // Load your WLAN Credentials for OTA
+  #include <WiFi.h>
+  #include <ESPmDNS.h>
+  #include <WiFiUdp.h>
+  #include <ArduinoOTA.h>
+  bool OTAEN=false;                // Will be set to "true" by Command "CMDENOTA"
 #endif
 
 // ------------------------ System Config -------------------------------
@@ -270,9 +270,9 @@ bool OTAEN=false;                // Will be set to "true" by Command "CMDENOTA"
 //#define XDEBUG
 
 // Uncomment for 180° Rotation
-//#define XROTATED
+//#define XROTATE
 
-// Uncomment for "Send Acknowledge" (TESTING)
+// Uncomment for "Send Acknowledge", needed Daemon from Testing
 //#define XSENDACK
 
 // Uncomment for Temperatur Sensor Support MIC184
@@ -280,7 +280,7 @@ bool OTAEN=false;                // Will be set to "true" by Command "CMDENOTA"
 
 // ----------- Auto-Board-Config via Arduino Board Selection ------------
 #ifdef ARDUINO_ESP32_DEV
-  #define USE_TTGOT8             // TTGO-T8. Set Arduino Board to "ESP32 Dev Module", chose your xx MB Flash
+  #define USE_TTGOT8             // TTGO-T8, tty2oled Board by d.ti. Set Arduino Board to "ESP32 Dev Module", chose your xx MB Flash
 #endif
 
 #ifdef ARDUINO_LOLIN32
@@ -300,7 +300,7 @@ bool OTAEN=false;                // Will be set to "true" by Command "CMDENOTA"
 // ------------ Display Objects -----------------
 // TTGO-T8 Display Constructor HW-SPI OLED & integrated SD Card, 180° Rotation => U8G2_R2, using VSPI SCLK = 18, MISO = 19, MOSI = 23 and...
 #ifdef USE_TTGOT8
-  #ifndef XROTATED
+  #ifndef XROTATE
     U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 26, /* dc=*/ 25, /* reset=*/ 27);      // 180° Rotation = Default/Display Connector down
   #else
     U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R0, /* cs=*/ 26, /* dc=*/ 25, /* reset=*/ 27);      // 0° Rotation = Display Connector up
@@ -309,16 +309,16 @@ bool OTAEN=false;                // Will be set to "true" by Command "CMDENOTA"
 
 // WEMOS LOLIN32/Devkit_V4 Display Constructor HW-SPI & Adafruit SD_MMC Adapter 180° Rotation => U8G2_R2, using VSPI SCLK = 18, MISO = 19, MOSI = 23, SS = 5 and...
 #ifdef USE_LOLIN32
-  #ifndef XROTATED
-    U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 5, /* dc=*/ 16, /* reset=*/ 17);  // Better because original SPI SS = 5
+  #ifndef XROTATE
+    U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 5, /* dc=*/ 16, /* reset=*/ 17);  // Better because original SPI SS = 5, 180° Rotation = Default/Display Connector down
   #else
-    U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R0, /* cs=*/ 5, /* dc=*/ 16, /* reset=*/ 17);  // Better because original SPI SS = 5
+    U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R0, /* cs=*/ 5, /* dc=*/ 16, /* reset=*/ 17);  // Better because original SPI SS = 5, 0° Rotation = Display Connector up
   #endif
 #endif
 
 // ESP8266-Board (NodeMCU v3) Display Constructor HW-SPI 180° Rotation => U8G2_R2
 #ifdef USE_NODEMCU
-  #ifndef XROTATED
+  #ifndef XROTATE
     U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R2, /* cs=*/ 15, /* dc=*/ 4, /* reset=*/ 5);
   #else
     U8G2_SSD1322_NHD_256X64_F_4W_HW_SPI u8g2(U8G2_R0, /* cs=*/ 15, /* dc=*/ 4, /* reset=*/ 5);
@@ -496,9 +496,9 @@ void loop(void) {
 #ifdef XSENDACK
     delay(cDelay);                           // Command Response Delay
     Serial.print("ttyack;");                 // Handshake with delimiter; MiSTer: "read -d ";" ttyresponse < ${TTYDEVICE}"
+    Serial.flush();                          // Wait for sendbuffer is clear
 #endif
 
-    Serial.flush();                          // Wait for sendbuffer is clear
     updateDisplay=false;                     // Clear Update-Display Flag
   } // end updateDisplay
 } // End Main Loop

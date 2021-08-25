@@ -222,7 +222,7 @@
   -Some of the included Logo's miss their U8X8_PROGMEM.
 
   2021-08-07
-  -New/smaller USB Icon.
+  -New & smaller USB Icon.
 
   2021-08-10
   -Reactivate System "#define USE_xxxx" set by Arduino's Board selection (Auto Mode) 
@@ -241,6 +241,8 @@
   -Moved Startscreen-Text into "defines"
   -Add "#define XSENDACK"
    Uncomment this Option to enable the Handshake with the MiSTer Daemon
+  -Add "#define XLOGO"
+   Uncomment theio Option to get the tty2oled Logo shown on Startscreen instead of the Starttext
   
 */
 
@@ -258,27 +260,35 @@
   bool OTAEN=false;                // Will be set to "true" by Command "CMDENOTA"
 #endif
 
-// ------------------------ System Config -------------------------------
+// ---------------------------------------------------------------------------------------------------------------------
+// ----------------------------------------------- System Config -------------------------------------------------------
+// ---------------------------------------------------------------------------------------------------------------------
+
+// Uncomment (remove "//" in front ofd the Option) to get some Debugging Infos over Serial especially for SD Debugging
+//#define XDEBUG
+
 // Version
-#define BuildVersion "210824T"    // "T" for Testing
+#define BuildVersion "210825T"    // "T" for Testing
 
 // Startscreen Text
 #define StartText1 "MiSTer FPGA"
 #define StartText2 "by Sorgelig"
 
-// Uncomment to get some Debugging Infos over Serial especially for SD Debugging
-//#define XDEBUG
+// Uncomment to get the tty2oled Logo shown on Startscreen instead of text
+#define XLOGO
 
-// Uncomment for 180° Rotation
+// Uncomment for 180° Rotation (Display Connector up)
 //#define XROTATE
 
-// Uncomment for "Send Acknowledge", needed Daemon from Testing
+// Uncomment for "Send Acknowledge" from tty2oled to MiSTer, need Daemon from Testing
 #define XSENDACK
 
-// Uncomment for Temperatur Sensor Support MIC184
+// Uncomment for Temperatur Sensor Support MIC184 on d.ti's PCB
 //#define XMIC184
 
-// ----------- Auto-Board-Config via Arduino Board Selection ------------
+// ---------- Auto-Board-Config via Arduino IDE Board Selection -----------
+// ------------- Make sure the Manual-Config is not active ----------------
+
 #ifdef ARDUINO_ESP32_DEV
   #define USE_TTGOT8             // TTGO-T8, tty2oled Board by d.ti. Set Arduino Board to "ESP32 Dev Module", chose your xx MB Flash
 #endif
@@ -292,7 +302,8 @@
 #endif
 
 // ----------------------- Manual-Board-Config ----------------------------
-// ---- Make sure the Auto-Board-Config is not active, best removed it ----
+// ---------- Make sure the Auto-Board-Config is not active ---------------
+
 //#define USE_TTGOT8             // TTGO-T8. Set Arduino Board to ESP32 Dev Module, xx MB Flash, def. Part. Schema
 //#define USE_LOLIN32            // Wemos LOLIN32, LOLIN32, DevKit_V4. Set Arduino Board to "WEMOS LOLIN32"
 //#define USE_NODEMCU            // ESP8266 NodeMCU v3. Set Arduino Board to NodeMCU 1.0 (ESP-12E Module)
@@ -516,21 +527,16 @@ void oled_mistertext(void) {
   u8g2.print(BuildVersion);
   u8g2.setFont(u8g2_font_tenfatguys_tr);     // 10 Pixel Font
 
+#ifndef XLOGO
   u8g2.setCursor(DispWidth/2-(u8g2.getStrWidth(StartText1)/2), ( DispHeight/2 - u8g2.getAscent() ) / 2 + u8g2.getAscent() );
   u8g2.print(StartText1);
   u8g2.setCursor(DispWidth/2-(u8g2.getStrWidth(StartText2)/2), ( DispHeight/2 - u8g2.getAscent() ) / 2 + u8g2.getAscent() + DispHeight/2 );
   u8g2.print(StartText2);
+#else
+  u8g2.drawXBMP((DispWidth-tty2oled_logo_width)/2, 0, tty2oled_logo_width, tty2oled_logo_height, tty2oled_logo);
+#endif
 
-/*
-  u8g2.setCursor(DispWidth/2-(u8g2.getStrWidth("MiSTer FPGA")/2), ( DispHeight/2 - u8g2.getAscent() ) / 2 + u8g2.getAscent() );
-  u8g2.print("MiSTer FPGA");
-  u8g2.setCursor(DispWidth/2-(u8g2.getStrWidth("by Sorgelig")/2), ( DispHeight/2 - u8g2.getAscent() ) / 2 + u8g2.getAscent() + DispHeight/2 );
-  u8g2.print("by Sorgelig");
-*/
-
-  //u8g2.drawXBMP(DispWidth-usb_icon_width, 0, usb_icon_width, usb_icon_height, usb_icon);
   u8g2.drawXBMP(DispWidth-usb_icon_width, DispHeight-usb_icon_height, usb_icon_width, usb_icon_height, usb_icon);
-  
   u8g2.sendBuffer();
 }
 

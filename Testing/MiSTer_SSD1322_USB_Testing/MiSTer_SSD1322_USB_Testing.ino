@@ -240,9 +240,9 @@
   2021-08-23
   -Moved Startscreen-Text into "defines"
   -Add "#define XSENDACK"
-   Uncomment this Option to enable the Handshake with the MiSTer Daemon
+   Uncomment this Option to enable the Handshake with the MiSTer Daemon. !! You need the Daemon from testing !!
   -Add "#define XLOGO"
-   Uncomment theio Option to get the tty2oled Logo shown on Startscreen instead of the Starttext
+   Uncomment this Option to get the tty2oled Logo shown on Startscreen instead of the Starttext
   
 */
 
@@ -252,12 +252,12 @@
 
 // OTA and Reset only for ESP32
 #ifdef ESP32
-  #include "cred.h"                // Load your WLAN Credentials for OTA
+  #include "cred.h"              // Load your WLAN Credentials for OTA
   #include <WiFi.h>
   #include <ESPmDNS.h>
   #include <WiFiUdp.h>
   #include <ArduinoOTA.h>
-  bool OTAEN=false;                // Will be set to "true" by Command "CMDENOTA"
+  bool OTAEN=false;              // Will be set to "true" by Command "CMDENOTA"
 #endif
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -398,7 +398,7 @@ void loop(void) {
 #endif
   }  // end serial available
     
-  if (updateDisplay) {                                    // Proceed only if it's allowed because of new data from serial
+  if (updateDisplay) {                                       // Proceed only if it's allowed because of new data from serial
 
     // -- First Transmission --
     if (newCore.endsWith("QWERTZ")) {                        // TESTING: Process first Transmission after PowerOn/Reboot.
@@ -533,7 +533,8 @@ void oled_mistertext(void) {
   u8g2.setCursor(DispWidth/2-(u8g2.getStrWidth(StartText2)/2), ( DispHeight/2 - u8g2.getAscent() ) / 2 + u8g2.getAscent() + DispHeight/2 );
   u8g2.print(StartText2);
 #else
-  u8g2.drawXBMP((DispWidth-tty2oled_logo_width)/2, 0, tty2oled_logo_width, tty2oled_logo_height, tty2oled_logo);
+  //u8g2.drawXBMP((DispWidth-tty2oled_logo_width)/2, 0, tty2oled_logo_width, tty2oled_logo_height, tty2oled_logo);
+  u8g2.drawXBMP(82, 0, tty2oled_logo_width, tty2oled_logo_height, tty2oled_logo);
 #endif
 
   u8g2.drawXBMP(DispWidth-usb_icon_width, DispHeight-usb_icon_height, usb_icon_width, usb_icon_height, usb_icon);

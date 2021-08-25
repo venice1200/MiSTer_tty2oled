@@ -273,7 +273,7 @@
 //#define XROTATE
 
 // Uncomment for "Send Acknowledge", needed Daemon from Testing
-//#define XSENDACK
+#define XSENDACK
 
 // Uncomment for Temperatur Sensor Support MIC184
 //#define XMIC184

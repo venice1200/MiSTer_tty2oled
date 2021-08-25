@@ -6,6 +6,7 @@ Remove ".testing" from the filenames.
   
 Most important change is the command response back from the tty2oled ESP to the tty2oled Daemon.  
 When a command is processed by the ESP a "ttyack" is sent back which the tty2oled Daemon can process.  
+If you change the line "#define XSENDACK" to "//#define XSENDACK" you can use the Arduino Code with the current Daemon.  
   
 The file tty2oled_cc.testing.sh (remove .testing) is the tty2oled Control Center.  
 From here you can start/stop/restart the tty2oled Daemon, start an Picture Slideshow, start OTA or Reset the ESP32.  

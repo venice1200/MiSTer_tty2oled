@@ -15,6 +15,21 @@ Take a look.
 The file Clock01.ps1 is an PowerShell Script showing your Windows System Time.  
 The file tty2oled_GEO.testing.sh (remove .testing) is the same for Linux Systems.  
   
+  
+Options in Testing Arduino Sketch/Program  
+* // Startscreen Text  
+  #define StartText1 "MiSTer FPGA"  
+  #define StartText2 "by Sorgelig"  
+  
+* // Uncomment to get the tty2oled Logo shown on Startscreen instead of text  
+  #define XLOGO  
+  
+* // Uncomment for 180° Rotation (Display Connector up)  
+  //#define XROTATE  
+  
+* // Uncomment for "Send Acknowledge" from tty2oled to MiSTer, need Daemon from Testing  
+  #define XSENDACK  
+  
 Report Issues here:  
 https://misterfpga.org/viewtopic.php?p=28397  
 

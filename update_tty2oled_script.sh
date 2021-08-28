@@ -22,6 +22,7 @@
 
 # Changelog:
 # v1.5 Splitted script download into install and update using new Option "SCRIPT_UPDATE"
+#      Check for disabled Init Script. If exists skip install.
 # v1.4 New Option "USE_US_PICTURE"
 # v1.3 More Text Output (Pictures)
 # v1.2 New Option "USE_TEXT_PICTURE" & some Cosmetics
@@ -41,6 +42,17 @@ fi
 #[[ -v oldpicturefolder ]] && [[ -d ${oldpicturefolder} ]] && mv ${oldpicturefolder}/* ${picturefolder} && rm -R ${oldpicturefolder}
 #[[ -v OLDDAEMONSCRIPT ]] && [[ -e ${OLDDAEMONSCRIPT} ]] && mv ${OLDDAEMONSCRIPT} ${DAEMONSCRIPT} 
 
+# Check for and create tty2oled script folder
+[[ -d /media/fat/Scripts/tty2oled ]] || mkdir /media/fat/Scripts/tty2oled
+
+# Check for and delete old fashioned scripts to prefer /media/fat/linux/user-startup.sh
+# (https://misterfpga.org/viewtopic.php?p=32159#p32159)
+[[ -e /etc/init.d/S60tty2oled ]] && rm /etc/init.d/S60tty2oled
+[[ -e /etc/init.d/_S60tty2oled ]] && rm /etc/init.d/_S60tty2oled
+[[ -e /usr/bin/tty2oled ]] && rm /usr/bin/tty2oled
+if [ $(grep -c "tty2oled" /media/fat/linux/user-startup.sh) = "0" ]; then
+  echo "${DAEMONSCRIPT} ${1}" >> /media/fat/linux/user-startup.sh
+fi
 
 echo -e '\n +----------+';
 echo -e ' | \e[1;34mtty2oled\e[0m |---[]';
@@ -56,9 +68,13 @@ echo -e "\e[1;32mChecking for available tty2oled updates...\e[0m"
 # init script
 wget ${NODEBUG} "${REPOSITORY_URL}/S60tty2oled" -O /tmp/S60tty2oled
 if  ! [ -f ${INITSCRIPT} ]; then
-  echo -e "\e[1;33mInstalling init script \e[1;35mS60tty2oled\e[0m"
-  mv -f /tmp/S60tty2oled ${INITSCRIPT}
-  chmod +x ${INITSCRIPT}
+  if  [ -f ${INITDISABLED} ]; then
+    echo -e "\e[1;33mFound disabled init script, skipping Install\e[0m"
+  else
+    echo -e "\e[1;33mInstalling init script \e[1;35mS60tty2oled\e[0m"
+    mv -f /tmp/S60tty2oled ${INITSCRIPT}
+    chmod +x ${INITSCRIPT}
+  fi
 elif ! cmp -s /tmp/S60tty2oled ${INITSCRIPT}; then
   if [ "${SCRIPT_UPDATE}" = "yes" ]; then
     echo -e "\e[1;33mUpdating init script \e[1;35mS60tty2oled\e[0m"
@@ -95,44 +111,44 @@ if [ "${USBMODE}" = "yes" ]; then
   # Text-Based Pictures download
   if [ "${USE_TEXT_PICTURE}" = "yes" ]; then
     echo -e "\e[1;32mChecking for available Text-Pictures...\e[0m"
-    wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM_Text/sha1.txt" -O - | grep ".xbm" | \
+    wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM_Text/sha1.txt" -O - | grep ".xbm" | dos2unix | \
     while read SHA1PIC; do
-      PICNAME=$(echo ${SHA1PIC} | awk '{print $2}')
-      CHKSUM1=$(echo ${SHA1PIC,,} | awk '{print $1}')
-      [ -f ${picturefolder}/${PICNAME} ] && CHKSUM2=$(sha1sum ${picturefolder}/${PICNAME} | awk '{print $1}')
-      if ! [ -f ${picturefolder}/${PICNAME} ] || ([ "${CHKSUM1}" != "${CHKSUM2}" ] && [ "${OVERWRITE_PICTURE}" = "yes" ]); then
+      PICNAME=$(echo ${SHA1PIC} | cut -d " " -f 2-)
+      CHKSUM1=$(echo ${SHA1PIC,,} | cut -d " " -f 1)
+      [ -f "${picturefolder}/${PICNAME}" ] && CHKSUM2=$(sha1sum ${picturefolder}/${PICNAME} | awk '{print $1}')
+      if ! [ -f "${picturefolder}/${PICNAME}" ] || ([ "${CHKSUM1}" != "${CHKSUM2}" ] && [ "${OVERWRITE_PICTURE}" = "yes" ]); then
         echo -e "\e[1;33mDownloading Picture \e[1;35m${PICNAME}\e[0m"
-        wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM_Text/${PICNAME}" -O ${picturefolder}/${PICNAME}
+        wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM_Text/${PICNAME}" -O "${picturefolder}/${PICNAME}"
       fi
     done
   else
     echo -e "\e[1;31mSkipping\e[1;33m Text-Based Picture download because of the \e[1;36mUSE_TEXT_PICTURE\e[1;33m INI-Option\e[0m"
   fi
-  
+
   # Graphic-Based Pictures (as Second = Higher Priority)
   echo -e "\e[1;32mChecking for available Graphic-Pictures...\e[0m"
-  wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM/sha1.txt" -O - | grep ".xbm" | \
+  wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM/sha1.txt" -O - | grep ".xbm" | dos2unix | \
   while read SHA1PIC; do
-    PICNAME=$(echo ${SHA1PIC} | awk '{print $2}')
-    CHKSUM1=$(echo ${SHA1PIC,,} | awk '{print $1}')
-    [ -f ${picturefolder}/${PICNAME} ] && CHKSUM2=$(sha1sum ${picturefolder}/${PICNAME} | awk '{print $1}')
-    if ! [ -f ${picturefolder}/${PICNAME} ] || ([ "${CHKSUM1}" != "${CHKSUM2}" ] && [ "${OVERWRITE_PICTURE}" = "yes" ]); then
+    PICNAME=$(echo ${SHA1PIC} | cut -d " " -f 2-)
+    CHKSUM1=$(echo ${SHA1PIC,,} | cut -d " " -f 1)
+    [ -f "${picturefolder}/${PICNAME}" ] && CHKSUM2=$(sha1sum "${picturefolder}/${PICNAME}" | awk '{print $1}')
+    if ! [ -f "${picturefolder}/${PICNAME}" ] || ([ "${CHKSUM1}" != "${CHKSUM2}" ] && [ "${OVERWRITE_PICTURE}" = "yes" ]); then
       echo -e "\e[1;33mDownloading Picture \e[1;35m${PICNAME}\e[0m"
-      wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM/${PICNAME}" -O ${picturefolder}/${PICNAME}
+      wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM/${PICNAME}" -O "${picturefolder}/${PICNAME}"
     fi
   done
-  
+
   # Checking for US version of Graphic-Based Pictures (Genesis = MegaDrive ; Sega CD = Mega CD ; TurboGrafx16 = PCEngine)
   if [ "${USE_US_PICTURE}" = "yes" ]; then 
     echo -e "\e[1;32mChecking for available Graphic-Pictures US-Version...\e[0m"
-    wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM_US/sha1.txt" -O - | grep ".xbm" | \
+    wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM_US/sha1.txt" -O - | grep ".xbm" | dos2unix | \
     while read SHA1PIC; do
-      PICNAME=$(echo ${SHA1PIC} | awk '{print $2}')
-      CHKSUM1=$(echo ${SHA1PIC,,} | awk '{print $1}')
-      [ -f ${picturefolder}/${PICNAME} ] && CHKSUM2=$(sha1sum ${picturefolder}/${PICNAME} | awk '{print $1}')
-      if ! [ -f ${picturefolder}/${PICNAME} ] || ([ "${CHKSUM1}" != "${CHKSUM2}" ] && [ "${OVERWRITE_PICTURE}" = "yes" ]); then
+      PICNAME=$(echo ${SHA1PIC} | cut -d " " -f 2-)
+      CHKSUM1=$(echo ${SHA1PIC,,} | cut -d " " -f 1)
+      [ -f "${picturefolder}/${PICNAME}" ] && CHKSUM2=$(sha1sum ${picturefolder}/${PICNAME} | awk '{print $1}')
+      if ! [ -f "${picturefolder}/${PICNAME}" ] || ([ "${CHKSUM1}" != "${CHKSUM2}" ] && [ "${OVERWRITE_PICTURE}" = "yes" ]); then
         echo -e "\e[1;33mDownloading Picture \e[1;35m${PICNAME}\e[0m"
-        wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM_US/${PICNAME}" -O ${picturefolder}/${PICNAME}
+        wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM_US/${PICNAME}" -O "${picturefolder}/${PICNAME}"
       fi
     done
   else

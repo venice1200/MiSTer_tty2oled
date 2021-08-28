@@ -29,17 +29,13 @@
 #            Example: /usr/bin/tty2oled /dev/ttyUSB1 
 #            Example: /usr/bin/tty2oled /dev/ttyUSB1 SD 
 #            Example: /usr/bin/tty2oled /dev/ttyUSB1 USB 921600
-#
 # 2021-06-22 New Command Mode (Testing)
 #            "CMCOR,[Corename]", "CMDCON,[Contrast]",  "CMDTEX,[Parameter]", "CMDGEO,[Parmeter]", "CMDRST", "CMDOTA"
-#
 # 2021-06-24 Adding folder "/media/fat/Scripts/.tty2oled/pics_pri"  
 #            Pictures found in this folder will be used before the "common" pictures.
 #            The User himself is responsible for the content in this Folder.
-#
 # 2021-06-30 Added new INI Option/Command for Display Rotation ("CMDROT,[Parameter]")
-#
-# 2021-07-10 Fix Baudrate CLI Parameter
+# 2021-07-10 Fix Baudrate CLI Parameter handling
 #            Change CLI Parameter order
 #            Parameter 1: /dev/ttyUSBx Device
 #            Parameter 2: Baudrate
@@ -47,6 +43,7 @@
 #            Example: /usr/bin/tty2oled /dev/ttyUSB1 
 #            Example: /usr/bin/tty2oled /dev/ttyUSB1 115200
 #            Example: /usr/bin/tty2oled /dev/ttyUSB1 921600 USB
+# 2021-07-14 Clean up Script
 #
 #
 
@@ -55,57 +52,68 @@
 # Debug function
 dbug() {
   if [ "${debug}" = "true" ]; then
-    if [ ! -e ${debugfile} ]; then						# log file not (!) exists (-e) create it
+    if [ ! -e ${debugfile} ]; then                                                # log file not (!) exists (-e) create it
       echo "---------- tty2oled Debuglog ----------" > ${debugfile}
     fi 
-    echo "${1}" >> ${debugfile}							# output debug text
+    echo "${1}" >> ${debugfile}                                                   # output debug text
   fi
 }
 
 # Send-Contrast-Data function
 sendcontrast() {
-  dbug "Sending: CMDCON,${CONTRAST}" > ${TTYDEV}
-  echo "CMDCON,${CONTRAST}" > ${TTYDEV}                                         # Send Contrast Command and Value
+  if [ "${USBMODE}" = "yes" ]; then                                               # Check the tty2xxx mode
+    dbug "Sending: CMDCON,${CONTRAST}"
+    echo "CMDCON,${CONTRAST}" > ${TTYDEV}                                         # Send Contrast Command and Value
+  else
+    echo "att" > ${TTYDEV}                                                        # Send an "att" to the MiSTer annoucing another Command
+    sleep ${WAITSECS}                                                             # sleep needed here ?!
+    echo "CONTRAST" > ${TTYDEV}                                                   # Send "CONTRAST" annoucing the OLED Contrast Data as next
+    sleep ${WAITSECS}                                                             # sleep needed here ?!
+    echo ${CONTRAST} > ${TTYDEV}                                                  # Send Contrast Value
+  fi
 }
 
 # Rotate Display function
 sendrotation() {
-  if [ "${ROTATE}" = "yes" ]; then
-    dbug "Sending: CMDROT,1" > ${TTYDEV}
-    echo "CMDROT,1" > ${TTYDEV}                                                 # Send Rotation if set to "yes"
-    sleep ${WAITSECS}
-    echo "CMDSORG" > ${TTYDEV}                                                  # Show Start Screen rotated
-    sleep 2
-#  else
-#    dbug "Sending: CMDROT,1" > ${TTYDEV}
-#    echo "CMDROT,0" > ${TTYDEV}                                                 # No Rotation
+  if [ "${USBMODE}" = "yes" ]; then                                               # Check the tty2xxx mode
+    if [ "${ROTATE}" = "yes" ]; then
+      dbug "Sending: CMDROT,1"
+      echo "CMDROT,1" > ${TTYDEV}                                                 # Send Rotation if set to "yes"
+      sleep ${WAITSECS}
+      echo "CMDSORG" > ${TTYDEV}                                                  # Show Start Screen rotated
+      sleep 2
+    #else
+    #  ebug "Sending: CMDROT,1" > ${TTYDEV}
+    #  echo "CMDROT,0" > ${TTYDEV}                                                # No Rotation
+    fi
   fi
 }
 
 # USB Send-Picture-Data function
 senddata() {
-  if [ "${USBMODE}" = "yes" ]; then						# Check the tty2xxx mode
+  if [ "${USBMODE}" = "yes" ]; then                                             # Check the tty2xxx mode
     if [ -f "${picturefolder_pri}/${1}.xbm" ]; then                             # Lookup for an existing XBM in PRI and proceed
       dbug "Sending: CMDCOR,${1}"                                               
       echo "CMDCOR,${1}" > ${TTYDEV}                                            # Send CORECHANGE" Command and Corename
       sleep ${WAITSECS}                                                         # sleep needed here ?!
       tail -n +4 "${picturefolder_pri}/${1}.xbm" | xxd -r -p > ${TTYDEV}        # The Magic, send the Picture-Data up from Line 4 and proces$
-    elif [ -f "${picturefolder}/${1}.xbm" ]; then				# Lookup for an existing XBM and proceed
-      dbug "Sending: CMDCOR,${1}"						
-      echo "CMDCOR,${1}" > ${TTYDEV}						# Send CORECHANGE" Command and Corename
-      sleep ${WAITSECS}								# sleep needed here ?!
-      tail -n +4 "${picturefolder}/${1}.xbm" | xxd -r -p > ${TTYDEV}		# The Magic, send the Picture-Data up from Line 4 and process them with xxd
-    else									# No Picture available!
-      echo "${1}" > ${TTYDEV}							# Send just the CORENAME
-    fi										# End if Picture check
-  else 										# SD/Standard Mode ? Just send the Corename
-    echo "${1}" > ${TTYDEV}							# Instruct the device to load the appropriate picture from SD card
+    elif [ -f "${picturefolder}/${1}.xbm" ]; then                               # Lookup for an existing XBM and proceed
+      dbug "Sending: CMDCOR,${1}"
+      echo "CMDCOR,${1}" > ${TTYDEV}                                            # Send CORECHANGE" Command and Corename
+      sleep ${WAITSECS}                                                         # sleep needed here ?!
+      tail -n +4 "${picturefolder}/${1}.xbm" | xxd -r -p > ${TTYDEV}            # The Magic, send the Picture-Data up from Line 4 and process them with xxd
+    else                                                                        # No Picture available!
+      echo "${1}" > ${TTYDEV}                                                   # Send just the CORENAME
+    fi                                                                          # End if Picture check
+  else                                                                          # SD/Standard Mode ? Just send the Corename
+    echo "${1}" > ${TTYDEV}                                                     # Instruct the device to load the appropriate picture from SD card
   fi
 }
 
 # ** Main **
+# Check for Command Line Parameter
 if [ "${#}" -ge 1 ]; then                                                       # Command Line Parameter given, override Parameter
-  echo -e "\nUsing Command Line Parameter"                                           # Some Output
+  echo -e "\nUsing Command Line Parameter"
   TTYDEV=${1}                                                                   # Set TTYDEV with Parameter 1
   if [ -n "${2}" ]; then                                                        # Parameter 2 Baudrate
     BAUDRATE=${2}                                                               # Set Baudrate
@@ -123,35 +131,36 @@ if [ "${#}" -ge 1 ]; then                                                       
   echo "USBMODE: ${USBMODE}"                                                    # Mode Output
 fi                                                                              # end if command line Parameter 
 
-if [ -c "${TTYDEV}" ]; then										# check for tty device
+# Let's go
+if [ -c "${TTYDEV}" ]; then                                                     # check for tty device
   echo -e "\n${TTYDEV} detected, setting Parameter: ${BAUDRATE} ${TTYPARAM}."
   dbug "${TTYDEV} detected, setting Parameter: ${BAUDRATE} ${TTYPARAM}."
-  stty -F ${TTYDEV} ${BAUDRATE} ${TTYPARAM}						# set tty parameter
-  sleep ${WAITSECS}												# sleep needed here ?!
-  echo "QWERTZ" > ${TTYDEV}										# First Transmission to clear serial send buffer
+  stty -F ${TTYDEV} ${BAUDRATE} ${TTYPARAM}                                     # set tty parameter
+  sleep ${WAITSECS}
+  echo "QWERTZ" > ${TTYDEV}                                                     # First Transmission to clear serial send buffer
   dbug "Send QWERTZ as first transmission"
   sleep ${WAITSECS}
-  sendcontrast													# Set Contrast
-  sendrotation													# Set Display Rotation
-  while true; do												# main loop
-    if [ -r ${corenamefile} ]; then								# proceed if file exists and is readable (-r)
-      newcore=$(cat ${corenamefile})							# get CORENAME
+  sendcontrast                                                                  # Set Contrast
+  sendrotation                                                                  # Set Display Rotation
+  while true; do                                                                # main loop
+    if [ -r ${corenamefile} ]; then                                             # proceed if file exists and is readable (-r)
+      newcore=$(cat ${corenamefile})                                            # get CORENAME
       echo "Read CORENAME: -${newcore}-"
       dbug "Read CORENAME: -${newcore}-"
-      if [ "${newcore}" != "${oldcore}" ]; then					# proceed only if Core has changed
+      if [ "${newcore}" != "${oldcore}" ]; then                                 # proceed only if Core has changed
         echo "Send -${newcore}- to ${TTYDEV}."
         dbug "Send -${newcore}- to ${TTYDEV}."
-        senddata "${newcore}"							# The "Magic"
-        oldcore="${newcore}"							# update oldcore variable
-      fi														# end if core check
-      inotifywait -e modify "${corenamefile}"					# wait here for next change of corename
-    else														# CORENAME file not found
+        senddata "${newcore}"                                                   # The "Magic"
+        oldcore="${newcore}"                                                    # update oldcore variable
+      fi                                                                        # end if core check
+      inotifywait -e modify "${corenamefile}"                                   # wait here for next change of corename
+    else                                                                        # CORENAME file not found
      echo "File ${corenamefile} not found!"
      dbug "File ${corenamefile} not found!"
-    fi															# end if /tmp/CORENAME check
-  done															# end while
-else															# no tty detected
+    fi                                                                          # end if /tmp/CORENAME check
+  done                                                                          # end while
+else                                                                            # no tty detected
   echo "No ${TTYDEV} Device detected, abort."
   dbug "No ${TTYDEV} Device detected, abort."
-fi																# end if tty check
+fi                                                                              # end if tty check
 # ** End Main **

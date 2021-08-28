@@ -51,7 +51,7 @@ fi
 [[ -e /etc/init.d/_S60tty2oled ]] && rm /etc/init.d/_S60tty2oled
 [[ -e /usr/bin/tty2oled ]] && rm /usr/bin/tty2oled
 if [ $(grep -c "tty2oled" /media/fat/linux/user-startup.sh) = "0" ]; then
-  echo "${INITSCRIPT} \$1" >> /media/fat/linux/user-startup.sh
+  echo "sleep 5 ; ${INITSCRIPT} \$1" >> /media/fat/linux/user-startup.sh
 fi
 
 echo -e '\n +----------+';

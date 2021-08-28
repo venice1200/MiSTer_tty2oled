@@ -88,21 +88,21 @@ fi
 
 
 # daemon
-wget ${NODEBUG} "${REPOSITORY_URL}/tty2oled" -O /tmp/tty2oled
+wget ${NODEBUG} "${REPOSITORY_URL}/${DAEMONNAME}" -O /tmp/${DAEMONNAME}
 if  ! [ -f ${DAEMONSCRIPT} ]; then
   echo -e "\e[1;33mInstalling daemon script \e[1;35mtty2oled\e[0m"
-  mv -f /tmp/tty2oled ${DAEMONSCRIPT}
+  mv -f /tmp/${DAEMONNAME} ${DAEMONSCRIPT}
   chmod +x ${DAEMONSCRIPT}
-elif ! cmp -s /tmp/tty2oled ${DAEMONSCRIPT}; then
+elif ! cmp -s /tmp/${DAEMONNAME} ${DAEMONSCRIPT}; then
   if [ "${SCRIPT_UPDATE}" = "yes" ]; then
     echo -e "\e[1;33mUpdating daemon script \e[1;35mtty2oled\e[0m"
-    mv -f /tmp/tty2oled ${DAEMONSCRIPT}
+    mv -f /tmp/${DAEMONNAME} ${DAEMONSCRIPT}
     chmod +x ${DAEMONSCRIPT}
   else
     echo -e "\e[5;31mSkipping\e[25;1;33m available daemon script update because of the \e[1;36mSCRIPT_UPDATE\e[1;33m INI-Option\e[0m"
   fi
 fi
-[[ -f /tmp/tty2oled ]] && rm /tmp/tty2oled
+[[ -f /tmp/${DAEMONNAME} ]] && rm /tmp/${DAEMONNAME}
 
 # pictures
 if [ "${USBMODE}" = "yes" ]; then

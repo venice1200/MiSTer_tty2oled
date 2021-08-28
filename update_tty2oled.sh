@@ -36,8 +36,9 @@ NODEBUG="-q -o /dev/null"
 wget ${NODEBUG} --no-cache "${REPOSITORY_URL}/tty2oled.ini" -O /tmp/tty2oled.ini
 if ! [ -f /media/fat/Scripts/tty2oled.ini ]; then
   echo -e "\e[1;33mCreating tty2oled.ini File \e[1;35m${PICNAME}\e[0m"
-  mv -f /tmp/tty2oled.ini /media/fat/Scripts/tty2oled.ini
-elif ! [[ "$(head -n1 /tmp/tty2oled.ini)" = "$(head -n1 /media/fat/Scripts/tty2oled.ini)" ]]; then
+  cp /tmp/tty2oled.ini /media/fat/Scripts/tty2oled.ini
+fi
+if ! [[ "$(head -n1 /tmp/tty2oled.ini)" = "$(head -n1 /media/fat/Scripts/tty2oled.ini)" ]]; then
   echo -e "\e[1;31mThere is a newer version of \e[1;33m/media/fat/Scripts/tty2oled.ini\e[1;31m availble.\e[0m"
   echo -e "\e[1;31mIt is very likely that something will break if we continue. You should backup\e[0m"
   echo -e "\e[1;31myour INI file and move or delete the original afterwards. After re-running\e[0m"

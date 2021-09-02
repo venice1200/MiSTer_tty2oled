@@ -33,6 +33,16 @@ SCRIPTNAME="/tmp/update_tty2oled_script.sh"
 NODEBUG="-q -o /dev/null"
 
 
+wget ${NODEBUG} --no-cache "${REPOSITORY_URL}/update_tty2oled.sh" -O /tmp/update_tty2oled.sh
+if ! cmp -s /tmp/update_tty2oled.sh /media/fat/Scripts/update_tty2oled.sh; then
+    echo -e "\e[1;33mDownloading Updater-Update \e[1;35m${PICNAME}\e[0m"
+    mv -f /tmp/update_tty2oled.sh /media/fat/Scripts/update_tty2oled.sh
+    exec /media/fat/Scripts/update_tty2oled.sh
+    exit 255
+else
+    rm /tmp/update_tty2oled.sh
+fi
+
 wget ${NODEBUG} --no-cache "${REPOSITORY_URL}/tty2oled.ini" -O /tmp/tty2oled.ini
 . /tmp/tty2oled.ini
 [[ -d ${TTY2OLED_PATH} ]] || mkdir ${TTY2OLED_PATH}
@@ -60,16 +70,6 @@ if ! [[ "$(head -n1 /tmp/tty2oled.ini)" = "$(head -n1 ${TTY2OLED_PATH}/tty2oled.
     echo -e "\n\e[1;33mAborting.\e[0m"
   fi
   exit 1
-fi
-
-wget ${NODEBUG} --no-cache "${REPOSITORY_URL}/update_tty2oled.sh" -O /tmp/update_tty2oled.sh
-if ! cmp -s /tmp/update_tty2oled.sh /media/fat/Scripts/update_tty2oled.sh; then
-    echo -e "\e[1;33mDownloading Updater-Update \e[1;35m${PICNAME}\e[0m"
-    mv -f /tmp/update_tty2oled.sh /media/fat/Scripts/update_tty2oled.sh
-    exec /media/fat/Scripts/update_tty2oled.sh
-    exit 255
-else
-    rm /tmp/update_tty2oled.sh
 fi
 
 wget ${NODEBUG} --no-cache "${REPOSITORY_URL}/update_tty2oled_script.sh" -O ${SCRIPTNAME}

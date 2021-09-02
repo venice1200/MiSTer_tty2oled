@@ -33,11 +33,9 @@ SCRIPTNAME="/tmp/update_tty2oled_script.sh"
 NODEBUG="-q -o /dev/null"
 
 
-# Check for and create tty2oled script folder
-[[ -d ${TTY2OLED_PATH} ]] || mkdir ${TTY2OLED_PATH}
-
 wget ${NODEBUG} --no-cache "${REPOSITORY_URL}/tty2oled.ini" -O /tmp/tty2oled.ini
 . /tmp/tty2oled.ini
+[[ -d ${TTY2OLED_PATH} ]] || mkdir ${TTY2OLED_PATH}
 if ! [ -f ${TTY2OLED_PATH}/tty2oled.ini ]; then
   echo -e "\e[1;33mCreating tty2oled.ini File \e[1;35m${PICNAME}\e[0m"
   cp /tmp/tty2oled.ini ${TTY2OLED_PATH}/tty2oled.ini

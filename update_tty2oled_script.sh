@@ -30,7 +30,7 @@
 # v1.0 Main updater script which completes all tasks.
 
 
-. /media/fat/Scripts/tty2oled.ini
+. /media/fat/tty2oled/tty2oled.ini
 
 # Check and remount root writable if neccessary
 if [ $(/bin/mount | head -n1 | grep -c "(ro,") = 1 ]; then
@@ -43,7 +43,7 @@ fi
 #[[ -v OLDDAEMONSCRIPT ]] && [[ -e ${OLDDAEMONSCRIPT} ]] && mv ${OLDDAEMONSCRIPT} ${DAEMONSCRIPT} 
 
 # Check for and create tty2oled script folder
-[[ -d /media/fat/Scripts/tty2oled ]] || mkdir /media/fat/Scripts/tty2oled
+[[ -d ${TTY2OLED_PATH} ]] || mkdir ${TTY2OLED_PATH}
 
 # Check for and delete old fashioned scripts to prefer /media/fat/linux/user-startup.sh
 # (https://misterfpga.org/viewtopic.php?p=32159#p32159)
@@ -51,21 +51,16 @@ fi
 [[ -e /etc/init.d/_S60tty2oled ]] && rm /etc/init.d/_S60tty2oled
 [[ -e /usr/bin/tty2oled ]] && rm /usr/bin/tty2oled
 
-
 if ! [ -e ${USERSTARTUP} ]; then
   echo -e "#!/bin/sh\n" > ${USERSTARTUP}
 fi
 if [ $(grep -c "tty2oled" ${USERSTARTUP}) = "0" ]; then
-  echo "### Wait for USB module and start tty2oled daemon
-  . /media/fat/Scripts/tty2oled.ini
-  WAITEND=$((SECONDS+10))
-  while !  [ -c ${TTYDEV} ] && [ ${SECONDS} -lt ${WAITEND} ]; do
-    echo -n "."
-    sleep 1
-  done
-  " >> ${USERSTARTUP}
+  echo "/media/fat/tty2oled/S60tty2oled" >> ${USERSTARTUP}
 fi
 
+# Move old stuff to the new filder structure
+[[ -d /media/fat/tty2oledpics ]] && mv /media/fat/tty2oledpics/* ${picturefolder} && rm -rf /media/fat/tty2oledpics/
+[[ -d /media/fat/tty2oledpics/pri ]] mv /media/fat/tty2oledpics/pri/* ${picturefolder_pri} && rm -rf /media/fat/tty2oledpics/pri/
 
 
 echo -e '\n +----------+';

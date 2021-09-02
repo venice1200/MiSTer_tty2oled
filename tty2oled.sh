@@ -47,7 +47,7 @@
 #
 #
 
-. /media/fat/Scripts/tty2oled.ini
+. /media/fat/tty2oled/tty2oled.ini
 
 # Debug function
 dbug() {

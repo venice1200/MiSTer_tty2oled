@@ -33,6 +33,7 @@ SCRIPTNAME="/tmp/update_tty2oled_script.sh"
 NODEBUG="-q -o /dev/null"
 
 
+# Update the updater if neccessary
 wget ${NODEBUG} --no-cache "${REPOSITORY_URL}/update_tty2oled.sh" -O /tmp/update_tty2oled.sh
 if ! cmp -s /tmp/update_tty2oled.sh /media/fat/Scripts/update_tty2oled.sh; then
     echo -e "\e[1;33mDownloading Updater-Update \e[1;35m${PICNAME}\e[0m"
@@ -43,9 +44,11 @@ else
     rm /tmp/update_tty2oled.sh
 fi
 
+# Check and update INI file if neccessary
 wget ${NODEBUG} --no-cache "${REPOSITORY_URL}/tty2oled.ini" -O /tmp/tty2oled.ini
 . /tmp/tty2oled.ini
 [[ -d ${TTY2OLED_PATH} ]] || mkdir ${TTY2OLED_PATH}
+[[ -f /media/fat/Scripts/tty2oled.ini ] && mv /media/fat/Scripts/tty2oled.ini ${TTY2OLED_PATH}/tty2oled.ini
 if ! [ -f ${TTY2OLED_PATH}/tty2oled.ini ]; then
   echo -e "\e[1;33mCreating tty2oled.ini File \e[1;35m${PICNAME}\e[0m"
   cp /tmp/tty2oled.ini ${TTY2OLED_PATH}/tty2oled.ini

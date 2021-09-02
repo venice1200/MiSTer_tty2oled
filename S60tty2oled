@@ -5,10 +5,16 @@
 # 2021-04-12 Added an INI file
 #
 
-. /media/fat/Scripts/tty2oled.ini
+. /media/fat/tty2oled/tty2oled.ini
 
 # Start
 start() {
+    ### Wait for USB module and start tty2oled daemon
+    WAITEND=$((SECONDS+10))
+    while !  [ -c ${TTYDEV} ] && [ ${SECONDS} -lt ${WAITEND} ]; do
+      sleep 0.1
+    done
+
     if [[ -x ${DAEMONSCRIPT} ]]; then
       echo "Starting ${DAEMONNAME}..."
       ${DAEMONSCRIPT} &

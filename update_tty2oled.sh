@@ -33,13 +33,17 @@ SCRIPTNAME="/tmp/update_tty2oled_script.sh"
 NODEBUG="-q -o /dev/null"
 
 
+# Check for and create tty2oled script folder
+[[ -d ${TTY2OLED_PATH} ]] || mkdir ${TTY2OLED_PATH}
+
 wget ${NODEBUG} --no-cache "${REPOSITORY_URL}/tty2oled.ini" -O /tmp/tty2oled.ini
-if ! [ -f /media/fat/tty2oled/tty2oled.ini ]; then
+. /tmp/tty2oled.ini
+if ! [ -f ${TTY2OLED_PATH}/tty2oled.ini ]; then
   echo -e "\e[1;33mCreating tty2oled.ini File \e[1;35m${PICNAME}\e[0m"
-  cp /tmp/tty2oled.ini /media/fat/tty2oled/tty2oled.ini
+  cp /tmp/tty2oled.ini ${TTY2OLED_PATH}/tty2oled.ini
 fi
-if ! [[ "$(head -n1 /tmp/tty2oled.ini)" = "$(head -n1 /media/fat/tty2oled/tty2oled.ini)" ]]; then
-  echo -e "\e[1;31mThere is a newer version of \e[1;33m/media/fat/tty2oled/tty2oled.ini\e[1;31m availble.\e[0m"
+if ! [[ "$(head -n1 /tmp/tty2oled.ini)" = "$(head -n1 ${TTY2OLED_PATH}/tty2oled.ini)" ]]; then
+  echo -e "\e[1;31mThere is a newer version of \e[1;33m${TTY2OLED_PATH}/tty2oled.ini\e[1;31m availble.\e[0m"
   echo -e "\e[1;31mIt is very likely that something will break if we continue. You should backup\e[0m"
   echo -e "\e[1;31myour INI file and move or delete the original afterwards. After re-running\e[0m"
   echo -e "\e[1;31mthis updater and receiving the new INI file, compare both versions and edit\e[0m"
@@ -48,10 +52,10 @@ if ! [[ "$(head -n1 /tmp/tty2oled.ini)" = "$(head -n1 /media/fat/tty2oled/tty2ol
   echo -e "please answer YES\e[0m"
   read ANSWER
   if [ "${ANSWER}" = "YES" ]; then
-    mv -f /media/fat/tty2oled/tty2oled.ini /media/fat/tty2oled/tty2oled.ini.bak
-    mv -f /tmp/tty2oled.ini /media/fat/tty2oled/tty2oled.ini
+    mv -f ${TTY2OLED_PATH}/tty2oled.ini ${TTY2OLED_PATH}/tty2oled.ini.bak
+    mv -f /tmp/tty2oled.ini ${TTY2OLED_PATH}/tty2oled.ini
     echo -e "\n\e[1;33mThese are the differences:\e[0m\n"
-    diff -u /media/fat/tty2oled/tty2oled.ini.bak /media/fat/tty2oled/tty2oled.ini
+    diff -u ${TTY2OLED_PATH}/tty2oled.ini.bak ${TTY2OLED_PATH}/tty2oled.ini
     echo -e "\n\e[1;33mPlease edit the new INI file and make necessary changes,"
     echo -e "then re-run this updater.\e[0m\n"
   else

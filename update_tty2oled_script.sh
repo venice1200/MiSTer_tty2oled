@@ -50,9 +50,23 @@ fi
 [[ -e /etc/init.d/S60tty2oled ]] && rm /etc/init.d/S60tty2oled
 [[ -e /etc/init.d/_S60tty2oled ]] && rm /etc/init.d/_S60tty2oled
 [[ -e /usr/bin/tty2oled ]] && rm /usr/bin/tty2oled
-if [ $(grep -c "tty2oled" /media/fat/linux/user-startup.sh) = "0" ]; then
-  echo "sleep 5 ; ${INITSCRIPT} \$1" >> /media/fat/linux/user-startup.sh
+
+
+if ! [ -e ${USERSTARTUP} ]; then
+  echo -e "#!/bin/sh\n" > ${USERSTARTUP}
 fi
+if [ $(grep -c "tty2oled" ${USERSTARTUP}) = "0" ]; then
+  echo "### Wait for USB module and start tty2oled daemon
+  . /media/fat/Scripts/tty2oled.ini
+  WAITEND=$((SECONDS+10))
+  while !  [ -c ${TTYDEV} ] && [ ${SECONDS} -lt ${WAITEND} ]; do
+    echo -n "."
+    sleep 1
+  done
+  " >> ${USERSTARTUP}
+fi
+
+
 
 echo -e '\n +----------+';
 echo -e ' | \e[1;34mtty2oled\e[0m |---[]';

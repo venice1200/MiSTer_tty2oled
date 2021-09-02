@@ -270,7 +270,7 @@
 // Version
 #define BuildVersion "210825T"    // "T" for Testing
 
-// Startscreen Text
+// Startscreen Text, modify it if you like
 #define StartText1 "MiSTer FPGA"
 #define StartText2 "by Sorgelig"
 

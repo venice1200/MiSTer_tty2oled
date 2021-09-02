@@ -17,7 +17,7 @@ The file tty2oled_GEO.testing.sh (remove .testing) is the same for Linux Systems
   
   
 Options in Testing Arduino Sketch/Program  
-* // Startscreen Text  
+* // Startscreen Text, modify it if you like  
   #define StartText1 "MiSTer FPGA"  
   #define StartText2 "by Sorgelig"  
   

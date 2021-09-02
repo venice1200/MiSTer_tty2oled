@@ -59,8 +59,16 @@ if [ $(grep -c "tty2oled" ${USERSTARTUP}) = "0" ]; then
 fi
 
 # Move old stuff to the new filder structure
-[[ -d /media/fat/tty2oledpics ]] && mv /media/fat/tty2oledpics/* ${picturefolder} && rm -rf /media/fat/tty2oledpics/
-[[ -d /media/fat/tty2oledpics/pri ]] mv /media/fat/tty2oledpics/pri/* ${picturefolder_pri} && rm -rf /media/fat/tty2oledpics/pri/
+if [ -d /media/fat/tty2oledpics ]; then
+  mkdir ${picturefolder}
+  mv /media/fat/tty2oledpics/* ${picturefolder}/
+  rm -rf /media/fat/tty2oledpics/
+fi
+if [ -d /media/fat/tty2oledpics/pri ]; then
+  mkdir ${picturefolder_pri}
+  mv /media/fat/tty2oledpics/pri/* ${picturefolder_pri}/
+  rm -rf /media/fat/tty2oledpics/pri/
+fi
 
 
 echo -e '\n +----------+';

@@ -38,10 +38,6 @@ if [ $(/bin/mount | head -n1 | grep -c "(ro,") = 1 ]; then
   MOUNTRO="true"
 fi
 
-# Currently disabled, delete old Work-Folders, move Deamon
-#[[ -v oldpicturefolder ]] && [[ -d ${oldpicturefolder} ]] && mv ${oldpicturefolder}/* ${picturefolder} && rm -R ${oldpicturefolder}
-#[[ -v OLDDAEMONSCRIPT ]] && [[ -e ${OLDDAEMONSCRIPT} ]] && mv ${OLDDAEMONSCRIPT} ${DAEMONSCRIPT} 
-
 # Check for and create tty2oled script folder
 [[ -d ${TTY2OLED_PATH} ]] || mkdir ${TTY2OLED_PATH}
 
@@ -59,10 +55,10 @@ if [ $(grep -c "tty2oled" ${USERSTARTUP}) = "0" ]; then
 fi
 
 # Move old stuff to the new filder structure
-if [ -d /media/fat/tty2oledpics/_pri ]; then
+if [ -d /media/fat/tty2oledpics/pri ]; then
   ! [[ -d ${picturefolder_pri} ]] && mkdir ${picturefolder_pri}
-  mv /media/fat/tty2oledpics/_pri/* ${picturefolder_pri}/
-  rm -rf /media/fat/tty2oledpics/_pri/
+  mv /media/fat/tty2oledpics/pri/* ${picturefolder_pri}/
+  rm -rf /media/fat/tty2oledpics/pri/
 fi
 if [ -d /media/fat/tty2oledpics ]; then
   ! [[ -d ${picturefolder} ]] && mkdir ${picturefolder}

@@ -178,7 +178,7 @@ sync
 # Check and remount root non-writable if neccessary
 [ "${MOUNTRO}" = "true" ] && /bin/mount -o remount,ro /
 
-if [ $(pidof tty2oled) ]; then
+if [ $(pidof ${DAEMONNAME}) ]; then
   echo -e "\e[1;32mRestarting init script\n\e[0m"
   ${INITSCRIPT} restart
 elif [ -c "${TTYDEV}" ]; then

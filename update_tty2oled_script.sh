@@ -50,12 +50,10 @@ fi
 
 if ! [ -e ${USERSTARTUP} ]; then
   echo -e "#!/bin/sh\n" > ${USERSTARTUP}
-  echo -e "\n" >> ${USERSTARTUP}
-  echo -e "echo "***" $1 "***"\n" >> ${USERSTARTUP}
+  echo "echo "*** $1 ***" >> ${USERSTARTUP}
 fi
 if [ $(grep -c "tty2oled" ${USERSTARTUP}) = "0" ]; then
-  echo -e "\n" >> ${USERSTARTUP}
-  echo "# Run tty2oled" >> ${USERSTARTUP}
+  echo "# Startup tty2oled" >> ${USERSTARTUP}
   echo "[[ -e /media/fat/tty2oled/S60tty2oled ]] && /media/fat/tty2oled/S60tty2oled $1" >> ${USERSTARTUP}
 fi
 

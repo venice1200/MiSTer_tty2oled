@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# v1.5 - Copyright (c) 2021 ojaksch, venice
+# v1.6 - Copyright (c) 2021 ojaksch, venice
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 
 
 # Changelog:
+# v1.6 Move from Init based Startup to /media/fat/linux/user-startup.sh
 # v1.5 Splitted script download into install and update using new Option "SCRIPT_UPDATE"
 #      Check for disabled Init Script. If exists skip install.
 # v1.4 New Option "USE_US_PICTURE"

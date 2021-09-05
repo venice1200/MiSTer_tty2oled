@@ -54,10 +54,10 @@ if ! [ -e ${USERSTARTUP} ]; then
 fi
 if [ $(grep -c "tty2oled" ${USERSTARTUP}) = "0" ]; then
   echo "# Startup tty2oled" >> ${USERSTARTUP}
-  echo "[[ -e /media/fat/tty2oled/S60tty2oled ]] && /media/fat/tty2oled/S60tty2oled \$1" >> ${USERSTARTUP}
+  echo "[[ -e ${INITSCRIPT} ]] && ${INITSCRIPT} \$1" >> ${USERSTARTUP}
 fi
 
-# Move old stuff to the new filder structure
+# Move old stuff to the new folder structure
 if [ -d /media/fat/tty2oledpics/pri ]; then
   ! [[ -d ${picturefolder_pri} ]] && mkdir ${picturefolder_pri}
   mv /media/fat/tty2oledpics/pri/* ${picturefolder_pri}/

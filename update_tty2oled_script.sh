@@ -153,7 +153,7 @@ sync
 [ "${MOUNTRO}" = "true" ] && /bin/mount -o remount,ro /
 
 if [ $(pidof tty2oled) ]; then
-  echo -e "\e[1;32m(Re-) starting init script\n\e[0m"
+  echo -e "\e[1;32mRestarting init script\n\e[0m"
   ${INITSCRIPT} restart
 elif [ -c "${TTYDEV}" ]; then
   echo -e "\e[1;32mStarting init script\n\e[0m"

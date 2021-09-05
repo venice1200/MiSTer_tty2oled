@@ -49,8 +49,7 @@ fi
 [[ -e /usr/bin/tty2oled ]] && rm /usr/bin/tty2oled
 
 if ! [ -e ${USERSTARTUP} ]; then
-  echo -e "#!/bin/sh\n" > ${USERSTARTUP}
-  echo "echo "*** $1 ***" >> ${USERSTARTUP}
+  echo "#!/bin/sh" > ${USERSTARTUP}
 fi
 if [ $(grep -c "tty2oled" ${USERSTARTUP}) = "0" ]; then
   echo "# Startup tty2oled" >> ${USERSTARTUP}

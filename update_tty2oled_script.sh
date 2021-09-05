@@ -54,7 +54,7 @@ if ! [ -e ${USERSTARTUP} ]; then
 fi
 if [ $(grep -c "tty2oled" ${USERSTARTUP}) = "0" ]; then
   echo "# Startup tty2oled" >> ${USERSTARTUP}
-  echo "[[ -e ${INITSCRIPT} ]] && ${INITSCRIPT} \$1" >> ${USERSTARTUP}
+  echo -e "[[ -e ${INITSCRIPT} ]] && ${INITSCRIPT} \$1\n" >> ${USERSTARTUP}
 fi
 
 # Move old stuff to the new folder structure

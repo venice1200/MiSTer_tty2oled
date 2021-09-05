@@ -50,10 +50,11 @@ fi
 
 if ! [ -e ${USERSTARTUP} ]; then
   echo "#!/bin/sh" > ${USERSTARTUP}
+  echo -e 'echo "*** $1 ***"\n' >> ${USERSTARTUP}
 fi
 if [ $(grep -c "tty2oled" ${USERSTARTUP}) = "0" ]; then
   echo "# Startup tty2oled" >> ${USERSTARTUP}
-  echo "[[ -e /media/fat/tty2oled/S60tty2oled ]] && /media/fat/tty2oled/S60tty2oled $1" >> ${USERSTARTUP}
+  echo "[[ -e /media/fat/tty2oled/S60tty2oled ]] && /media/fat/tty2oled/S60tty2oled \$1" >> ${USERSTARTUP}
 fi
 
 # Move old stuff to the new filder structure

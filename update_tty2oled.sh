@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# v1.2 - Copyright (c) 2021 ojaksch, venice
+# v1.3 - Copyright (c) 2021 ojaksch, venice
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 
 
 # Changelog:
+# v1.3 Minor Updates
 # v1.2 New parameter in INI file, which selects the used tty2xxx device
 # v1.1 Use of an INI file (tty2oled.ini)
 # v1.0 Base updater script. Downloads and executes a second script (Main updater), which in turn completes all tasks.

@@ -76,13 +76,10 @@ if [ -d /media/fat/tty2oledpics ]; then
   rm -rf /media/fat/tty2oledpics/
 fi
 
-echo -e "\e[1;32m tty2oled Update Script"
-echo -e "---------------\e[0m"
+echo -e "\n\e[1;34mtty\e[1;31m2\e[1;33moled\e[1;32m update script"
+echo -e "----------------------\e[0m"
 
-#echo -e "\n\e[1;34mtty\e[1;31m2\e[1;33moled\e[1;32m update script"
-#echo -e "----------------------\e[0m"
-
-echo -e "\e[1;32mChecking for available tty2oled updates...\e[0m"
+echo -e "\n\e[1;32mChecking for available tty2oled updates...\e[0m"
 
 # init script
 wget ${NODEBUG} "${REPOSITORY_URL}/S60tty2oled" -O /tmp/S60tty2oled

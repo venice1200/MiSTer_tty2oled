@@ -59,7 +59,7 @@ if [ ! -e ${USERSTARTUP} ] && [ -e /etc/init.d/S99user ]; then
 fi
 if [ $(grep -c "tty2oled" ${USERSTARTUP}) = "0" ]; then
   echo -e "\n# Startup tty2oled" >> ${USERSTARTUP}
-  echo -e "[[ -e ${INITSCRIPT} ]] && ${INITSCRIPT} \$1\n" >> ${USERSTARTUP}
+  echo -e "[[ -e ${INITSCRIPT} ]] && ${INITSCRIPT} \$1" >> ${USERSTARTUP}
 fi
 
 # Move old stuff to the new folder structure

@@ -53,11 +53,13 @@ if [ ! -e ${USERSTARTUP} ] && [ -e /etc/init.d/S99user ]; then
     echo "Copying ${USERSTARTUPTPL} to ${USERSTARTUP}"
     cp ${USERSTARTUPTPL} ${USERSTARTUP}
   else
+    echo "Building ${USERSTARTUP}"
     echo -e "#!/bin/sh\n" > ${USERSTARTUP}
     echo -e 'echo "***" $1 "***"' >> ${USERSTARTUP}
   fi
 fi
 if [ $(grep -c "tty2oled" ${USERSTARTUP}) = "0" ]; then
+  echo "Add tty2oled to ${USERSTARTUP}"
   echo -e "\n# Startup tty2oled" >> ${USERSTARTUP}
   echo -e "[[ -e ${INITSCRIPT} ]] && ${INITSCRIPT} \$1" >> ${USERSTARTUP}
 fi
@@ -74,11 +76,7 @@ if [ -d /media/fat/tty2oledpics ]; then
   rm -rf /media/fat/tty2oledpics/
 fi
 
-
-echo -e '\n +----------+';
-echo -e ' | \e[1;34mtty2oled\e[0m |---[]';
-echo -e ' +----------+\n';
-echo -e "\e[1;32m Update Script"
+echo -e "\e[1;32m tty2oled Update Script"
 echo -e "---------------\e[0m"
 
 #echo -e "\n\e[1;34mtty\e[1;31m2\e[1;33moled\e[1;32m update script"

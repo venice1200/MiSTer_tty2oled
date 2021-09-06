@@ -32,6 +32,9 @@ REPOSITORY_URL="https://raw.githubusercontent.com/venice1200/MiSTer_tty2oled/tes
 SCRIPTNAME="/tmp/update_tty2oled_script.sh"
 NODEBUG="-q -o /dev/null"
 
+echo -e '\n +----------+';
+echo -e ' | \e[1;34mtty2oled\e[0m |---[]';
+echo -e ' +----------+\n';
 
 # Update the updater if neccessary
 wget ${NODEBUG} --no-cache "${REPOSITORY_URL}/update_tty2oled.sh" -O /tmp/update_tty2oled.sh

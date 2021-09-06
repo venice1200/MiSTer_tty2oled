@@ -48,12 +48,17 @@ fi
 [[ -e /etc/init.d/_S60tty2oled ]] && rm /etc/init.d/_S60tty2oled
 [[ -e /usr/bin/tty2oled ]] && rm /usr/bin/tty2oled
 
-if ! [ -e ${USERSTARTUP} ]; then
-  echo -e "#!/bin/sh\n" > ${USERSTARTUP}
-  echo -e 'echo "***" $1 "***"\n' >> ${USERSTARTUP}
+if [ ! -e ${USERSTARTUP} ] && [ -e /etc/init.d/S99user ]; then
+  if [ -e ${USERSTARTUPTPL} ]; then
+    echo "Copying ${USERSTARTUPTPL} to ${USERSTARTUP}"
+    cp ${USERSTARTUPTPL} ${USERSTARTUP}
+  else
+    echo -e "#!/bin/sh\n" > ${USERSTARTUP}
+    echo -e 'echo "***" $1 "***"' >> ${USERSTARTUP}
+  fi
 fi
 if [ $(grep -c "tty2oled" ${USERSTARTUP}) = "0" ]; then
-  echo "# Startup tty2oled" >> ${USERSTARTUP}
+  echo -e "\n# Startup tty2oled" >> ${USERSTARTUP}
   echo -e "[[ -e ${INITSCRIPT} ]] && ${INITSCRIPT} \$1\n" >> ${USERSTARTUP}
 fi
 

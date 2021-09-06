@@ -76,7 +76,7 @@ if [ -d /media/fat/tty2oledpics ]; then
   rm -rf /media/fat/tty2oledpics/
 fi
 
-echo -e "\e[1;34mtty2oled\e[1;32m update script"
+echo -e "\e[1;32mtty2oled update script"
 echo -e "----------------------\e[0m"
 
 echo -e "\e[1;32mChecking for available tty2oled updates...\e[0m"

@@ -355,9 +355,9 @@ unsigned int logoBytes=0;
 const int cDelay=25;                // Command Delay in ms for Handshake
 
 // Input/Output
-#define RotPin 15
+#define RotationPin 15
 #define DebounceTime 23
-Bounce RotDebouncer = Bounce();     // Instantiate a Bounce object
+Bounce RotationDebouncer = Bounce();     // Instantiate a Bounce object
 
 // ================ SETUP ==================
 void setup(void) {
@@ -369,8 +369,8 @@ void setup(void) {
 
   // Buttons
   //pinMode(rotPin,INPUT);
-  RotDebouncer.attach(RotPin,INPUT);     // Attach the debouncer to a pin with INPUT mode
-  RotDebouncer.interval(25);                 // Use a debounce interval of 25 milliseconds
+  RotationDebouncer.attach(RotationPin,INPUT);     // Attach the debouncer to a pin with INPUT mode
+  RotationDebouncer.interval(25);                 // Use a debounce interval of 25 milliseconds
 
   // Init Display
   u8g2.begin();
@@ -390,6 +390,15 @@ void setup(void) {
   // Create Picture Buffer, better than create (malloc) & destroy (free)
   logoBytes = DispWidth * DispHeight / 8;           // Make it more universal, here 2048
   logoBin = (unsigned char *) malloc(logoBytes);    // Reserve Memory for Picture-Data
+
+  // Set Startup Rotation
+  if (digitalRead(RotationPin)) {
+    u8g2.setDisplayRotation(U8G2_R2);
+  }
+  else {
+    u8g2.setDisplayRotation(U8G2_R0);
+  }
+
   
   oled_mistertext();                                // OLED Startup with Some Text
 }
@@ -401,8 +410,8 @@ void loop(void) {
   if (OTAEN) ArduinoOTA.handle();                            // OTA active?
 #endif
 
-  RotDebouncer.update();                                     // Update the Bounce instance
-  if (RotDebouncer.rose()) {
+  RotationDebouncer.update();                                     // Update the Bounce instance
+  if (RotationDebouncer.rose()) {
     u8g2.setDisplayRotation(U8G2_R2);
     if (actCorename == "No Core") {
       oled_mistertext();
@@ -411,7 +420,7 @@ void loop(void) {
       usb2oled_drawlogo(0);
     }
   }
-  if (RotDebouncer.fell()) {
+  if (RotationDebouncer.fell()) {
     u8g2.setDisplayRotation(U8G2_R0);
     if (actCorename == "No Core") {
       oled_mistertext();

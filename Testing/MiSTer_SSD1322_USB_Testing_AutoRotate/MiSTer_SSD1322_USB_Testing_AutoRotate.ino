@@ -250,7 +250,6 @@
 #include <Arduino.h>
 #include <U8g2lib.h>             // Display Library
 #include "logo.h"                // The Pics in XMB Format
-#include <Bounce2.h>
 
 // OTA and Reset only for ESP32
 #ifdef ESP32
@@ -285,8 +284,15 @@
 // Uncomment for "Send Acknowledge" from tty2oled to MiSTer, need Daemon from Testing
 #define XSENDACK
 
-// Uncomment for Temperatur Sensor Support MIC184 on d.ti's PCB
+// Uncomment for Tilt-Sensor (PIN 15/GND) based Display-Auto-Rotation and load Library
+#define XTILT
+#ifdef XTILT
+  #include <Bounce2.h>
+#endif
+
+// Uncomment for Temperatur Sensor Support MIC184 on d.ti's PCB (not implemented yet)
 //#define XMIC184
+
 
 // ---------- Auto-Board-Config via Arduino IDE Board Selection -----------
 // ------------- Make sure the Manual-Config is not active ----------------
@@ -354,10 +360,12 @@ unsigned char *logoBin;             // <<== For malloc in Setup
 unsigned int logoBytes=0;
 const int cDelay=25;                // Command Delay in ms for Handshake
 
+#ifdef XTILT
 // Input/Output
 #define RotationPin 15
 #define DebounceTime 23
 Bounce RotationDebouncer = Bounce();     // Instantiate a Bounce object
+#endif
 
 // ================ SETUP ==================
 void setup(void) {
@@ -367,10 +375,11 @@ void setup(void) {
 
   randomSeed(analogRead(34));                // Init Random Generator with empty Port Analog value
 
+#ifdef XTILT
   // Buttons
-  //pinMode(rotPin,INPUT);
   RotationDebouncer.attach(RotationPin,INPUT);     // Attach the debouncer to a pin with INPUT mode
   RotationDebouncer.interval(25);                 // Use a debounce interval of 25 milliseconds
+#endif
 
   // Init Display
   u8g2.begin();
@@ -391,6 +400,7 @@ void setup(void) {
   logoBytes = DispWidth * DispHeight / 8;           // Make it more universal, here 2048
   logoBin = (unsigned char *) malloc(logoBytes);    // Reserve Memory for Picture-Data
 
+#ifdef XTILT
   // Set Startup Rotation
   if (digitalRead(RotationPin)) {
     u8g2.setDisplayRotation(U8G2_R2);
@@ -398,7 +408,7 @@ void setup(void) {
   else {
     u8g2.setDisplayRotation(U8G2_R0);
   }
-
+#endif
   
   oled_mistertext();                                // OLED Startup with Some Text
 }
@@ -410,6 +420,7 @@ void loop(void) {
   if (OTAEN) ArduinoOTA.handle();                            // OTA active?
 #endif
 
+#ifdef XTILT
   RotationDebouncer.update();                                     // Update the Bounce instance
   if (RotationDebouncer.rose()) {
     u8g2.setDisplayRotation(U8G2_R2);
@@ -429,7 +440,8 @@ void loop(void) {
       usb2oled_drawlogo(0);
     }
   }
-  
+#endif
+
   // Serial Data
   if (Serial.available()) {
 	prevCommand = newCommand;                                // Save old Command

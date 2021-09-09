@@ -193,7 +193,7 @@
   2021-07-07/08
   -New Command "CMDTEST" which just show an fullscreen test-picture
   -Count amount of transferred picture bytes and if it doesn't match show an error picture
-  -Change Command processing from "if (newCore!=oldCore)" to "if (updateDisplay)" to prevent a blank screen if multiple data packs are sent.
+  -Change Command processing from "if (newCommand!=oldCore)" to "if (updateDisplay)" to prevent a blank screen if multiple data packs are sent.
   -Add (Micro Font) Build Version to Start Screen
   
   2021-07-09
@@ -232,17 +232,18 @@
   2021-08-15/16
   -Separate the "Read and Draw Picture" function into two functions
   -New Command "CMDSPIC" which just show the actual loaded Picture (SHOWPIC).
-  -New String Variable "actCore" containing the actual Corename
+  -New String Variable "actCorename" containing the actual Corename
   -New Command "CMDSNAM" which just show the actual Corename as text (SHOWNAME).
   -New Command "CMDAPD,[corename]" which is just for sending Picture Data, nothing more (Attention Picture Data).
-  -Remove old Commands Mode (att, CORECHANGE, CONTRAST, TEXTOUTXY, GEOOUTXY)
+  -!Remove old Command Mode (att, CORECHANGE, CONTRAST, TEXTOUTXY, GEOOUTXY) so you need to use an actual Daemon
 
-  2021-08-23
+  2021-08-23..26
   -Moved Startscreen-Text into "defines"
   -Add "#define XSENDACK"
    Uncomment this Option to enable the Handshake with the MiSTer Daemon. !! You need the Daemon from testing !!
   -Add "#define XLOGO"
    Uncomment this Option to get the tty2oled Logo shown on Startscreen instead of the Starttext
+  -Change Variable Name "newCore" into "newCommand"
   
 */
 
@@ -268,23 +269,31 @@
 //#define XDEBUG
 
 // Version
-#define BuildVersion "210825T"    // "T" for Testing
+#define BuildVersion "210907T"    // "T" for Testing
 
-// Startscreen Text, modify it if you like
+// Startscreen Text
 #define StartText1 "MiSTer FPGA"
 #define StartText2 "by Sorgelig"
 
 // Uncomment to get the tty2oled Logo shown on Startscreen instead of text
 #define XLOGO
 
-// Uncomment for 180° Rotation (Display Connector up)
+// Uncomment for 180° StartUp Rotation (Display Connector up)
 //#define XROTATE
 
 // Uncomment for "Send Acknowledge" from tty2oled to MiSTer, need Daemon from Testing
 #define XSENDACK
 
-// Uncomment for Temperatur Sensor Support MIC184 on d.ti's PCB
+// Uncomment for Tilt-Sensor based Display-Auto-Rotation and load Library if defined
+// The Sensor is conneted to PIN 15 & GND
+//#define XTILT
+#ifdef XTILT
+  #include <Bounce2.h>
+#endif
+
+// Uncomment for Temperatur Sensor Support MIC184 on d.ti's PCB (not implemented yet)
 //#define XMIC184
+
 
 // ---------- Auto-Board-Config via Arduino IDE Board Selection -----------
 // ------------- Make sure the Manual-Config is not active ----------------
@@ -339,18 +348,26 @@
 // ------------ Variables ----------------
 
 // Strings
-String newCore = "";             // Received Text, from MiSTer without "\n" currently (2021-01-11)
-String actCore = "No Core";      // Actual Received Corename
-uint8_t contrast = 5;            // Contrast (brightness) of display, range: 0 (no contrast) to 255 (maximum)
-char *newCoreChar;
+String newCommand = "";             // Received Text, from MiSTer without "\n" currently (2021-01-11)
+String prevCommand = "";
+String actCorename = "No Core";     // Actual Received Corename
+uint8_t contrast = 5;               // Contrast (brightness) of display, range: 0 (no contrast) to 255 (maximum)
+char *newCommandChar;
 bool updateDisplay = false;
 
 // Display Vars
 u8g2_uint_t DispWidth, DispHeight, DispLineBytes;
-unsigned char *logoBin;          // <<== For malloc in Setup
+unsigned char *logoBin;             // <<== For malloc in Setup
 unsigned int logoBytes=0;
-const int cDelay=25;             // Command Delay in ms for Handshake
-  
+const int cDelay=25;                // Command Delay in ms for Handshake
+
+#ifdef XTILT
+// Input/Output
+#define RotationPin 15
+#define DebounceTime 23
+Bounce RotationDebouncer = Bounce();     // Instantiate a Bounce object
+#endif
+
 // ================ SETUP ==================
 void setup(void) {
   // Init Serial
@@ -358,6 +375,12 @@ void setup(void) {
   Serial.flush();                            // Wait for empty Send Buffer 
 
   randomSeed(analogRead(34));                // Init Random Generator with empty Port Analog value
+
+#ifdef XTILT
+  // Buttons
+  RotationDebouncer.attach(RotationPin,INPUT);     // Attach the debouncer to a pin with INPUT mode
+  RotationDebouncer.interval(25);                 // Use a debounce interval of 25 milliseconds
+#endif
 
   // Init Display
   u8g2.begin();
@@ -377,6 +400,16 @@ void setup(void) {
   // Create Picture Buffer, better than create (malloc) & destroy (free)
   logoBytes = DispWidth * DispHeight / 8;           // Make it more universal, here 2048
   logoBin = (unsigned char *) malloc(logoBytes);    // Reserve Memory for Picture-Data
+
+#ifdef XTILT
+  // Set Startup Rotation
+  if (digitalRead(RotationPin)) {
+    u8g2.setDisplayRotation(U8G2_R2);
+  }
+  else {
+    u8g2.setDisplayRotation(U8G2_R0);
+  }
+#endif
   
   oled_mistertext();                                // OLED Startup with Some Text
 }
@@ -388,20 +421,43 @@ void loop(void) {
   if (OTAEN) ArduinoOTA.handle();                            // OTA active?
 #endif
 
+#ifdef XTILT
+  RotationDebouncer.update();                                     // Update the Bounce instance
+  if (RotationDebouncer.rose()) {
+    u8g2.setDisplayRotation(U8G2_R2);
+    if (actCorename == "No Core") {
+      oled_mistertext();
+    }
+    else {
+      usb2oled_drawlogo(0);
+    }
+  }
+  if (RotationDebouncer.fell()) {
+    u8g2.setDisplayRotation(U8G2_R0);
+    if (actCorename == "No Core") {
+      oled_mistertext();
+    }
+    else {
+      usb2oled_drawlogo(0);
+    }
+  }
+#endif
+
   // Serial Data
   if (Serial.available()) {
-    newCore = Serial.readStringUntil('\n');                  // Read string from serial until NewLine "\n" (from MiSTer's echo command) is detected or timeout (1000ms) happens.
-    updateDisplay=true;                                      // Set Update-Display Flag
+	prevCommand = newCommand;                                // Save old Command
+    newCommand = Serial.readStringUntil('\n');             // Read string from serial until NewLine "\n" (from MiSTer's echo command) is detected or timeout (1000ms) happens.
+    updateDisplay=true;                                    // Set Update-Display Flag
 
 #ifdef XDEBUG
-    Serial.printf("Received Corename or Command: %s\n", (char*)newCore.c_str());
+    Serial.printf("Received Corename or Command: %s\n", (char*)newCommand.c_str());
 #endif
   }  // end serial available
     
   if (updateDisplay) {                                       // Proceed only if it's allowed because of new data from serial
 
     // -- First Transmission --
-    if (newCore.endsWith("QWERTZ")) {                        // TESTING: Process first Transmission after PowerOn/Reboot.
+    if (newCommand.endsWith("QWERTZ")) {                     // TESTING: Process first Transmission after PowerOn/Reboot.
         // Do nothing, just receive one string to clear the buffer.
     }                    
 
@@ -409,96 +465,96 @@ void loop(void) {
     // ----- C O M M A N D 's -----
     // ----------------------------
 
-    else if (newCore=="cls")          u8g2.clear();
-    else if (newCore=="sorg")         oled_mistertext();
-    else if (newCore=="bye")          oled_drawlogo64h(sorgelig_icon64_width, sorgelig_icon64);
+    else if (newCommand=="cls")          u8g2.clear();
+    else if (newCommand=="sorg")         oled_mistertext();
+    else if (newCommand=="bye")          oled_drawlogo64h(sorgelig_icon64_width, sorgelig_icon64);
     
     // ---------------------------------------------------
     // -------------- Command Mode V2 --------------------
     // ---------------------------------------------------
 
     // -- Test Commands --
-    else if (newCore=="CMDCLS") {                                        // Clear Screen
+    else if (newCommand=="CMDCLS") {                                        // Clear Screen
       u8g2.clear();
     }
     
-    else if (newCore=="CMDSORG") {                                       // Show Startscreen
+    else if (newCommand=="CMDSORG") {                                       // Show Startscreen
       oled_mistertext();
     }
     
-    else if (newCore=="CMDBYE") {                                        // Show Sorgelig's Icon
+    else if (newCommand=="CMDBYE") {                                        // Show Sorgelig's Icon
       oled_drawlogo64h(sorgelig_icon64_width, sorgelig_icon64);
     }
 
-    else if (newCore=="CMDTEST") {                                       // Show Test-Picture
+    else if (newCommand=="CMDTEST") {                                       // Show Test-Picture
       oled_drawlogo64h(TestPicture_width, TestPicture);
     }
 
-    else if (newCore=="CMDSNAM") {                                       // Show actual loaded Corename
+    else if (newCommand=="CMDSNAM") {                                       // Show actual loaded Corename
       usb2oled_showcorename();
     }
 
-    else if (newCore=="CMDSPIC") {                                       // Show actual loaded Picture with Transition
+    else if (newCommand=="CMDSPIC") {                                       // Show actual loaded Picture with Transition
       usb2oled_drawlogo(random(1,11));
     }
 
-    else if (newCore.startsWith("CMDAPD,")) {                            // Command from Serial to receive Picture Data via USB Serial from the MiSTer
+    else if (newCommand.startsWith("CMDAPD,")) {                            // Command from Serial to receive Picture Data via USB Serial from the MiSTer
       usb2oled_readlogo();                                               // ESP32 Receive Picture Data... 
     }
 
-    else if (newCore.startsWith("CMDCOR,")) {                            // Command from Serial to receive Picture Data via USB Serial from the MiSTer
+    else if (newCommand.startsWith("CMDCOR,")) {                            // Command from Serial to receive Picture Data via USB Serial from the MiSTer
       if (usb2oled_readlogo()==1) {                                      // ESP32 Receive Picture Data... 
         usb2oled_drawlogo(random(1,11));                                 // ..and show them on the OLED with Transition Effect 1..10
       }
     }
     
-    else if (newCore.startsWith("CMDCON,")) {                            // Command from Serial to receive Contrast-Level Data from the MiSTer
+    else if (newCommand.startsWith("CMDCON,")) {                            // Command from Serial to receive Contrast-Level Data from the MiSTer
       usb2oled_readnsetcontrast();                                       // Read and Set contrast                                   
     }
 
-    else if (newCore.startsWith("CMDTXT,")) {                            // Command from Serial to write Text
+    else if (newCommand.startsWith("CMDTXT,")) {                            // Command from Serial to write Text
       usb2oled_readnwritetext();                                         // Read and Write Text
     }
     
-    else if (newCore.startsWith("CMDGEO,")) {                            // Command from Serial to draw geometrics
+    else if (newCommand.startsWith("CMDGEO,")) {                            // Command from Serial to draw geometrics
       usb2oled_readndrawgeo();                                           // Read and Draw Geometrics
     }
 
-    else if (newCore.startsWith("CMDOFF,")) {                            // Command from Serial to set Power Save Mode
+    else if (newCommand.startsWith("CMDOFF,")) {                            // Command from Serial to set Power Save Mode
       usb2oled_readnopowersave();                                        // Set Power Save Mode
     }
 
-    else if (newCore.startsWith("CMDROT,")) {                            // Command from Serial to set Rotation
+    else if (newCommand.startsWith("CMDROT,")) {                            // Command from Serial to set Rotation
       usb2oled_readnsetrotation();                                       // Set Rotation
     }
 
-    else if (newCore.startsWith("CMDFOD,")) {                            // Command from Serial to set Font Diretcion
+    else if (newCommand.startsWith("CMDFOD,")) {                            // Command from Serial to set Font Diretcion
       usb2oled_readnsetfontdir();                                       // Set Rotation
     }
 
     // The following Commands are only for ESP32
 #ifdef ESP32  // OTA and Reset only for ESP32
-    else if (newCore=="CMDENOTA") {                                      // Command from Serial to enable OTA on the ESP
+    else if (newCommand=="CMDENOTA") {                                      // Command from Serial to enable OTA on the ESP
       enableOTA();                                                       // Setup Wireless and enable OTA
     }
 
-    else if (newCore=="CMDRESET") {                                      // Command from Serial for Resetting the ESP
+    else if (newCommand=="CMDRESET") {                                      // Command from Serial for Resetting the ESP
       ESP.restart();                                                     // Reset ESP
     }
 #endif
 
     // -- Unidentified Core Name, just write it on screen
     else {
-      actCore=newCore;
+      actCorename=newCommand;
       // Get Font
       const uint8_t *old_font = u8g2.getU8g2()->font;
-      newCoreChar = (char*)newCore.c_str();
+      newCommandChar = (char*)newCommand.c_str();
       u8g2.clearBuffer();
       // Set font
       u8g2.setFont(u8g2_font_tenfatguys_tr);
       //u8g2.setFont(u8g2_font_bubble_tr);                        // 18 Pixel Font
       //u8g2.setFont(u8g2_font_maniac_tr);                          // 23 Pixel Font
-      u8g2.drawStr(DispWidth/2-(u8g2.getStrWidth(newCoreChar)/2), ( DispHeight - u8g2.getAscent() ) / 2 + u8g2.getAscent(), newCoreChar);  // Write Corename to Display
+      u8g2.drawStr(DispWidth/2-(u8g2.getStrWidth(newCommandChar)/2), ( DispHeight - u8g2.getAscent() ) / 2 + u8g2.getAscent(), newCommandChar);  // Write Corename to Display
       u8g2.sendBuffer(); 
       // Set font back
       u8g2.setFont(old_font);
@@ -509,7 +565,7 @@ void loop(void) {
     Serial.print("ttyack;");                 // Handshake with delimiter; MiSTer: "read -d ";" ttyresponse < ${TTYDEVICE}"
     Serial.flush();                          // Wait for sendbuffer is clear
 #endif
-
+    
     updateDisplay=false;                     // Clear Update-Display Flag
   } // end updateDisplay
 } // End Main Loop
@@ -579,8 +635,8 @@ void usb2oled_showcorename() {
 
   u8g2.clearBuffer();
   u8g2.setFont(u8g2_font_tenfatguys_tr);     // 10 Pixel Font
-  u8g2.setCursor(DispWidth/2-(u8g2.getStrWidth(actCore.c_str())/2), DispHeight/2 + ( u8g2.getAscent()/2 ) );
-  u8g2.print(actCore);
+  u8g2.setCursor(DispWidth/2-(u8g2.getStrWidth(actCorename.c_str())/2), DispHeight/2 + ( u8g2.getAscent()/2 ) );
+  u8g2.print(actCorename);
   u8g2.sendBuffer();
 }
 
@@ -592,7 +648,7 @@ void usb2oled_readnsetcontrast(void) {
   Serial.println("Called Command CMDCON");
 #endif
   
-  cT=newCore.substring(7);
+  cT=newCommand.substring(7);
 
 #ifdef XDEBUG
   Serial.printf("Received Text: %s\n", (char*)cT.c_str());
@@ -609,7 +665,7 @@ void usb2oled_readnopowersave(void) {
   Serial.println("Called Command CMDOFF");
 #endif
   
-  pT=newCore.substring(7);
+  pT=newCommand.substring(7);
 
 #ifdef XDEBUG
   Serial.printf("Received Text: %s\n", (char*)pT.c_str());
@@ -627,7 +683,7 @@ void usb2oled_readnsetrotation(void) {
   Serial.println("Called Command CMDROT");
 #endif
   
-  rT=newCore.substring(7);
+  rT=newCommand.substring(7);
 
 #ifdef XDEBUG
   Serial.printf("Received Text: %s\n", (char*)rT.c_str());
@@ -657,7 +713,7 @@ void usb2oled_readnsetfontdir(void) {
   Serial.println("Called Command CMDFOD");
 #endif
   
-  dT=newCore.substring(7);
+  dT=newCommand.substring(7);
 
 #ifdef XDEBUG
   Serial.printf("Received Text: %s\n", (char*)dT.c_str());
@@ -696,9 +752,9 @@ int usb2oled_readlogo() {
 #ifdef XDEBUG
   Serial.println("Called Command CMDCOR");
 #endif
-  actCore=newCore.substring(7);               // Cre
+  actCorename=newCommand.substring(7);               // Cre
 #ifdef XDEBUG
-  Serial.printf("Received Text: %s\n", (char*)actCore.c_str());
+  Serial.printf("Received Text: %s\n", (char*)actCorename.c_str());
 #endif
   
 #ifdef USE_NODEMCU
@@ -926,7 +982,7 @@ void usb2oled_readnwritetext(void) {
   Serial.println("Called Command CMDTEX");
 #endif
  
-  TextIn = newCore.substring(7);            // Get Command Text from "newCore"
+  TextIn = newCommand.substring(7);            // Get Command Text from "newCommand"
   
 #ifdef XDEBUG
   Serial.printf("Received Text: %s\n", (char*)TextIn.c_str());
@@ -1028,7 +1084,7 @@ void usb2oled_readndrawgeo(void) {
   Serial.println("Called Command CMDGEO");
 #endif
 
-  TextIn = newCore.substring(7);             // Get Command Text from "newCore"
+  TextIn = newCommand.substring(7);             // Get Command Text from "newCommand"
   
 #ifdef XDEBUG
   Serial.printf("Received Text: %s\n", (char*)TextIn.c_str());

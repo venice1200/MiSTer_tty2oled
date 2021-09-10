@@ -1,6 +1,7 @@
 #!/bin/sh
 
 #
+# 2021-09-09 Moved from /etc/init.d to /media/fat/tty2oled 
 # 2021-01-22 Added -x /usr/bin/tty2oled check to start()
 # 2021-04-12 Added an INI file
 #

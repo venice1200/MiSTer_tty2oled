@@ -44,7 +44,7 @@ fi
 
 # Check for and delete old fashioned scripts to prefer /media/fat/linux/user-startup.sh
 # (https://misterfpga.org/viewtopic.php?p=32159#p32159)
-[[ -e /etc/init.d/S60tty2oled ]] && rm /etc/init.d/S60tty2oled
+[[ -e /etc/init.d/S60tty2oled ]] && /etc/init.d/S60tty2oled stop && rm /etc/init.d/S60tty2oled
 [[ -e /etc/init.d/_S60tty2oled ]] && rm /etc/init.d/_S60tty2oled
 [[ -e /usr/bin/tty2oled ]] && rm /usr/bin/tty2oled
 

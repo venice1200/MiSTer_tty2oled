@@ -21,7 +21,7 @@
 
 
 # Changelog:
-# v1.3 Minor Updates
+# v1.3 Moved from /etc/init.d to /media/fat/tty2oled 
 # v1.2 New parameter in INI file, which selects the used tty2xxx device
 # v1.1 Use of an INI file (tty2oled.ini)
 # v1.0 Base updater script. Downloads and executes a second script (Main updater), which in turn completes all tasks.

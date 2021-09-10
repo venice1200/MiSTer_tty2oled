@@ -44,6 +44,7 @@
 #            Example: /usr/bin/tty2oled /dev/ttyUSB1 115200
 #            Example: /usr/bin/tty2oled /dev/ttyUSB1 921600 USB
 # 2021-07-14 Clean up Script
+# 2021-09-09 Moved from /etc/init.d to /media/fat/tty2oled 
 #
 #
 

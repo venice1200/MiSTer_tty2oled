@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# v1.5 - Copyright (c) 2021 ojaksch, venice
+# v1.6 - Copyright (c) 2021 ojaksch, venice
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 
 
 # Changelog:
+# v1.6 Move from Init based Startup to /media/fat/linux/user-startup.sh
 # v1.5 Splitted script download into install and update using new Option "SCRIPT_UPDATE"
 #      Check for disabled Init Script. If exists skip install.
 # v1.4 New Option "USE_US_PICTURE"
@@ -30,7 +31,7 @@
 # v1.0 Main updater script which completes all tasks.
 
 
-. /media/fat/Scripts/tty2oled.ini
+. /media/fat/tty2oled/tty2oled.ini
 
 # Check and remount root writable if neccessary
 if [ $(/bin/mount | head -n1 | grep -c "(ro,") = 1 ]; then
@@ -38,19 +39,45 @@ if [ $(/bin/mount | head -n1 | grep -c "(ro,") = 1 ]; then
   MOUNTRO="true"
 fi
 
-# Currently disabled, delete old Work-Folders, move Deamon
-#[[ -v oldpicturefolder ]] && [[ -d ${oldpicturefolder} ]] && mv ${oldpicturefolder}/* ${picturefolder} && rm -R ${oldpicturefolder}
-#[[ -v OLDDAEMONSCRIPT ]] && [[ -e ${OLDDAEMONSCRIPT} ]] && mv ${OLDDAEMONSCRIPT} ${DAEMONSCRIPT} 
+# Check for and create tty2oled script folder
+[[ -d ${TTY2OLED_PATH} ]] || mkdir ${TTY2OLED_PATH}
 
+# Check for and delete old fashioned scripts to prefer /media/fat/linux/user-startup.sh
+# (https://misterfpga.org/viewtopic.php?p=32159#p32159)
+[[ -e /etc/init.d/S60tty2oled ]] && rm /etc/init.d/S60tty2oled
+[[ -e /etc/init.d/_S60tty2oled ]] && rm /etc/init.d/_S60tty2oled
+[[ -e /usr/bin/tty2oled ]] && rm /usr/bin/tty2oled
 
-echo -e '\n +----------+';
-echo -e ' | \e[1;34mtty2oled\e[0m |---[]';
-echo -e ' +----------+\n';
-echo -e "\e[1;32m Update Script"
-echo -e "---------------\e[0m"
+if [ ! -e ${USERSTARTUP} ] && [ -e /etc/init.d/S99user ]; then
+  if [ -e ${USERSTARTUPTPL} ]; then
+    echo "Copying ${USERSTARTUPTPL} to ${USERSTARTUP}"
+    cp ${USERSTARTUPTPL} ${USERSTARTUP}
+  else
+    echo "Building ${USERSTARTUP}"
+    echo -e "#!/bin/sh\n" > ${USERSTARTUP}
+    echo -e 'echo "***" $1 "***"' >> ${USERSTARTUP}
+  fi
+fi
+if [ $(grep -c "tty2oled" ${USERSTARTUP}) = "0" ]; then
+  echo -e "Add tty2oled to ${USERSTARTUP}\n"
+  echo -e "\n# Startup tty2oled" >> ${USERSTARTUP}
+  echo -e "[[ -e ${INITSCRIPT} ]] && ${INITSCRIPT} \$1" >> ${USERSTARTUP}
+fi
 
-#echo -e "\n\e[1;34mtty\e[1;31m2\e[1;33moled\e[1;32m update script"
-#echo -e "----------------------\e[0m"
+# Move old stuff to the new folder structure
+if [ -d /media/fat/tty2oledpics/pri ]; then
+  ! [[ -d ${picturefolder_pri} ]] && mkdir ${picturefolder_pri}
+  mv /media/fat/tty2oledpics/pri/* ${picturefolder_pri}/
+  rm -rf /media/fat/tty2oledpics/pri/
+fi
+if [ -d /media/fat/tty2oledpics ]; then
+  ! [[ -d ${picturefolder} ]] && mkdir ${picturefolder}
+  mv /media/fat/tty2oledpics/* ${picturefolder}/
+  rm -rf /media/fat/tty2oledpics/
+fi
+
+echo -e "\e[1;32mtty2oled update script"
+echo -e "----------------------\e[0m"
 
 echo -e "\e[1;32mChecking for available tty2oled updates...\e[0m"
 
@@ -77,21 +104,21 @@ fi
 
 
 # daemon
-wget ${NODEBUG} "${REPOSITORY_URL}/tty2oled" -O /tmp/tty2oled
+wget ${NODEBUG} "${REPOSITORY_URL}/${DAEMONNAME}" -O /tmp/${DAEMONNAME}
 if  ! [ -f ${DAEMONSCRIPT} ]; then
   echo -e "\e[1;33mInstalling daemon script \e[1;35mtty2oled\e[0m"
-  mv -f /tmp/tty2oled ${DAEMONSCRIPT}
+  mv -f /tmp/${DAEMONNAME} ${DAEMONSCRIPT}
   chmod +x ${DAEMONSCRIPT}
-elif ! cmp -s /tmp/tty2oled ${DAEMONSCRIPT}; then
+elif ! cmp -s /tmp/${DAEMONNAME} ${DAEMONSCRIPT}; then
   if [ "${SCRIPT_UPDATE}" = "yes" ]; then
     echo -e "\e[1;33mUpdating daemon script \e[1;35mtty2oled\e[0m"
-    mv -f /tmp/tty2oled ${DAEMONSCRIPT}
+    mv -f /tmp/${DAEMONNAME} ${DAEMONSCRIPT}
     chmod +x ${DAEMONSCRIPT}
   else
     echo -e "\e[5;31mSkipping\e[25;1;33m available daemon script update because of the \e[1;36mSCRIPT_UPDATE\e[1;33m INI-Option\e[0m"
   fi
 fi
-[[ -f /tmp/tty2oled ]] && rm /tmp/tty2oled
+[[ -f /tmp/${DAEMONNAME} ]] && rm /tmp/${DAEMONNAME}
 
 # pictures
 if [ "${USBMODE}" = "yes" ]; then
@@ -100,14 +127,14 @@ if [ "${USBMODE}" = "yes" ]; then
   # Text-Based Pictures download
   if [ "${USE_TEXT_PICTURE}" = "yes" ]; then
     echo -e "\e[1;32mChecking for available Text-Pictures...\e[0m"
-    wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM_Text/sha1.txt" -O - | grep ".xbm" | dos2unix | \
+    wget ${NODEBUG} "${PICTURE_REPOSITORY_URL}/XBM_Text/sha1.txt" -O - | grep ".xbm" | dos2unix | \
     while read SHA1PIC; do
       PICNAME=$(echo ${SHA1PIC} | cut -d " " -f 2-)
       CHKSUM1=$(echo ${SHA1PIC,,} | cut -d " " -f 1)
       [ -f "${picturefolder}/${PICNAME}" ] && CHKSUM2=$(sha1sum ${picturefolder}/${PICNAME} | awk '{print $1}')
       if ! [ -f "${picturefolder}/${PICNAME}" ] || ([ "${CHKSUM1}" != "${CHKSUM2}" ] && [ "${OVERWRITE_PICTURE}" = "yes" ]); then
         echo -e "\e[1;33mDownloading Picture \e[1;35m${PICNAME}\e[0m"
-        wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM_Text/${PICNAME}" -O "${picturefolder}/${PICNAME}"
+        wget ${NODEBUG} "${PICTURE_REPOSITORY_URL}/XBM_Text/${PICNAME}" -O "${picturefolder}/${PICNAME}"
       fi
     done
   else
@@ -116,28 +143,28 @@ if [ "${USBMODE}" = "yes" ]; then
 
   # Graphic-Based Pictures (as Second = Higher Priority)
   echo -e "\e[1;32mChecking for available Graphic-Pictures...\e[0m"
-  wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM/sha1.txt" -O - | grep ".xbm" | dos2unix | \
+  wget ${NODEBUG} "${PICTURE_REPOSITORY_URL}/XBM/sha1.txt" -O - | grep ".xbm" | dos2unix | \
   while read SHA1PIC; do
     PICNAME=$(echo ${SHA1PIC} | cut -d " " -f 2-)
     CHKSUM1=$(echo ${SHA1PIC,,} | cut -d " " -f 1)
     [ -f "${picturefolder}/${PICNAME}" ] && CHKSUM2=$(sha1sum "${picturefolder}/${PICNAME}" | awk '{print $1}')
     if ! [ -f "${picturefolder}/${PICNAME}" ] || ([ "${CHKSUM1}" != "${CHKSUM2}" ] && [ "${OVERWRITE_PICTURE}" = "yes" ]); then
       echo -e "\e[1;33mDownloading Picture \e[1;35m${PICNAME}\e[0m"
-      wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM/${PICNAME}" -O "${picturefolder}/${PICNAME}"
+      wget ${NODEBUG} "${PICTURE_REPOSITORY_URL}/XBM/${PICNAME}" -O "${picturefolder}/${PICNAME}"
     fi
   done
 
   # Checking for US version of Graphic-Based Pictures (Genesis = MegaDrive ; Sega CD = Mega CD ; TurboGrafx16 = PCEngine)
   if [ "${USE_US_PICTURE}" = "yes" ]; then 
     echo -e "\e[1;32mChecking for available Graphic-Pictures US-Version...\e[0m"
-    wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM_US/sha1.txt" -O - | grep ".xbm" | dos2unix | \
+    wget ${NODEBUG} "${PICTURE_REPOSITORY_URL}/XBM_US/sha1.txt" -O - | grep ".xbm" | dos2unix | \
     while read SHA1PIC; do
       PICNAME=$(echo ${SHA1PIC} | cut -d " " -f 2-)
       CHKSUM1=$(echo ${SHA1PIC,,} | cut -d " " -f 1)
       [ -f "${picturefolder}/${PICNAME}" ] && CHKSUM2=$(sha1sum ${picturefolder}/${PICNAME} | awk '{print $1}')
       if ! [ -f "${picturefolder}/${PICNAME}" ] || ([ "${CHKSUM1}" != "${CHKSUM2}" ] && [ "${OVERWRITE_PICTURE}" = "yes" ]); then
         echo -e "\e[1;33mDownloading Picture \e[1;35m${PICNAME}\e[0m"
-        wget ${NODEBUG} "${REPOSITORY_URL}/Pictures/XBM_US/${PICNAME}" -O "${picturefolder}/${PICNAME}"
+        wget ${NODEBUG} "${PICTURE_REPOSITORY_URL}/XBM_US/${PICNAME}" -O "${picturefolder}/${PICNAME}"
       fi
     done
   else
@@ -152,7 +179,7 @@ sync
 # Check and remount root non-writable if neccessary
 [ "${MOUNTRO}" = "true" ] && /bin/mount -o remount,ro /
 
-if [ $(pidof tty2oled) ]; then
+if [ $(pidof ${DAEMONNAME}) ]; then
   echo -e "\e[1;32mRestarting init script\n\e[0m"
   ${INITSCRIPT} restart
 elif [ -c "${TTYDEV}" ]; then

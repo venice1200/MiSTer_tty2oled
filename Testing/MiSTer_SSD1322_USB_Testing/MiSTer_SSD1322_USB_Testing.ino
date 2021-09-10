@@ -244,7 +244,18 @@
   -Add "#define XLOGO"
    Uncomment this Option to get the tty2oled Logo shown on Startscreen instead of the Starttext
   -Change Variable Name "newCore" into "newCommand"
-  
+
+  2021-09-07
+  -Add "#define XTILT"
+   Uncomment this Option to activate Autorotation.
+   Use tilt sensor connected to PIN 15 (SPI_0_CS) and GND.
+   This function uses the Library "Bounce2" which is available in the Library Manager.
+
+  2021-09-10
+  -Add "#define XMIC184"
+   Uncomment this Option to activate the MIC184 Temperatur-Sensor included on d.ti's PCB.
+   This function uses the Library "eHaJo_LM75" which is available in the Library Manager.
+   
 */
 
 #include <Arduino.h>
@@ -269,7 +280,7 @@
 //#define XDEBUG
 
 // Version
-#define BuildVersion "210907T"    // "T" for Testing
+#define BuildVersion "210910T"    // "T" for Testing
 
 // Startscreen Text
 #define StartText1 "MiSTer FPGA"
@@ -284,19 +295,26 @@
 // Uncomment for "Send Acknowledge" from tty2oled to MiSTer, need Daemon from Testing
 #define XSENDACK
 
-// Uncomment for Tilt-Sensor based Display-Auto-Rotation and load Library if defined
-// The Sensor is conneted to PIN 15 & GND
+// Uncomment for Tilt-Sensor based Display-Auto-Rotation. The Sensor is connected to Pin 15 (SPI_0_CS) and GND.
 //#define XTILT
 #ifdef XTILT
-  #include <Bounce2.h>
+  #include <Bounce2.h>             // << Extra Library
 #endif
 
-// Uncomment for Temperatur Sensor Support MIC184 on d.ti's PCB (not implemented yet)
+// Uncomment for Temperatur Sensor Support MIC184 on d.ti's PCB
 //#define XMIC184
+#ifdef XMIC184
+  #include <eHaJo_LM75.h>          // << Extra Library
+  #define xmic_SDA 17
+  #define xmic_SCL 16
+  EHAJO_LM75 tSensor;
+#endif
 
 
-// ---------- Auto-Board-Config via Arduino IDE Board Selection -----------
-// ------------- Make sure the Manual-Config is not active ----------------
+// ---------------------------------------------------------------------------------------------------------------------
+// ---------------------------- Auto-Board-Config via Arduino IDE Board Selection --------------------------------------
+// -------------------------------- Make sure the Manual-Config is not active ------------------------------------------
+// ---------------------------------------------------------------------------------------------------------------------
 
 #ifdef ARDUINO_ESP32_DEV
   #define USE_TTGOT8             // TTGO-T8, tty2oled Board by d.ti. Set Arduino Board to "ESP32 Dev Module", chose your xx MB Flash
@@ -310,8 +328,10 @@
   #define USE_NODEMCU            // ESP8266 NodeMCU v3. Set Arduino Board to "NodeMCU 1.0 (ESP-12E Module)"
 #endif
 
-// ----------------------- Manual-Board-Config ----------------------------
-// ---------- Make sure the Auto-Board-Config is not active ---------------
+// ---------------------------------------------------------------------------------------------------------------------
+// ------------------------------------------------ Manual-Board-Config ------------------------------------------------
+// ------------------------------------ Make sure the Auto-Board-Config is not active ----------------------------------
+// ---------------------------------------------------------------------------------------------------------------------
 
 //#define USE_TTGOT8             // TTGO-T8. Set Arduino Board to ESP32 Dev Module, xx MB Flash, def. Part. Schema
 //#define USE_LOLIN32            // Wemos LOLIN32, LOLIN32, DevKit_V4. Set Arduino Board to "WEMOS LOLIN32"
@@ -345,7 +365,9 @@
   #endif
 #endif
 
-// ------------ Variables ----------------
+// -------------------------------------------------------------
+// ------------------------- Variables -------------------------
+// -------------------------------------------------------------
 
 // Strings
 String newCommand = "";             // Received Text, from MiSTer without "\n" currently (2021-01-11)
@@ -368,7 +390,9 @@ const int cDelay=25;                // Command Delay in ms for Handshake
 Bounce RotationDebouncer = Bounce();     // Instantiate a Bounce object
 #endif
 
-// ================ SETUP ==================
+// =============================================================================================================
+// ================================================ SETUP ======================================================
+// =============================================================================================================
 void setup(void) {
   // Init Serial
   Serial.begin(115200);                      // 115200 for MiSTer ttyUSBx Device CP2102 Chip on ESP32
@@ -380,6 +404,13 @@ void setup(void) {
   // Buttons
   RotationDebouncer.attach(RotationPin,INPUT);     // Attach the debouncer to a pin with INPUT mode
   RotationDebouncer.interval(25);                 // Use a debounce interval of 25 milliseconds
+#endif
+
+#ifdef XMIC184
+  Wire.begin(xmic_SDA, xmic_SCL, 100000);
+  Serial.print("Temperature = ");
+  Serial.print(tSensor.getTemp());
+  Serial.print("°C");
 #endif
 
   // Init Display
@@ -414,7 +445,9 @@ void setup(void) {
   oled_mistertext();                                // OLED Startup with Some Text
 }
 
-// ================================= MAIN LOOP =========================================
+// =============================================================================================================
+// =============================================== MAIN LOOP ===================================================
+// =============================================================================================================
 void loop(void) {
 
 #ifdef ESP32  // OTA and Reset only for ESP32
@@ -570,7 +603,9 @@ void loop(void) {
   } // end updateDisplay
 } // End Main Loop
 
-//=================== Functions =========================
+// =============================================================================================================
+// ============================================== Functions ====================================================
+// =============================================================================================================
 
 // ---- oled_mistertext -- Show the Start-Up Text ----
 void oled_mistertext(void) {
@@ -578,10 +613,19 @@ void oled_mistertext(void) {
   Serial.println("Show Startscreen");
 #endif
   u8g2.clearBuffer();
-  u8g2.setFont(u8g2_font_5x7_tr);            // 6 Pixel Font
+  //u8g2.setFont(u8g2_font_5x7_tr);            // 6 Pixel Font
+  //u8g2.setFont(u8g2_font_5x7_tf);            // 6 Pixel Font
+  u8g2.setFont(u8g2_font_5x7_mf);            // 6 Pixel Font
   u8g2.setCursor(1,63);
-  u8g2.print(BuildVersion);
+  u8g2.print(BuildVersion);                  // Show Build-Version
+#ifdef XMIC184
+  u8g2.setCursor(110,63);
+  u8g2.print(tSensor.getTemp());    // Show Temperature if Sensor available
+  u8g2.print("\xb0");
+  u8g2.print("C");
+#endif
   u8g2.setFont(u8g2_font_tenfatguys_tr);     // 10 Pixel Font
+  
 
 #ifndef XLOGO
   u8g2.setCursor(DispWidth/2-(u8g2.getStrWidth(StartText1)/2), ( DispHeight/2 - u8g2.getAscent() ) / 2 + u8g2.getAscent() );
@@ -589,7 +633,6 @@ void oled_mistertext(void) {
   u8g2.setCursor(DispWidth/2-(u8g2.getStrWidth(StartText2)/2), ( DispHeight/2 - u8g2.getAscent() ) / 2 + u8g2.getAscent() + DispHeight/2 );
   u8g2.print(StartText2);
 #else
-  //u8g2.drawXBMP((DispWidth-tty2oled_logo_width)/2, 0, tty2oled_logo_width, tty2oled_logo_height, tty2oled_logo);
   u8g2.drawXBMP(82, 0, tty2oled_logo_width, tty2oled_logo_height, tty2oled_logo);
 #endif
 
@@ -624,7 +667,6 @@ void drawEightBit(int x, int y, unsigned char b) {
 #ifdef USE_NODEMCU
   yield();
 #endif
-
 }
 
 // ----------------- Just show the Corname ------------------------

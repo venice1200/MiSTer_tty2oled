@@ -5,7 +5,7 @@
 # tty2oled Updater/Utility Menu
 # v0.1
 
-. /media/fat/Scripts/tty2oled.ini
+. /media/fat/tty2oled/tty2oled.ini
 
 #Colors
 fblink=`tput blink`

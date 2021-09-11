@@ -6,7 +6,7 @@
 #include "amiga.h"
 #include "gng.h"
 #include "patrol.h"
-
+#include "sega.h"
 
 #define SPI_SCK 18
 #define SPI_SDA 23
@@ -240,6 +240,12 @@ void  loop()
   delay(2000);
   
   point = &patrol[0];
+  Picture_display(point);
+  delay(2000);
+  Picture_InverseDisplay(point);
+  delay(2000);
+  
+  point = &sega[0];
   Picture_display(point);
   delay(2000);
   Picture_InverseDisplay(point);

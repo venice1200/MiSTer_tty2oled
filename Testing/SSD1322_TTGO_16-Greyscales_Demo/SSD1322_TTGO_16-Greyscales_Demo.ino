@@ -1,10 +1,12 @@
-/* Arduino DUE pins
-SCK = 13, SDA = 11, CS = 10, DC = 9, RST = 8
+/* 
+  Based on Code found in this package https://cdn.compacttool.ru/downloads/SSD1322_5.5inch_oled256x64_DevDemo_DUE.zip
 */
 
 #include "city.h"
 #include "amiga.h"
 #include "gng.h"
+#include "patrol.h"
+
 
 #define SPI_SCK 18
 #define SPI_SDA 23
@@ -232,6 +234,12 @@ void  loop()
   delay(2000);
 
   point = &gng[0];
+  Picture_display(point);
+  delay(2000);
+  Picture_InverseDisplay(point);
+  delay(2000);
+  
+  point = &patrol[0];
   Picture_display(point);
   delay(2000);
   Picture_InverseDisplay(point);

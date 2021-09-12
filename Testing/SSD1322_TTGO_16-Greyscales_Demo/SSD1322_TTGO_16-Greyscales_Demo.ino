@@ -1,4 +1,4 @@
-/* 
+/*
   Based on Code found in this package https://cdn.compacttool.ru/downloads/SSD1322_5.5inch_oled256x64_DevDemo_DUE.zip
 */
 
@@ -8,11 +8,32 @@
 #include "patrol.h"
 #include "sega.h"
 
-#define SPI_SCK 18
-#define SPI_SDA 23
-#define SPI_RST 27
-#define SPI_DC 25
-#define SPI_CS 26
+#define ESP8266   ESP8266 / ESP32 / ESPTTGo
+
+#ifdef ESP8266  // ESP8266 cs=15 dc=4 reset=5
+  #define SPI_SCK 14
+  #define SPI_SDA 13
+  #define SPI_RST 5
+  #define SPI_DC 4
+  #define SPI_CS 15
+#endif
+
+#ifdef ESP32  // ESP32 cs=5 dc=16 reset=17
+  #define SPI_SCK 18
+  #define SPI_SDA 23
+  #define SPI_RST 17
+  #define SPI_DC 16
+  #define SPI_CS 5
+#endif
+
+#ifdef ESPTTGo  // ESP32 cs=26 dc=25 reset=27
+  #define SPI_SCK 18
+  #define SPI_SDA 23
+  #define SPI_RST 27
+  #define SPI_DC 25
+  #define SPI_CS 26
+#endif
+
 #define SPI_SCK_0  digitalWrite(SPI_SCK,LOW)
 #define SPI_SCK_1  digitalWrite(SPI_SCK,HIGH)
 #define SPI_SDA_0  digitalWrite(SPI_SDA,LOW)
@@ -162,7 +183,7 @@ void OLED_init()        //SSD1322
 
 void Picture_display(const unsigned char *ptr_pic)
 {
-  unsigned int x, data = 0, loops = OLED_LINE_NUMBER*OLED_COLUMN_NUMBER/2;
+  unsigned int x, data = 0, loops = OLED_LINE_NUMBER * OLED_COLUMN_NUMBER / 2;
   OLED_send_cmd(0x15);
   OLED_send_data(0x1c);
   OLED_send_data(0x5b);
@@ -179,7 +200,7 @@ void Picture_display(const unsigned char *ptr_pic)
 
 void Picture_InverseDisplay(const unsigned char *ptr_pic)
 {
-  unsigned int x, data = 0, loops = OLED_LINE_NUMBER*OLED_COLUMN_NUMBER/2;
+  unsigned int x, data = 0, loops = OLED_LINE_NUMBER * OLED_COLUMN_NUMBER / 2;
   OLED_send_cmd(0x15);
   OLED_send_data(0x1c);
   OLED_send_data(0x5b);
@@ -200,7 +221,7 @@ void  setup()
 {
   // Init Serial
   Serial.begin(115200);                      // 115200 for MiSTer ttyUSBx Device CP2102 Chip on ESP32
-  Serial.flush();                            // Wait for empty Send Buffer 
+  Serial.flush();                            // Wait for empty Send Buffer
 
   pinMode(SPI_SCK, OUTPUT); // set digital IO pins as output
   pinMode(SPI_SDA, OUTPUT);
@@ -217,7 +238,7 @@ void  setup()
   OLED_full();
   delay(300);
   OLED_clear();
-  }
+}
 
 void  loop()
 {
@@ -238,13 +259,13 @@ void  loop()
   delay(2000);
   Picture_InverseDisplay(point);
   delay(2000);
-  
+
   point = &patrol[0];
   Picture_display(point);
   delay(2000);
   Picture_InverseDisplay(point);
   delay(2000);
-  
+
   point = &sega[0];
   Picture_display(point);
   delay(2000);

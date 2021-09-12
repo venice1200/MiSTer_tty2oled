@@ -8,9 +8,9 @@
 #include "patrol.h"
 #include "sega.h"
 
-#define ESP8266   ESP8266 / ESP32 / ESPTTGo
+#define USE_ESP8266   // ESP8266 / ESP32 / ESPTTGo
 
-#ifdef ESP8266  // ESP8266 cs=15 dc=4 reset=5
+#ifdef USE_ESP8266  // ESP8266 cs=15 dc=4 reset=5
   #define SPI_SCK 14
   #define SPI_SDA 13
   #define SPI_RST 5
@@ -18,7 +18,7 @@
   #define SPI_CS 15
 #endif
 
-#ifdef ESP32  // ESP32 cs=5 dc=16 reset=17
+#ifdef USE_ESP32  // ESP32 cs=5 dc=16 reset=17
   #define SPI_SCK 18
   #define SPI_SDA 23
   #define SPI_RST 17
@@ -26,7 +26,7 @@
   #define SPI_CS 5
 #endif
 
-#ifdef ESPTTGo  // ESP32 cs=26 dc=25 reset=27
+#ifdef USE_ESPTTGo  // ESP32 cs=26 dc=25 reset=27
   #define SPI_SCK 18
   #define SPI_SDA 23
   #define SPI_RST 27

@@ -141,7 +141,20 @@ if [ "${USBMODE}" = "yes" ]; then
     echo -e "\e[1;31mSkipping\e[1;33m Text-Based Picture download because of the \e[1;36mUSE_TEXT_PICTURE\e[1;33m INI-Option\e[0m"
   fi
 
-  # Graphic-Based Pictures (as Second = Higher Priority)
+  # Graphic-Based Grayscale Pictures (as second = higest Priority)
+  echo -e "\e[1;32mChecking for available Graphic-Grayscale-Pictures...\e[0m"
+  wget ${NODEBUG} "${PICTURE_REPOSITORY_URL}/GSC/sha1.txt" -O - | grep ".gsc" | dos2unix | \
+  while read SHA1PIC; do
+    PICNAME=$(echo ${SHA1PIC} | cut -d " " -f 2-)
+    CHKSUM1=$(echo ${SHA1PIC,,} | cut -d " " -f 1)
+    [ -f "${picturefolder}/${PICNAME}" ] && CHKSUM2=$(sha1sum "${picturefolder}/${PICNAME}" | awk '{print $1}')
+    if ! [ -f "${picturefolder}/${PICNAME}" ] || ([ "${CHKSUM1}" != "${CHKSUM2}" ] && [ "${OVERWRITE_PICTURE}" = "yes" ]); then
+      echo -e "\e[1;33mDownloading Picture \e[1;35m${PICNAME}\e[0m"
+      wget ${NODEBUG} "${PICTURE_REPOSITORY_URL}/GSC/${PICNAME}" -O "${picturefolder}/${PICNAME}"
+    fi
+  done
+
+  # Graphic-Based Pictures (as third = higher Priority)
   echo -e "\e[1;32mChecking for available Graphic-Pictures...\e[0m"
   wget ${NODEBUG} "${PICTURE_REPOSITORY_URL}/XBM/sha1.txt" -O - | grep ".xbm" | dos2unix | \
   while read SHA1PIC; do

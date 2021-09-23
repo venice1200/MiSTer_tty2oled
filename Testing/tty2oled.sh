@@ -98,8 +98,8 @@ senddata() {
       PICFNAM="${picturefolder_pri}/${1}.gsc"
     elif [ -f "${picturefolder_pri}/${1}.xbm" ]; then                           # Lookup for an existing XBM in PRI and proceed
       PICFNAM="${picturefolder_pri}/${1}.xbm"
-    elif [ -f "${picturefolder_gsc}/${1}.gsc" ]; then                           # Lookup for an existing GSC and proceed
-      PICFNAM="${picturefolder_gsc}/${1}.gsc"
+    elif [ -f "${picturefolder}/${1}.gsc" ]; then                               # Lookup for an existing GSC and proceed
+      PICFNAM="${picturefolder}/${1}.gsc"
     elif [ -f "${picturefolder}/${1}.xbm" ]; then                               # Lookup for an existing XBM and proceed
       PICFNAM="${picturefolder}/${1}.xbm"
     fi                                                                          # End if Picture check

@@ -3,7 +3,7 @@
   Get CORENAME from MiSTer via Serial TTY Device and show CORENAME related text, Pictures or Logos
   Using Forked Adafruit SSD1327 Library https://github.com/adafruit/Adafruit_SSD1327for the SSD1322
  
-  2021-09-19 
+  2021-09-19 (based on MiSTer_SSD1322_USB_Teseting)
   - First Grayscale Test
    
 */
@@ -12,6 +12,7 @@
 #include <SSD1322_for_Adafruit_GFX.h>             // Display Library
 #include "logo.h"                                 // The Pics in XMB Format
 #include <Fonts/Picopixel.h>
+//#include <Fonts/Org_01.h>
 
 // OTA and Reset only for ESP32
 #ifdef ESP32
@@ -31,7 +32,7 @@
 //#define XDEBUG
 
 // Version
-#define BuildVersion "210918GT"    // "T" for Testing, "G" for Grayscale
+#define BuildVersion "210919GT"    // "T" for Testing, "G" for Grayscale
 
 // Uncomment to get the tty2oled Logo shown on Startscreen instead of text
 #define XLOGO
@@ -39,11 +40,11 @@
 // Uncomment for 180° StartUp Rotation (Display Connector up)
 //#define XROTATE
 
-// Uncomment for "Send Acknowledge" from tty2oled to MiSTer, need Daemon from Testing
-#define XSENDACK
+// Uncomment for "Send Acknowledge" from tty2oled to MiSTer, need Daemon with "waitfortty"
+//#define XSENDACK
 
 // Uncomment for Tilt-Sensor based Display-Auto-Rotation. The Sensor is connected to Pin 15 (SPI_0_CS) and GND.
-//#define XTILT
+#define XTILT
 #ifdef XTILT
   #include <Bounce2.h>             // << Extra Library
 #endif
@@ -56,7 +57,6 @@
   #define xmic_SCL 16
   EHAJO_LM75 tSensor;
 #endif
-
 
 // ---------------------------------------------------------------------------------------------------------------------
 // ------------------------------------------------ Manual-Board-Config ------------------------------------------------
@@ -94,8 +94,8 @@ uint8_t *logoBin;                   // <<== For malloc in Setup
 
 #ifdef XTILT
 // Input/Output
-#define RotationPin 15
-#define DebounceTime 23
+#define RotationPin 32
+#define DebounceTime 25
 Bounce RotationDebouncer = Bounce();     // Instantiate a Bounce object
 #endif
 
@@ -105,29 +105,31 @@ Bounce RotationDebouncer = Bounce();     // Instantiate a Bounce object
 void setup(void) {
   // Init Serial
   Serial.begin(115200);                      // 115200 for MiSTer ttyUSBx Device CP2102 Chip on ESP32
-  Serial.flush();                            // Wait for empty Send Buffer 
+  Serial.flush();                            // Wait for empty Send Buffer
+  Serial.setTimeout(500);                    // Set max. Serial "Waiting Time", default = 1000ms
 
   randomSeed(analogRead(34));                // Init Random Generator with empty Port Analog value
 
 #ifdef XTILT
-  // Buttons
-  RotationDebouncer.attach(RotationPin,INPUT);     // Attach the debouncer to a pin with INPUT mode
-  RotationDebouncer.interval(25);                 // Use a debounce interval of 25 milliseconds
+  RotationDebouncer.attach(RotationPin,INPUT_PULLUP);     // Attach the debouncer to a pin with INPUT mode
+  RotationDebouncer.interval(DebounceTime);               // Use a debounce interval of 25 milliseconds
 #endif
 
 #ifdef XMIC184
   Wire.begin(xmic_SDA, xmic_SCL, 100000);
+#ifdef XDEBUG
   Serial.print("Temperature = ");
   Serial.print(tSensor.getTemp());
   Serial.print("°C");
 #endif
+#endif
 
-  // Init Display
+  // Init Display SSD1322
   oled.begin();
   oled.clearDisplay();
   oled.setTextSize(1);
-  oled.setTextColor(SSD1322_WHITE);
-  oled.setContrast(contrast);                // Set contrast of display
+  oled.setTextColor(SSD1322_WHITE, SSD1322_BLACK);  // White foreground, black background
+  oled.setContrast(contrast);                       // Set contrast of display
 
   // Get Display Dimensions
   DispWidth = oled.width();
@@ -139,6 +141,16 @@ void setup(void) {
   logoBytes4bpp = DispWidth * DispHeight / 2;              // 8192
   logoBin = (uint8_t *) malloc(logoBytes4bpp);             // Reserve Memory for Picture-Data
 
+#ifdef XTILT
+  // Set Startup Rotation
+  if (digitalRead(RotationPin)) {
+    oled.setRotation(0);
+  }
+  else {
+    oled.setRotation(2);
+  }
+#endif
+
   oled_mistertext();                                       // OLED Startup with Some Text
 }
 
@@ -149,6 +161,28 @@ void loop(void) {
 
 #ifdef ESP32  // OTA and Reset only for ESP32
   if (OTAEN) ArduinoOTA.handle();                            // OTA active?
+#endif
+
+#ifdef XTILT
+  RotationDebouncer.update();                                     // Update the Bounce instance
+  if (RotationDebouncer.rose()) {
+    oled.setRotation(0);
+    if (actCorename == "No Core") {
+      oled_mistertext();
+    }
+    else {
+      usb2oled_drawlogo(0);
+    }
+  }
+  if (RotationDebouncer.fell()) {
+    oled.setRotation(2);
+    if (actCorename == "No Core") {
+      oled_mistertext();
+    }
+    else {
+      usb2oled_drawlogo(0);
+    }
+  }
 #endif
 
   // Serial Data
@@ -270,13 +304,14 @@ void oled_mistertext(void) {
 #ifdef XDEBUG
   Serial.println("Show Startscreen");
 #endif
-  oled.setTextSize(1);
-  //oled.setFont(&Picopixel);
+  oled.clearDisplay();
   oled.drawXBitmap(82, 0, tty2oled_logo, tty2oled_logo_width, tty2oled_logo_height, SSD1322_WHITE);
-  oled.setCursor(0,0);
+  oled.setTextSize(1);
+  oled.setFont(&Picopixel);
+  //oled.setFont(&Org_01);
+  oled.setCursor(0,5);
+  //oled.setCursor(0,0);
   oled.print(BuildVersion);
-  oled.setCursor(101,55);
-  oled.print("Grayscale");
   oled.display();
   delay(2000);
    for (int i=0; i<DispWidth; i+=16) {
@@ -285,7 +320,7 @@ void oled_mistertext(void) {
     oled.display();
     delay(100);
   }
-  //oled.setFont();
+  oled.setFont();
 } // end mistertext
 
 
@@ -335,11 +370,13 @@ int usb2oled_readlogo() {
   yield();
 #endif
 
+#ifdef XDEBUG
   oled.clearDisplay();
   oled.setCursor(0,0);
   oled.print(bytesReadCount);
   oled.display();
   delay(1000);
+#endif
 
   // Check if 2048 or 8192 Bytes read
   if ((bytesReadCount != logoBytes1bpp) && (bytesReadCount != logoBytes4bpp)) {
@@ -361,25 +398,28 @@ void usb2oled_drawlogo(int effect) {
 #ifdef XDEBUG
   Serial.println("Called Command CMDLOGO");
 #endif
-
+  // 1bpp Picture (XBM)
   if (bytesReadCount == 2048) {
+#ifdef XDEBUG
     oled.clearDisplay();
     oled.setCursor(0,0);
     oled.print("drawXBitmap");
     oled.display();
     delay(1000);
-    
+#endif
     oled.clearDisplay();
     oled.drawXBitmap(0, 0, logoBin, DispWidth, DispHeight, SSD1322_WHITE);
     oled.display();
   }
+  // 4bpp Picture
   if (bytesReadCount == 8192) {
+#ifdef XDEBUG
     oled.clearDisplay();
     oled.setCursor(0,0);
     oled.print("draw4bppBitmap");
     oled.display();
     delay(1000);
-
+#endif
     oled.clearDisplay();
     oled.draw4bppBitmap(logoBin);
     oled.display();
@@ -394,7 +434,7 @@ void enableOTA (void) {
   Serial.println("Connecting to Wireless..");
   oled.setTextSize(1);
   oled.clearDisplay();
-  oled.setCursor(10,30);
+  oled.setCursor(10,0);
   oled.print("Connecting to Wireless..");
   oled.display();
   WiFi.mode(WIFI_STA);
@@ -403,7 +443,7 @@ void enableOTA (void) {
   while (WiFi.waitForConnectResult() != WL_CONNECTED) {
     Serial.println("Connection failed! Reboot...");;
     oled.clearDisplay();
-    oled.setCursor(10,30);
+    oled.setCursor(10,0);
     oled.print("Conn.failed! Reboot...");
     oled.display();
     delay(5000);
@@ -441,7 +481,7 @@ void enableOTA (void) {
 #ifdef XDEBUG
     Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
 #endif
-    oled.setCursor(10,60);
+    oled.setCursor(10,40);
     oled.printf("Progress: %u%%", (progress / (total / 100)));
     oled.display();
     })
@@ -463,9 +503,9 @@ void enableOTA (void) {
 #endif
   
   oled.clearDisplay();
-  oled.setCursor(10,20);
+  oled.setCursor(10,0);
   oled.print("OTA Active!");
-  oled.setCursor(10,40);
+  oled.setCursor(10,20);
   oled.print("IP address: ");
   oled.print(WiFi.localIP());
   oled.display();

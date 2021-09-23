@@ -28,7 +28,8 @@
 
 
 #REPOSITORY_URL="https://raw.githubusercontent.com/venice1200/MiSTer_tty2oled/main"
-REPOSITORY_URL="https://raw.githubusercontent.com/venice1200/MiSTer_tty2oled/testing"    # Testing branch
+REPOSITORY_URL="https://raw.githubusercontent.com/venice1200/MiSTer_tty2oled/main/Testing"
+#REPOSITORY_URL="https://raw.githubusercontent.com/venice1200/MiSTer_tty2oled/testing"    # Testing branch
 
 SCRIPTNAME="/tmp/update_tty2oled_script.sh"
 NODEBUG="-q -o /dev/null"

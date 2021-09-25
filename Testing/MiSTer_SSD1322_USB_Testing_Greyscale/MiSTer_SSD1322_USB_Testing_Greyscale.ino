@@ -20,7 +20,7 @@
 #include <SSD1322_for_Adafruit_GFX.h>             // Display Library
 #include "logo.h"                                 // The Pics in XMB Format
 #include <Fonts/Picopixel.h>
-//#include <Fonts/Org_01.h>
+#include <Fonts/FreeSans9pt7b.h>
 
 // OTA and Reset only for ESP32
 #ifdef ESP32
@@ -101,6 +101,8 @@ size_t bytesReadCount=0;
 uint8_t *logoBin;                   // <<== For malloc in Setup
 enum picType {NONE, XBM, GSC};
 int actPicType=0;
+int16_t xs, ys;
+uint16_t ws, hs;
 //uint8_t logoBin[8192];
 
 #ifdef XTILT
@@ -139,9 +141,10 @@ void setup(void) {
   oled.begin();
   oled.clearDisplay();
   oled.setTextSize(1);
-  oled.setTextColor(SSD1322_WHITE, SSD1322_BLACK);  // White foreground, black background
   oled.setContrast(contrast);                       // Set contrast of display
   oled.setRotation(0);
+  oled.setFont(&FreeSans9pt7b);
+  oled.setTextColor(SSD1322_WHITE, SSD1322_BLACK);  // White foreground, black background
 
   // Get Display Dimensions
   DispWidth = oled.width();
@@ -288,12 +291,13 @@ void loop(void) {
       actPicType=0;
       newCommandChar = (char*)newCommand.c_str();
       oled.clearDisplay();
-      oled.setTextSize(2);
-      oled.setCursor(0,30);
+      //oled.setTextSize(2);
+      oled.getTextBounds(newCommandChar,0,30,&xs,&ys,&ws,&hs);            // Get String Dimensions
+      oled.setCursor(DispWidth/2-ws/2, DispHeight/2+hs/2);
       oled.print(newCommandChar);
       oled.display(); 
       // Set font back
-      oled.setTextSize(1);
+      //oled.setTextSize(1);
     }  // end ifs
 
 #ifdef XSENDACK
@@ -317,6 +321,12 @@ void oled_mistertext(void) {
   Serial.println("Show Startscreen");
 #endif
   oled.clearDisplay();
+  for (int i=0; i<DispWidth; i+=16) {
+    oled.fillRect(i,55,16,8,color);
+    color++;
+    oled.display();
+    delay(25);
+  }
   oled.drawXBitmap(82, 0, tty2oled_logo, tty2oled_logo_width, tty2oled_logo_height, SSD1322_WHITE);
   oled.setTextSize(1);
   oled.setFont(&Picopixel);
@@ -326,13 +336,8 @@ void oled_mistertext(void) {
   oled.print(BuildVersion);
   oled.display();
   delay(2000);
-   for (int i=0; i<DispWidth; i+=16) {
-    oled.fillRect(i,55,16,8,color);
-    color++;
-    oled.display();
-    delay(100);
-  }
-  oled.setFont();
+  //oled.setFont();
+  oled.setFont(&FreeSans9pt7b);
 } // end mistertext
 
 
@@ -611,11 +616,11 @@ void drawOLEDByte(int x, int y, unsigned char b, int t) {
 
 #ifdef ESP32  // OTA and Reset only for ESP32
 void enableOTA (void) {
-  Serial.println("Connecting to Wireless..");
+  Serial.println("Connecting to Wireless...");
   oled.setTextSize(1);
   oled.clearDisplay();
-  oled.setCursor(10,0);
-  oled.print("Connecting to Wireless..");
+  oled.setCursor(10,15);
+  oled.print("Connecting to Wireless...");
   oled.display();
   WiFi.mode(WIFI_STA);
   WiFi.begin(MySSID, MyPWD);
@@ -623,7 +628,7 @@ void enableOTA (void) {
   while (WiFi.waitForConnectResult() != WL_CONNECTED) {
     Serial.println("Connection failed! Reboot...");;
     oled.clearDisplay();
-    oled.setCursor(10,0);
+    oled.setCursor(10,15);
     oled.print("Conn.failed! Reboot...");
     oled.display();
     delay(5000);
@@ -661,9 +666,13 @@ void enableOTA (void) {
 #ifdef XDEBUG
     Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
 #endif
-    oled.setCursor(10,40);
-    oled.printf("Progress: %u%%", (progress / (total / 100)));
+    oled.setCursor(95,55);
+    oled.printf("%u%%", (progress / (total / 100)));
     oled.display();
+    oled.setCursor(95,55);
+    oled.setTextColor(SSD1322_BLACK);
+    oled.printf("%u%%", (progress / (total / 100)));   // Re-Write the Value with Black to clear it for the next update
+    oled.setTextColor(SSD1322_WHITE,SSD1322_BLACK);
     })
     .onError([](ota_error_t error) {
       Serial.printf("Error[%u]: ", error);
@@ -683,11 +692,13 @@ void enableOTA (void) {
 #endif
   
   oled.clearDisplay();
-  oled.setCursor(10,0);
+  oled.setCursor(10,15);
   oled.print("OTA Active!");
-  oled.setCursor(10,20);
+  oled.setCursor(10,35);
   oled.print("IP address: ");
   oled.print(WiFi.localIP());
+  oled.setCursor(10,55);
+  oled.printf("Progress:");
   oled.display();
   
   OTAEN = true;  // Set OTA Enabled to True for the "Handler" in "loop"

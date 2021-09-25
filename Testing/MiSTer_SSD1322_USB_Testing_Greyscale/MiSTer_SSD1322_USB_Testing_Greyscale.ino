@@ -4,7 +4,15 @@
   Using Forked Adafruit SSD1327 Library https://github.com/adafruit/Adafruit_SSD1327for the SSD1322
  
   2021-09-19 (based on MiSTer_SSD1322_USB_Teseting)
-  - First Grayscale Test
+  -First Grayscale Test
+  2021-09-25
+  -Adding Effects 1-7
+
+  ToDo
+  -Text & Geo Commands
+  -Particle Effect
+  -Four-Part Effect
+  -Everything I forgot
    
 */
 
@@ -26,13 +34,14 @@
 
 // ---------------------------------------------------------------------------------------------------------------------
 // ----------------------------------------------- System Config -------------------------------------------------------
+// ------------------------------------------- Activate your Options----------------------------------------------------
 // ---------------------------------------------------------------------------------------------------------------------
 
 // Uncomment (remove "//" in front ofd the Option) to get some Debugging Infos over Serial especially for SD Debugging
 //#define XDEBUG
 
 // Version
-#define BuildVersion "210919GT"    // "T" for Testing, "G" for Grayscale
+#define BuildVersion "210925GT"    // "T" for Testing, "G" for Grayscale
 
 // Uncomment to get the tty2oled Logo shown on Startscreen instead of text
 #define XLOGO
@@ -41,10 +50,10 @@
 //#define XROTATE
 
 // Uncomment for "Send Acknowledge" from tty2oled to MiSTer, need Daemon with "waitfortty"
-//#define XSENDACK
+#define XSENDACK
 
-// Uncomment for Tilt-Sensor based Display-Auto-Rotation. The Sensor is connected to Pin 15 (SPI_0_CS) and GND.
-#define XTILT
+// Uncomment for Tilt-Sensor based Display-Auto-Rotation. The Sensor is connected to Pin 32 and GND.
+//#define XTILT
 #ifdef XTILT
   #include <Bounce2.h>             // << Extra Library
 #endif
@@ -83,13 +92,15 @@ char *newCommandChar;
 bool updateDisplay = false;
 
 // Display Vars
-uint16_t DispWidth, DispHeight, DispLineBytes;
+uint16_t DispWidth, DispHeight, DispLineBytes1bpp, DispLineBytes4bpp;
 unsigned int logoBytes1bpp=0;
 unsigned int logoBytes4bpp=0;
 const int cDelay=25;                // Command Delay in ms for Handshake
 size_t bytesReadCount=0;
 //unsigned char *logoBin;           // <<== For malloc in Setup
 uint8_t *logoBin;                   // <<== For malloc in Setup
+enum picType {NONE, XBM, GSC};
+int actPicType=0;
 //uint8_t logoBin[8192];
 
 #ifdef XTILT
@@ -130,16 +141,16 @@ void setup(void) {
   oled.setTextSize(1);
   oled.setTextColor(SSD1322_WHITE, SSD1322_BLACK);  // White foreground, black background
   oled.setContrast(contrast);                       // Set contrast of display
+  oled.setRotation(0);
 
   // Get Display Dimensions
   DispWidth = oled.width();
   DispHeight = oled.height();
-  DispLineBytes = DispWidth / 8;                       // How many Bytes each Dipslay Line (SSD1322: 256Pixel/8Bit = 32Bytes each Line)
-
-  // Create Picture Buffer, better than create (malloc) & destroy (free)
+  DispLineBytes1bpp = DispWidth / 8;                       // How many Bytes each Dipslay Line at 1bpp
+  DispLineBytes4bpp = DispWidth / 2;                       // How many Bytes each Dipslay Line at 4bpp
   logoBytes1bpp = DispWidth * DispHeight / 8;              // 2048
   logoBytes4bpp = DispWidth * DispHeight / 2;              // 8192
-  logoBin = (uint8_t *) malloc(logoBytes4bpp);             // Reserve Memory for Picture-Data
+  logoBin = (uint8_t *) malloc(logoBytes4bpp);             // Create Picture Buffer, better than create (malloc) & destroy (free)
 
 #ifdef XTILT
   // Set Startup Rotation
@@ -236,23 +247,23 @@ void loop(void) {
       oled_drawlogo64h(TestPicture_width, TestPicture);
     }
 
-/*
     else if (newCommand=="CMDSNAM") {                                       // Show actual loaded Corename
       usb2oled_showcorename();
     }
-*/
 
     else if (newCommand=="CMDSPIC") {                                       // Show actual loaded Picture with Transition
       usb2oled_drawlogo(random(1,11));
     }
 
     else if (newCommand.startsWith("CMDAPD,")) {                            // Command from Serial to receive Picture Data via USB Serial from the MiSTer
-      usb2oled_readlogo();                                               // ESP32 Receive Picture Data... 
+      usb2oled_readlogo();                                                  // ESP32 Receive Picture Data... 
     }
 
     else if (newCommand.startsWith("CMDCOR,")) {                            // Command from Serial to receive Picture Data via USB Serial from the MiSTer
-      if (usb2oled_readlogo()==1) {                                      // ESP32 Receive Picture Data... 
-        usb2oled_drawlogo(random(1,11));                                 // ..and show them on the OLED with Transition Effect 1..10
+      if (usb2oled_readlogo()==1) {                                         // ESP32 Receive Picture Data... 
+        //usb2oled_drawlogo(5);                                               // ..and show them on the OLED with Transition Effect 1..10
+        usb2oled_drawlogo(random(1,8));                                     // ..and show them on the OLED with Transition Effect 1..10
+        //usb2oled_drawlogo(random(1,11));                                    // ..and show them on the OLED with Transition Effect 1..10
       }
     }
     
@@ -274,6 +285,7 @@ void loop(void) {
     // -- Unidentified Core Name, just write it on screen
     else {
       actCorename=newCommand;
+      actPicType=0;
       newCommandChar = (char*)newCommand.c_str();
       oled.clearDisplay();
       oled.setTextSize(2);
@@ -331,6 +343,20 @@ void oled_drawlogo64h(uint16_t w, const uint8_t *bitmap) {
   oled.display();
 } // end oled_drawlogo64h
 
+// ----------------- Just show the Corname ------------------------
+void usb2oled_showcorename() {
+#ifdef XDEBUG
+  Serial.println("Called Command CMDSNAM");
+#endif
+
+  oled.clearDisplay();
+  oled.setTextSize(2);
+  oled.setCursor(0,30);
+  oled.print(actCorename);
+  oled.display();
+  oled.setTextSize(1);
+}
+
 // ----------------- Command Read an Set Contrast ------------------------------
 void usb2oled_readnsetcontrast(void) {
   String cT="";
@@ -366,6 +392,11 @@ int usb2oled_readlogo() {
 
   bytesReadCount = Serial.readBytes(logoBin, logoBytes4bpp);  // Read 2048 or 8192 Bytes from Serial
 
+  // Set the Actual Picture Type
+  if (bytesReadCount == 2048) actPicType = XBM;
+  else if (bytesReadCount == 8192) actPicType = GSC;
+  else actPicType = 0;
+
 #ifdef USE_NODEMCU
   yield();
 #endif
@@ -381,6 +412,7 @@ int usb2oled_readlogo() {
   // Check if 2048 or 8192 Bytes read
   if ((bytesReadCount != logoBytes1bpp) && (bytesReadCount != logoBytes4bpp)) {
     oled_drawlogo64h(transfererror_width, transfererror_pic);
+    
     return 0;
   }
   else {
@@ -388,44 +420,192 @@ int usb2oled_readlogo() {
   }
 }  //end usb2oled_readlogo
 
-    
 // -----------------------Command Draw Logo ----------------------------
-void usb2oled_drawlogo(int effect) {
+void usb2oled_drawlogo(int e) {
   int w,x,y,x2;
   unsigned char logoByteValue;
   int logoByte;
+  int DispLineBytes;
 
 #ifdef XDEBUG
   Serial.println("Called Command CMDLOGO");
 #endif
-  // 1bpp Picture (XBM)
-  if (bytesReadCount == 2048) {
+
+  // PreLoad the Loop Value "DispLineBytes" based on Pic Type (XBM/GSC)
+  if (actPicType == XBM) DispLineBytes = DispLineBytes1bpp;
+  if (actPicType == GSC) DispLineBytes = DispLineBytes4bpp;
+
+  switch (e) {
+    case 1:                                  // Left to Right
+      for (x=0; x<DispLineBytes; x++) {
+        for (y=0; y<DispHeight; y++) {
+          drawOLEDByte(x, y, logoBin[x+y*DispLineBytes], actPicType);
+        }
+        if (actPicType == XBM) {
+          oled.display();
+        }
+        if (actPicType == GSC) {
+          if ((x+1)%4==0) oled.display();
+        }
+      }
+    break;
+
+    case 2:                                  // Top to Bottom
+      for (y=0; y<DispHeight; y++) {
+        for (x=0; x<DispLineBytes; x++) {
+          drawOLEDByte(x, y, logoBin[x+y*DispLineBytes], actPicType);
+        }
+        oled.display();
+      }
+    break;
+
+    case 3:                                  // Right to left
+      for (x=DispLineBytes-1; x>=0; x--) {
+        for (y=0; y<DispHeight; y++) {
+          drawOLEDByte(x, y, logoBin[x+y*DispLineBytes], actPicType);
+        }
+        if (actPicType == XBM) {
+          oled.display();
+        }
+        if (actPicType == GSC) {
+          if (x%4==0) oled.display();
+        }
+      }
+    break;
+
+    case 4:                                  // Bottom to Top
+      for (y=DispHeight-1; y>=0; y--) {
+        for (x=0; x<DispLineBytes; x++) {
+          drawOLEDByte(x, y, logoBin[x+y*DispLineBytes], actPicType);
+        }
+        oled.display();
+      }
+    break;
+
+    case 5:                                  // Even Line Left to Right / Odd Line Right to Left
+      for (x=0; x<DispLineBytes; x++) {
+        for (y=0; y<DispHeight; y++) {
+          if ((y % 2) == 0) {
+            x2 = x;
+          }
+          else {
+            x2 = x*-1 + DispLineBytes -1;
+          }
+          drawOLEDByte(x2, y, logoBin[x2+y*DispLineBytes], actPicType);
+        }  // end for y
+        if (actPicType == XBM) {
+          oled.display();
+        }
+        if (actPicType == GSC) {
+          if ((x+1)%4==0) oled.display();
+        }
+      }  // end for x
+    break;
+
+    case 6:                                     // Top Part Left to Right / Bottom Part Right to Left
+      for (x=0; x<DispLineBytes; x++) {
+        for (y=0; y<DispHeight; y++) {
+          //if (y < DispLineBytes) {
+          if (y < DispHeight/2) {
+            x2 = x;
+          }
+          else {
+            x2 = x*-1 + DispLineBytes -1;
+          }
+          drawOLEDByte(x2, y, logoBin[x2+y*DispLineBytes], actPicType);
+        }  // end for y
+        if (actPicType == XBM) {
+          oled.display();
+        }
+        if (actPicType == GSC) {
+          if ((x+1)%4==0) oled.display();
+        }
+      }  // end for x
+    break;  // End 6
+
+    case 7:                                     // Four Parts Left to Right to Left to Right...
+      for (w=0; w<4; w++) {
+        for (x=0; x<DispLineBytes; x++) {
+          for (y=0; y<DispHeight/4; y++) {
+            if (w%2==0) {
+              x2 = x;
+            }
+            else {
+              x2 = x*-1 + DispLineBytes -1;
+            }
+            drawOLEDByte(x2, y+w*16, logoBin[x2+(y+w*16)*DispLineBytes], actPicType);
+          }  // end for y
+          if (actPicType == XBM) {
+            oled.display();
+          }
+          if (actPicType == GSC) {
+            if ((x+1)%4==0) oled.display();
+          }
+        }  // end for x
+      }
+    break;  // End 7
+
+
+    default:
+      // XBM
+      if (actPicType == XBM) {
 #ifdef XDEBUG
-    oled.clearDisplay();
-    oled.setCursor(0,0);
-    oled.print("drawXBitmap");
-    oled.display();
-    delay(1000);
+        oled.clearDisplay();
+        oled.setCursor(0,0);
+        oled.print("drawXBitmap");
+        oled.display();
+        delay(1000);
 #endif
-    oled.clearDisplay();
-    oled.drawXBitmap(0, 0, logoBin, DispWidth, DispHeight, SSD1322_WHITE);
-    oled.display();
-  }
-  // 4bpp Picture
-  if (bytesReadCount == 8192) {
+        oled.clearDisplay();
+        oled.drawXBitmap(0, 0, logoBin, DispWidth, DispHeight, SSD1322_WHITE);
+        oled.display();
+      }
+      // 4bpp Picture
+      if (actPicType == GSC) {
 #ifdef XDEBUG
-    oled.clearDisplay();
-    oled.setCursor(0,0);
-    oled.print("draw4bppBitmap");
-    oled.display();
-    delay(1000);
+        oled.clearDisplay();
+        oled.setCursor(0,0);
+        oled.print("draw4bppBitmap");
+        oled.display();
+        delay(1000);
 #endif
-    oled.clearDisplay();
-    oled.draw4bppBitmap(logoBin);
-    oled.display();
-  }
+        oled.clearDisplay();
+        oled.draw4bppBitmap(logoBin);
+        oled.display();
+      }    
+    break;
+  } // end switch (e)
 }  // end sd2oled_drawlogo
 
+// -------- Draw one Data Byte to Display Buffer ------------
+// x,y: Display Coordinates on the Display
+// b:   Data Byte
+// t:   Picture Type (GSC/XBM) 
+// Depending on the Picture Type 2 or 8 Pixels are written
+// ---------------------------------------------------------- 
+void drawOLEDByte(int x, int y, unsigned char b, int t) {
+  switch (t) {
+    case XBM:
+      for (int i=0; i<8; i++){
+        if (bitRead(b, i)) {
+          // Set Pixel
+          oled.drawPixel(x*8+i,y,SSD1322_WHITE);
+        }
+        else {
+          // Clear Pixel
+          oled.drawPixel(x*8+i,y,SSD1322_BLACK);
+        }
+      }
+    break;
+    case GSC:
+      oled.drawPixel(x*2, y, (0xF0 & b) >> 4);  // Draw Left Pixel with Grey-Value
+      oled.drawPixel(x*2+1, y, 0x0F & b);       // Draw Right Pixel with Grey-Value
+    break;
+  }
+#ifdef USE_NODEMCU
+  yield();
+#endif
+}
 
 // ---------------- Command Enable OTA ---------------------- 
 

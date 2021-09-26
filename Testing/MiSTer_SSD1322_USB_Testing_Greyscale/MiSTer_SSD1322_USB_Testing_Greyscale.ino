@@ -411,7 +411,7 @@ void usb2oled_showcorename() {
   oled.setFont(&FreeSans18pt7b);
   oled.clearDisplay();
   oled.getTextBounds(actCorename,0,30,&xs,&ys,&ws,&hs);
-  oled.setCursor(DispWidth/2-ws/2, DispHeight/2-hs/2);
+  oled.setCursor(DispWidth/2-ws/2, DispHeight/2+hs/2);
   oled.print(actCorename);
   oled.display();
   oled.setFont(&FreeSans9pt7b);

@@ -2,9 +2,11 @@
   By Venice
   Get CORENAME from MiSTer via Serial TTY Device and show CORENAME related text, Pictures or Logos
   Using Forked Adafruit SSD1327 Library https://github.com/adafruit/Adafruit_SSD1327for the SSD1322
- 
-  2021-09-19 based on MiSTer_SSD1322_USB_Testing
-  -First Grayscale Test
+
+  -- G R A Y S C A L E  E D I T I O N --
+  
+  2021-09-19
+  -First Grayscale Test based on MiSTer_SSD1322_USB_Testing
   2021-09-25/26
   -Adding Effects 1-10
 

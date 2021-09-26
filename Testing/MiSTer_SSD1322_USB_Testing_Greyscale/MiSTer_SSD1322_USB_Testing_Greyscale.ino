@@ -12,6 +12,7 @@
 
   ToDo
   -Text & Geo Commands
+  -XMIC T-Sensor enhanced (Command)
   -Everything I forgot
    
 */
@@ -47,7 +48,7 @@
 #define BuildVersion "210926GT"    // "T" for Testing, "G" for Grayscale
 
 // Uncomment to get the tty2oled Logo shown on Startscreen instead of text
-#define XLOGO
+//#define XLOGO
 
 // Uncomment for 180° StartUp Rotation (Display Connector up)
 //#define XROTATE
@@ -377,10 +378,15 @@ void oled_mistertext(void) {
   }
   delay(500);
   oled.setFont(&Picopixel);
-  oled.setCursor(1,62);
+  oled.setCursor(0,63);
   //oled.setCursor(0,0);
   oled.print(BuildVersion);
   oled.drawXBitmap(DispWidth-usb_icon_width, DispHeight-usb_icon_height, usb_icon, usb_icon_width, usb_icon_height, SSD1322_WHITE);
+#ifdef XMIC184
+  oled.setCursor(115,63);
+  oled.print(tSensor.getTemp());    // Show Temperature if Sensor available
+  oled.print("^C");
+#endif
   oled.display();
   oled.setFont(&FreeSans9pt7b);
 } // end mistertext

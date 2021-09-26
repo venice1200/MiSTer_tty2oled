@@ -132,7 +132,7 @@ if [ "${USBMODE}" = "yes" ]; then
     while read SHA1PIC; do
       PICNAME=$(echo ${SHA1PIC} | cut -d " " -f 2-)
       CHKSUM1=$(echo ${SHA1PIC,,} | cut -d " " -f 1)
-      [ -f "${picturefolder}/${PICNAME}" ] && CHKSUM2=$(sha1sum ${picturefolder}/${PICNAME} | awk '{print $1}')
+      [ -f "${picturefolder}/${PICNAME}" ] && CHKSUM2=$(sha1sum "${picturefolder}/${PICNAME}" | awk '{print $1}')
       if ! [ -f "${picturefolder}/${PICNAME}" ] || ([ "${CHKSUM1}" != "${CHKSUM2}" ] && [ "${OVERWRITE_PICTURE}" = "yes" ]); then
         echo -e "\e[1;33mDownloading Picture \e[1;35m${PICNAME}\e[0m"
         wget ${NODEBUG} "${PICTURE_REPOSITORY_URL}/XBM_Text/${PICNAME}" -O "${picturefolder}/${PICNAME}"
@@ -149,7 +149,7 @@ if [ "${USBMODE}" = "yes" ]; then
     while read SHA1PIC; do
       PICNAME=$(echo ${SHA1PIC} | cut -d " " -f 2-)
       CHKSUM1=$(echo ${SHA1PIC,,} | cut -d " " -f 1)
-      [ -f "${picturefolder}/${PICNAME}" ] && CHKSUM2=$(sha1sum ${picturefolder}/${PICNAME} | awk '{print $1}')
+      [ -f "${picturefolder}/${PICNAME}" ] && CHKSUM2=$(sha1sum "${picturefolder}/${PICNAME}" | awk '{print $1}')
       if ! [ -f "${picturefolder}/${PICNAME}" ] || ([ "${CHKSUM1}" != "${CHKSUM2}" ] && [ "${OVERWRITE_PICTURE}" = "yes" ]); then
         echo -e "\e[1;33mDownloading Picture \e[1;35m${PICNAME}\e[0m"
         wget ${NODEBUG} "${PICTURE_REPOSITORY_URL}/GSC/${PICNAME}" -O "${picturefolder}/${PICNAME}"
@@ -179,7 +179,7 @@ if [ "${USBMODE}" = "yes" ]; then
     while read SHA1PIC; do
       PICNAME=$(echo ${SHA1PIC} | cut -d " " -f 2-)
       CHKSUM1=$(echo ${SHA1PIC,,} | cut -d " " -f 1)
-      [ -f "${picturefolder}/${PICNAME}" ] && CHKSUM2=$(sha1sum ${picturefolder}/${PICNAME} | awk '{print $1}')
+      [ -f "${picturefolder}/${PICNAME}" ] && CHKSUM2=$(sha1sum "${picturefolder}/${PICNAME}" | awk '{print $1}')
       if ! [ -f "${picturefolder}/${PICNAME}" ] || ([ "${CHKSUM1}" != "${CHKSUM2}" ] && [ "${OVERWRITE_PICTURE}" = "yes" ]); then
         echo -e "\e[1;33mDownloading Picture \e[1;35m${PICNAME}\e[0m"
         wget ${NODEBUG} "${PICTURE_REPOSITORY_URL}/XBM_US/${PICNAME}" -O "${picturefolder}/${PICNAME}"

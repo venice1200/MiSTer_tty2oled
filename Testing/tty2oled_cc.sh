@@ -1,29 +1,26 @@
 #!/bin/bash
 #
-# /media/fat/Scripts/tty2oled_
+# /media/fat/Scripts/tty2oled_cc.sh
 # by venice
-# tty2oled Utilities Menu
+# tty2oled Utilities
 # v0.1
 # 
 
-. /media/fat/Scripts/tty2oled.ini
+. /media/fat/tty2oled/tty2oled.ini
 
 
-slidewait=1
+slidewait=2
 menuwait=2
 
 function parse_cmd() {
   if [ ${#} -gt 2 ]; then # We don't accept more than 2 parameters
     echo "Too much parameter given"
   elif [ ${#} -eq 0 ]; then # Show Main
-    tty_main
+    #tty_main
+    tty_menu
   else
     while [ ${#} -gt 0 ]; do
       case ${1,,} in
-        main)
-          tty_main
-          break
-          ;;
         menu)
           tty_menu
           break
@@ -164,7 +161,6 @@ function tty_menu() {
   Enable "Enable tty2oled at boot" \
   Slide "Start Slideshow" \
   Update "Update tty2oled" \
-  Main "Back to Main Menu/Updater" \
   Exit "Exit now" 2>"/tmp/.TTYmenu"
   menuresponse=$(<"/tmp/.TTYmenu")
   #echo "Menuresponse: ${menuresponse}"
@@ -176,6 +172,7 @@ function tty_slideshow() {
   clear
   ${INITSCRIPT} stop
   echo -e "\nShow each ${fgreen}${slidewait}${freset} second(s) a new Picture\n"
+
   if [ -z "$(ls -A ${picturefolder_pri})" ]; then
     echo "" 
     echo "${fred}No Pictures found${freset} in your Private Picture Folder (pri) "
@@ -185,7 +182,7 @@ function tty_slideshow() {
     cd ${picturefolder_pri}
     for slidepic in *.xbm; do
       counter=$((counter+1))
-      echo "Showing Picture ${counter}: ${fblue}${slidepic}${freset} (pri Folder)"
+      echo "Showing Pri-Picture ${counter}: ${fblue}${slidepic}${freset} (pri Folder)"
       echo "CMDAPD,${slidepic}" > ${TTYDEV}
       tail -n +4 "${slidepic}" | xxd -r -p > ${TTYDEV}
       waitforttyack
@@ -197,6 +194,22 @@ function tty_slideshow() {
       sleep ${slidewait}
     done
   fi
+
+  # General Greyscale Pictures
+  cd ${picturefolder}
+  for slidepic in *.gsc; do
+    counter=$((counter+1))
+    echo "Showing Grayscale-Picture ${counter}: ${fyellow}${slidepic}${freset}"
+    echo "CMDAPD,${slidepic}" > ${TTYDEV}
+    tail -n +4 "${slidepic}" | xxd -r -p > ${TTYDEV}
+    waitforttyack
+    echo "CMDSNAM" > ${TTYDEV}
+    waitforttyack
+    sleep ${slidewait}
+    echo "CMDSPIC" > ${TTYDEV}
+    waitforttyack
+    sleep ${slidewait}
+  done
 
   # General Pictures
   cd ${picturefolder}
@@ -213,6 +226,7 @@ function tty_slideshow() {
     waitforttyack
     sleep ${slidewait}
   done
+
   ${INITSCRIPT} start
 }
 
@@ -235,7 +249,8 @@ function tty_showpic() {
 function tty_update() {
   clear
   ${UPDATESCRIPT}
-  exit 0
+  tty_menu
+  #exit 0
 }
 
 function waitforttyack() {

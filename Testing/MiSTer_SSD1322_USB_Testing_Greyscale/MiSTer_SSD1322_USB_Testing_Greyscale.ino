@@ -45,7 +45,7 @@
 //#define XDEBUG
 
 // Version
-#define BuildVersion "210926GT"    // "T" for Testing, "G" for Grayscale
+#define BuildVersion "210927GT"    // "T" for Testing, "G" for Grayscale
 
 // Uncomment to get the tty2oled Logo shown on Startscreen instead of text
 //#define XLOGO
@@ -408,7 +408,8 @@ void usb2oled_showcorename() {
 #ifdef XDEBUG
   Serial.println("Called Command CMDSNAM");
 #endif
-  oled.setFont(&FreeSans18pt7b);
+  oled.setFont(&FreeSans12pt7b);
+  //oled.setFont(&FreeSans18pt7b);
   oled.clearDisplay();
   oled.getTextBounds(actCorename,0,30,&xs,&ys,&ws,&hs);
   oled.setCursor(DispWidth/2-ws/2, DispHeight/2+hs/2);

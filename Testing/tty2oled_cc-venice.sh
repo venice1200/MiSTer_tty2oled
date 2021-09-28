@@ -173,27 +173,58 @@ function tty_slideshow() {
   ${INITSCRIPT} stop
   echo -e "\nShow each ${fgreen}${slidewait}${freset} second(s) a new Picture\n"
 
-  for pfolder in ${picturefolder_pri} ${picturefolder}; do
-    cd ${pfolder}
-    for ppri in xbm gsc; do
-      for slidepic in *.${ppri}; do
-        if [ -z "$(ls -A ${pfolder}/*.${ppri} 2> /dev/null)" ]; then
-          echo -e "\n${fred}No *.${ppri} Pictures found${freset} in folder ${pfolder}\n"
-        else
-          counter=$((counter+1))
-          echo "Showing ${ppri}-Picture ${counter}: ${fblue}${slidepic}${freset} (Folder ${pfolder})"
-          echo "CMDAPD,${slidepic}" > ${TTYDEV}
-          tail -n +4 "${slidepic}" | xxd -r -p > ${TTYDEV}
-          waitforttyack
-          echo "CMDSNAM" > ${TTYDEV}
-          waitforttyack
-          sleep ${slidewait}
-          echo "CMDSPIC" > ${TTYDEV}
-          waitforttyack
-          sleep ${slidewait}
-        fi
-      done
+  if [ -z "$(ls -A ${picturefolder_pri})" ]; then
+    echo "" 
+    echo "${fred}No Pictures found${freset} in your Private Picture Folder (pri) "
+    echo ""
+  else
+    # Private Pictures
+    cd ${picturefolder_pri}
+    for slidepic in *.xbm; do
+      counter=$((counter+1))
+      echo "Showing Pri-Picture ${counter}: ${fblue}${slidepic}${freset} (pri Folder)"
+      echo "CMDAPD,${slidepic}" > ${TTYDEV}
+      tail -n +4 "${slidepic}" | xxd -r -p > ${TTYDEV}
+      waitforttyack
+      echo "CMDSNAM" > ${TTYDEV}
+      waitforttyack
+      sleep ${slidewait}
+      echo "CMDSPIC" > ${TTYDEV}
+      waitforttyack
+      sleep ${slidewait}
     done
+  fi
+
+  # General Greyscale Pictures
+  cd ${picturefolder}
+  for slidepic in *.gsc; do
+    counter=$((counter+1))
+    echo "Showing Grayscale-Picture ${counter}: ${fyellow}${slidepic}${freset}"
+    echo "CMDAPD,${slidepic}" > ${TTYDEV}
+    tail -n +4 "${slidepic}" | xxd -r -p > ${TTYDEV}
+    waitforttyack
+    echo "CMDSNAM" > ${TTYDEV}
+    waitforttyack
+    sleep ${slidewait}
+    echo "CMDSPIC" > ${TTYDEV}
+    waitforttyack
+    sleep ${slidewait}
+  done
+
+  # General Pictures
+  cd ${picturefolder}
+  for slidepic in *.xbm; do
+    counter=$((counter+1))
+    echo "Showing Picture ${counter}: ${fyellow}${slidepic}${freset}"
+    echo "CMDAPD,${slidepic}" > ${TTYDEV}
+    tail -n +4 "${slidepic}" | xxd -r -p > ${TTYDEV}
+    waitforttyack
+    echo "CMDSNAM" > ${TTYDEV}
+    waitforttyack
+    sleep ${slidewait}
+    echo "CMDSPIC" > ${TTYDEV}
+    waitforttyack
+    sleep ${slidewait}
   done
 
   ${INITSCRIPT} start

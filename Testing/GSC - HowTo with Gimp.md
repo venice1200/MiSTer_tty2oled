@@ -23,7 +23,7 @@ const unsigned char _bits[8192] PROGMEM = {
 
 Done.
 ------------------------ ------ ------------------------
-https://github.com/venice1200/MiSTer_tty2oled/blob/main/Pictures/image2lcd.png?raw=true
+![image2lcd settings](https://github.com/venice1200/MiSTer_tty2oled/blob/main/Pictures/image2lcd.png?raw=true)
 ------------------------ ------ ------------------------
 
 ------------------------ GERMAN ------------------------

@@ -1,14 +1,11 @@
 /*
   By Venice
-  Get CORENAME from MiSTer via Serial TTY Device and show CORENAME related text, Pictures or Logos
+  Get CORENAME from MiSTer via USB-Serial-TTY Device and show CORENAME related text, Pictures or Logos
   Using Forked Adafruit SSD1327 Library https://github.com/adafruit/Adafruit_SSD1327for the SSD1322
 
   -- G R A Y S C A L E  E D I T I O N --
   
-  2021-09-19
-  -First Grayscale Test based on MiSTer_SSD1322_USB_Testing
-  2021-09-25/26
-  -Adding Effects 1-10
+  See changelog.md in Sketch folder for more details
 
   ToDo
   -Text & Geo Commands
@@ -17,14 +14,17 @@
    
 */
 
+// Set Version
+#define BuildVersion "210930GT"    // "T" for Testing, "G" for Grayscale
+
 #include <Arduino.h>
 #include <SSD1322_for_Adafruit_GFX.h>             // Display Library
 #include "logo.h"                                 // The Pics in XMB Format
-#include <Fonts/Picopixel.h>
+#include <Fonts/Picopixel.h>                      // Load some fonts
 #include <Fonts/FreeSans9pt7b.h>
 #include <Fonts/FreeSans12pt7b.h>
 #include <Fonts/FreeSans18pt7b.h>
-//#include <Fonts/FreeSans24pt7b.h>
+#include <Fonts/FreeSans24pt7b.h>
 
 // OTA and Reset only for ESP32
 #ifdef ESP32
@@ -41,14 +41,11 @@
 // ------------------------------------------- Activate your Options----------------------------------------------------
 // ---------------------------------------------------------------------------------------------------------------------
 
-// Uncomment (remove "//" in front ofd the Option) to get some Debugging Infos over Serial especially for SD Debugging
+// Comment (add "//" in front of the Option) to de-activate the Option
+// Uncomment (remove "//" in front of the Option) to activate the Option
+
+// Get Debugging Infos over Serial
 //#define XDEBUG
-
-// Version
-#define BuildVersion "210927GT"    // "T" for Testing, "G" for Grayscale
-
-// Uncomment to get the tty2oled Logo shown on Startscreen instead of text
-//#define XLOGO
 
 // Uncomment for 180° StartUp Rotation (Display Connector up)
 //#define XROTATE
@@ -57,7 +54,7 @@
 #define XSENDACK
 
 // Uncomment for Tilt-Sensor based Display-Auto-Rotation. 
-// The Sensor is connected to Pin 32 (with Pullup) and GND.
+// The Sensor is connected to Pin 32 (with software activated Pullup) and GND.
 //#define XTILT
 #ifdef XTILT
   #include <Bounce2.h>             // << Extra Library
@@ -71,7 +68,6 @@
   #define xmic_SCL 16
   EHAJO_LM75 tSensor;
 #endif
-
 
 // ---------------------------------------------------------------------------------------------------------------------
 // ---------------------------- Auto-Board-Config via Arduino IDE Board Selection --------------------------------------
@@ -169,15 +165,6 @@ void setup(void) {
 
   randomSeed(analogRead(34));                // Init Random Generator with empty Port Analog value
 
-#ifdef XMIC184
-  Wire.begin(xmic_SDA, xmic_SCL, 100000);
-#ifdef XDEBUG
-  Serial.print("Temperature = ");
-  Serial.print(tSensor.getTemp());
-  Serial.print("°C");
-#endif
-#endif
-
   // Init Display SSD1322
   oled.begin();
   oled.clearDisplay();
@@ -185,7 +172,7 @@ void setup(void) {
   oled.setContrast(contrast);                       // Set contrast of display
   oled.setTextSize(1);
   oled.setTextColor(SSD1322_WHITE, SSD1322_BLACK);  // White foreground, black background
-  oled.setFont(&FreeSans9pt7b);                     // Set Standard Font (available in 9/12/18/24 Pixel)
+  //oled.setFont(&FreeSans9pt7b);                     // Set Standard Font (available in 9/12/18/24 Pixel)
 
   // Get Display Dimensions
   DispWidth = oled.width();
@@ -196,10 +183,24 @@ void setup(void) {
   logoBytes4bpp = DispWidth * DispHeight / 2;              // 8192
   logoBin = (uint8_t *) malloc(logoBytes4bpp);             // Create Picture Buffer, better than create (malloc) & destroy (free)
 
+// Activate Options
+
+// 180° Rotation
 #ifdef XROTATE
   oled.setRotation(2);
 #endif
 
+// Temp Sensor
+#ifdef XMIC184
+  Wire.begin(xmic_SDA, xmic_SCL, 100000);
+#ifdef XDEBUG
+  Serial.print("Temperature = ");
+  Serial.print(tSensor.getTemp());
+  Serial.print("°C");
+#endif
+#endif
+
+// Tilt Sensor
 #ifdef XTILT
   // Setup Tilt-Sensor Input Pin
   RotationDebouncer.attach(RotationPin,INPUT_PULLUP);     // Attach the debouncer to a pin with INPUT mode
@@ -213,6 +214,7 @@ void setup(void) {
   }
 #endif
 
+// Go...
   oled_mistertext();                                       // OLED Startup with Some Text
 }
 
@@ -306,28 +308,48 @@ void loop(void) {
       usb2oled_drawlogo(random(minEffect,maxEffect+1));
     }
 
+    else if (newCommand=="CMDDOFF") {                                       // Switch Display Off
+      usb2oled_displayoff();
+    }
+
+    else if (newCommand=="CMDDON") {                                        // Switch Display On
+      usb2oled_displayon();
+    }
+
+    else if (newCommand.startsWith("CMDTXT,")) {                            // Command from Serial to write Text
+      usb2oled_readnwritetext();                                            // Read and Write Text
+    }
+    
+    else if (newCommand.startsWith("CMDGEO,")) {                            // Command from Serial to draw geometrics
+      usb2oled_readndrawgeo();                                              // Read and Draw Geometrics
+    }
+
     else if (newCommand.startsWith("CMDAPD,")) {                            // Command from Serial to receive Picture Data via USB Serial from the MiSTer
       usb2oled_readlogo();                                                  // ESP32 Receive Picture Data... 
     }
 
     else if (newCommand.startsWith("CMDCOR,")) {                            // Command from Serial to receive Picture Data via USB Serial from the MiSTer
       if (usb2oled_readlogo()==1) {                                         // ESP32 Receive Picture Data... 
-        usb2oled_drawlogo(random(minEffect,maxEffect+1));                          // ..and show them on the OLED with Transition Effect 1..10
+        usb2oled_drawlogo(random(minEffect,maxEffect+1));                   // ...and show them on the OLED with Transition Effect 1..10
       }
     }
     
     else if (newCommand.startsWith("CMDCON,")) {                            // Command from Serial to receive Contrast-Level Data from the MiSTer
-      usb2oled_readnsetcontrast();                                       // Read and Set contrast                                   
+      usb2oled_readnsetcontrast();                                          // Read and Set contrast                                   
+    }
+
+    else if (newCommand.startsWith("CMDROT,")) {                            // Command from Serial to set Rotation
+      usb2oled_readnsetrotation();                                          // Set Rotation
     }
 
     // The following Commands are only for ESP32
 #ifdef ESP32  // OTA and Reset only for ESP32
     else if (newCommand=="CMDENOTA") {                                      // Command from Serial to enable OTA on the ESP
-      enableOTA();                                                       // Setup Wireless and enable OTA
+      enableOTA();                                                          // Setup Wireless and enable OTA
     }
 
     else if (newCommand=="CMDRESET") {                                      // Command from Serial for Resetting the ESP
-      ESP.restart();                                                     // Reset ESP
+      ESP.restart();                                                        // Reset ESP
     }
 #endif
 
@@ -357,7 +379,10 @@ void loop(void) {
 // --------------------------------------------------------------
 void oled_mistertext(void) {
   uint8_t color = 0;
-#ifdef XDEBUG
+  GFXfont *curFont;                        // Buffer to save the current font
+  
+  curFont=oled.getFont();              // Rescue current font
+  #ifdef XDEBUG
   Serial.println("Show Startscreen");
 #endif
   oled.clearDisplay();
@@ -388,7 +413,8 @@ void oled_mistertext(void) {
   oled.print("^C");
 #endif
   oled.display();
-  oled.setFont(&FreeSans9pt7b);
+  //oled.setFont(&FreeSans9pt7b);
+  oled.setFont(curFont);            // Set Font Back
 } // end mistertext
 
 
@@ -405,17 +431,42 @@ void oled_drawlogo64h(uint16_t w, const uint8_t *bitmap) {
 // ----------------- Just show the Corename ---------------------
 // --------------------------------------------------------------
 void usb2oled_showcorename() {
+  GFXfont *curFont;                        // Buffer to save the current font
+  
+  curFont=oled.getFont();                  // Rescue current font
 #ifdef XDEBUG
   Serial.println("Called Command CMDSNAM");
 #endif
   oled.setFont(&FreeSans12pt7b);
-  //oled.setFont(&FreeSans18pt7b);
   oled.clearDisplay();
   oled.getTextBounds(actCorename,0,30,&xs,&ys,&ws,&hs);
   oled.setCursor(DispWidth/2-ws/2, DispHeight/2+hs/2);
   oled.print(actCorename);
   oled.display();
-  oled.setFont(&FreeSans9pt7b);
+  //oled.setFont(&FreeSans9pt7b);
+  oled.setFont(curFont);                   // Set Font Back
+}
+
+// --------------------------------------------------------------
+// ------------------ Switch Display off ------------------------
+// --------------------------------------------------------------
+void usb2oled_displayoff(void) {
+#ifdef XDEBUG
+  Serial.println("Called Command CMDDOFF");
+#endif
+  
+  oled.displayOff();                 // Switch Display off
+}
+
+// --------------------------------------------------------------
+// ------------------- Switch Display on ------------------------
+// --------------------------------------------------------------
+void usb2oled_displayon(void) {
+#ifdef XDEBUG
+  Serial.println("Called Command CMDDOFF");
+#endif
+  
+  oled.displayOn();                 // Switch Display on
 }
 
 // --------------------------------------------------------------
@@ -435,6 +486,39 @@ void usb2oled_readnsetcontrast(void) {
 
   oled.setContrast(cT.toInt());            // Read and Set contrast  
 }
+
+// --------------------------------------------------------------
+// ----------- Command Read and Set Rotation --------------------
+// --------------------------------------------------------------
+void usb2oled_readnsetrotation(void) {
+  String rT="";
+  int r=0;
+  
+#ifdef XDEBUG
+  Serial.println("Called Command CMDROT");
+#endif
+  
+  rT=newCommand.substring(7);
+
+#ifdef XDEBUG
+  Serial.printf("Received Text: %s\n", (char*)rT.c_str());
+#endif
+
+  r=rT.toInt();
+  
+  switch (r) {
+    case 0:
+      oled.setRotation(0);
+    break;
+    case 1:
+      oled.setRotation(2);
+    break;
+    default:
+      oled.setRotation(0);
+    break;
+  }
+}
+
 
 // --------------------------------------------------------------
 // ----------------------- Read Logo ----------------------------
@@ -717,20 +801,6 @@ void drawEightPixel(int x, int y) {
         oled.drawPixel(x*8+i*2+0, y, (0xF0 & b) >> 4);   // Draw Pixel 1, Left Nibble
         oled.drawPixel(x*8+i*2+1, y, 0x0F & b);          // Draw Pixel 2, Right Nibble
       }
-/*      
-      b0=logoBin[(x*4)+0+y*DispLineBytes4bpp];     // Get Byte 0, Pixel 1+2
-      b1=logoBin[(x*4)+1+y*DispLineBytes4bpp];     // Get Byte 1, Pixel 3+4 
-      b2=logoBin[(x*4)+2+y*DispLineBytes4bpp];     // Get Byte 2, Pixel 5+6
-      b3=logoBin[(x*4)+3+y*DispLineBytes4bpp];     // Get Byte 3, Pixel 7+8
-      oled.drawPixel(x*8+0, y, (0xF0 & b0) >> 4);  // Pixel 1, Byte 0 Left Nibble
-      oled.drawPixel(x*8+1, y,  0x0F & b0);        // Draw Pixel 2, Byte 0 Right Nibble
-      oled.drawPixel(x*8+2, y, (0xF0 & b1) >> 4);  // Draw Pixel 3, Byte 1 Left Nibble
-      oled.drawPixel(x*8+3, y,  0x0F & b1);        // Draw Pixel 4, Byte 1 Right Nibble
-      oled.drawPixel(x*8+4, y, (0xF0 & b2) >> 4);  // Draw Pixel 5, Byte 2 Left Nibble
-      oled.drawPixel(x*8+5, y,  0x0F & b2);        // Draw Pixel 6, Byte 2 Right Nibble
-      oled.drawPixel(x*8+6, y, (0xF0 & b3) >> 4);  // Draw Pixel 7, Byte 3 Left Nibble
-      oled.drawPixel(x*8+7, y,  0x0F & b3);        // Draw Pixel 8, Byte 4 Right Nibble
-*/
     break;
   }
 #ifdef USE_NODEMCU
@@ -738,8 +808,197 @@ void drawEightPixel(int x, int y) {
 #endif
 }
 
-// ---------------- Command Enable OTA ---------------------- 
+// ----------------------------------------------------------------------
+// ----------------------- Read and Write Text --------------------------
+// ----------------------------------------------------------------------
+void usb2oled_readnwritetext(void) {
+  int f=0,c=0,x=0,y=0,d1=0,d2=0,d3=0,d4=0;
+  String TextIn="", fT="", cT="", xT="", yT="", TextOut="";
+  GFXfont *curFont;                        // Buffer to save the current font
+  
+  curFont=oled.getFont();                  // Rescue current font
+#ifdef XDEBUG
+  Serial.println("Called Command CMDTEX");
+#endif
+ 
+  TextIn = newCommand.substring(7);            // Get Command Text from "newCommand"
+  
+#ifdef XDEBUG
+  Serial.printf("Received Text: %s\n", (char*)TextIn.c_str());
+#endif
 
+  //Searching for the "," delimiter
+  d1 = TextIn.indexOf(',');                 // Find location of first ","
+  d2 = TextIn.indexOf(',', d1+1 );          // Find location of second ","
+  d3 = TextIn.indexOf(',', d2+1 );          // Find location of third ","
+  d4 = TextIn.indexOf(',', d3+1 );          // Find location of third ","
+
+  //Create Substrings
+  fT = TextIn.substring(0, d1);             // Get String for Font-Type
+  cT = TextIn.substring(d1+1, d2);          // Get String for Draw Color
+  xT = TextIn.substring(d2+1, d3);          // Get String for X-Position
+  yT = TextIn.substring(d3+1, d4);          // Get String for Y-Position
+  TextOut = TextIn.substring(d4+1);         // Get String for Text
+  
+#ifdef XDEBUG
+  Serial.printf("Created Strings: F:%s C%s X:%s Y:%s T:%s\n", (char*)fT.c_str(), (char*)cT.c_str(), (char*)xT.c_str(), (char*)yT.c_str(), (char*)TextOut.c_str());
+#endif
+
+  // Convert Strings to Integer
+  f = fT.toInt();
+  c = cT.toInt();
+  x = xT.toInt();
+  y = yT.toInt();
+  
+  // Parameter check
+  if (f<0 || c<0 || c>15 || x<0 || x>DispWidth-1 || y<0 || y>DispHeight-1 || d1==-1 || d2==-1 || d3==-1 || d4==-1) {
+    f=1;
+    c=15;
+    x=5;
+    y=40;
+    TextOut="Parameter Error";
+  }
+  
+  //Set Font
+  switch (f) {
+    case 0:
+      oled.setFont(&Picopixel);               // Transparent Font 5pt
+      break;
+    case 1:
+      oled.setFont(&FreeSans9pt7b);           // Transparent Font 9pt
+      break;
+    case 2:
+      oled.setFont(&FreeSans12pt7b);          // Transparent Font 12pt
+      break;
+    case 3:
+      oled.setFont(&FreeSans18pt7b);          // Transparent Font 18pt
+      break;
+    case 4:
+      oled.setFont(&FreeSans24pt7b);          // Transparent Font 24pt
+      break;
+    default:
+      oled.setFont();
+      break;
+  }
+  // Output of Text
+  oled.setTextColor(c, SSD1322_BLACK);
+  oled.setCursor(x,y);
+  oled.print(TextOut);
+  oled.display();
+  oled.setTextColor(SSD1322_WHITE, SSD1322_BLACK);  // Set Font Color Back
+  oled.setFont(curFont);                   // Set Font Back
+}
+
+
+// --------------------------------------------------------------
+// ------------------ Read and Draw Geometrics ------------------
+// --------------------------------------------------------------
+void usb2oled_readndrawgeo(void) {
+  int g=0,c=0,x=0,y=0,i=0,j=0,k=0,l=0,d1=0,d2=0,d3=0,d4=0,d5=0,d6=0,d7=0;
+  String TextIn="",gT="",cT="",xT="",yT="",iT="",jT="",kT="",lT="";
+  bool pError=false;
+  
+#ifdef XDEBUG
+  Serial.println("Called Command CMDGEO");
+#endif
+
+  TextIn = newCommand.substring(7);             // Get Command Text from "newCommand"
+  
+#ifdef XDEBUG
+  Serial.printf("Received Text: %s\n", (char*)TextIn.c_str());
+#endif
+  
+  //Searching for the "," delimiter
+  d1 = TextIn.indexOf(',');                 // Find location of first ","
+  d2 = TextIn.indexOf(',', d1+1 );          // Find location of second ","
+  d3 = TextIn.indexOf(',', d2+1 );          // Find location of third ","
+  d4 = TextIn.indexOf(',', d3+1 );          // Find location of fourth ","
+  d5 = TextIn.indexOf(',', d4+1 );          // Find location of fifth ","
+  d6 = TextIn.indexOf(',', d5+1 );          // Find location of sixt ","
+  d7 = TextIn.indexOf(',', d6+1 );          // Find location of seventh ","
+
+  //Create Substrings
+  gT = TextIn.substring(0, d1);           // Get String for Geometric-Type
+  cT = TextIn.substring(d1+1, d2);        // Get String for Clear Flag
+  xT = TextIn.substring(d2+1, d3);        // Get String for X-Position
+  yT = TextIn.substring(d3+1, d4);        // Get String for Y-Position
+  iT = TextIn.substring(d4+1, d5);        // Get String for Parameter i
+  jT = TextIn.substring(d5+1, d6);        // Get String for Parameter j
+  kT = TextIn.substring(d6+1, d7);        // Get String for Parameter k
+  lT = TextIn.substring(d7+1);            // Get String for Parameter l
+
+#ifdef XDEBUG
+  Serial.printf("Part-Strings: G:%s C:%s X:%s Y:%s I:%s J:%s K:%s L:%s\n", (char*)gT.c_str(), (char*)cT.c_str(), (char*)xT.c_str(), (char*)yT.c_str(), (char*)iT.c_str(), (char*)jT.c_str(), (char*)kT.c_str() ), (char*)lT.c_str() );
+#endif
+
+  // Convert Strings to Integer
+  g = gT.toInt();
+  c = cT.toInt();
+  x = xT.toInt();
+  y = yT.toInt();
+  i = iT.toInt();
+  j = jT.toInt();
+  k = kT.toInt();
+  l = lT.toInt();
+
+#ifdef XDEBUG
+  Serial.printf("Values: G:%i C:%i X:%i Y:%i I:%i J:%i K:%i L:%i\n", g,c,x,y,i,j,k,l);
+#endif
+
+  // Enough Parameter given / Parameter Check
+  if (g<1 || g>10 || c<0 || c>15 || x<0 || x>DispWidth-1 || y<0 || y>DispHeight-1 || d1==-1 || d2==-1 || d3==-1  || d4==-1 || d5==-1  || d6==-1 || d7==-1) {
+    pError=true;
+  }
+  if (!pError) {
+    switch (g) {
+      case 1:  // Pixel x,y
+        oled.drawPixel(x,y,c);
+      break;
+      case 2:  // Line x0,y0,x1,y1,c
+        oled.drawLine(x,y,i,j,c);
+      break;
+      case 3:  // Rectangle x,y,w,h,c
+        oled.drawRect(x,y,i,j,c);
+      break;
+      case 4:  // Filled Rectangle/Box x,y,w,h,c
+        oled.fillRect(x,y,i,j,c);
+      break;
+      case 5:  // Circle x,y,r,c
+        oled.drawCircle(x,y,i,c);
+      break;
+      case 6:  // Filled Circle x,y,r,c
+        oled.fillCircle(x,y,i,c);
+      break;
+      case 7:  // Rounded Rectangle x,y,w,h,r,c
+        oled.drawRoundRect(x,y,i,j,k,c);
+      break;
+      case 8: // Filled Rounded Rectangle x,y,w,h,r,c
+        oled.fillRoundRect(x,y,i,j,k,c);
+      break;
+      case 9: // Triangle x0,y1,x1,y1,x2,y2,c
+        oled.drawTriangle(x,y,i,j,k,l,c);
+      break;
+      case 10: // Filled Triangle x0,y1,x1,y1,x2,y2,c
+        oled.fillTriangle(x,y,i,j,k,l,c);
+      break;
+      
+      default:  // Just something :-)
+        oled.drawCircle(128,32,32,15);
+        oled.fillCircle(128,32,8,8);
+        break;
+    }
+  }
+  else {
+    oled.setCursor(5, 40);
+    oled.print("Parameter Error");
+  }
+  oled.display();       // Draw Display Content
+}
+
+
+// --------------------------------------------------
+// ---------------- Enable OTA ---------------------- 
+// --------------------------------------------------
 #ifdef ESP32  // OTA and Reset only for ESP32
 void enableOTA (void) {
   Serial.println("Connecting to Wireless...");

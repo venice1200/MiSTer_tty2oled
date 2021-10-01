@@ -7,6 +7,7 @@
   
   See changelog.md in Sketch folder for more details
 
+  
   ToDo
   -Text & Geo Commands
   -XMIC T-Sensor enhanced (Command)
@@ -15,7 +16,7 @@
 */
 
 // Set Version
-#define BuildVersion "210930GT"    // "T" for Testing, "G" for Grayscale
+#define BuildVersion "211001GT"    // "T" for Testing, "G" for Grayscale
 
 #include <Arduino.h>
 #include <SSD1322_for_Adafruit_GFX.h>             // Display Library
@@ -50,23 +51,27 @@
 // Uncomment for 180° StartUp Rotation (Display Connector up)
 //#define XROTATE
 
-// Uncomment for "Send Acknowledge" from tty2oled to MiSTer, need Daemon with "waitfortty"
+// Uncomment for "Send Acknowledge" from tty2oled to MiSTer, need "waitfortty"
 #define XSENDACK
 
 // Uncomment for Tilt-Sensor based Display-Auto-Rotation. 
 // The Sensor is connected to Pin 32 (with software activated Pullup) and GND.
 //#define XTILT
 #ifdef XTILT
-  #include <Bounce2.h>             // << Extra Library
+  #include <Bounce2.h>                     // << Extra Library, via Arduino Library Manager
+  #define TILT_PIN 32                   // Tilt-Sensor Pin
+  #define DEBOUNCE_TIME 25                  // Debounce Time
+  Bounce RotationDebouncer = Bounce();     // Create Bounce class
 #endif
 
 // Uncomment for Temperatur Sensor Support MIC184 on d.ti's PCB
-//#define XMIC184
-#ifdef XMIC184
-  #include <eHaJo_LM75.h>          // << Extra Library
-  #define xmic_SDA 17
-  #define xmic_SCL 16
-  EHAJO_LM75 tSensor;
+//#define XDTI
+#ifdef XDTI
+  #include <eHaJo_LM75.h>          // << Extra Library, via Arduino Library Manager
+  #define I2C1_SDA 17              // I2C_1-SDA
+  #define I2C1_SCL 16              // I2C_1-SCL
+  EHAJO_LM75 tSensor;              // Create Sensor Class
+  #define USER_LED 19              // USER_LED
 #endif
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -147,12 +152,13 @@ const uint8_t minEffect=1, maxEffect=10;      // Min/Max Effects for Random
 //uint8_t logoBin[8192];
 //unsigned char *logoBin;           // <<== For malloc in Setup
 
-#ifdef XTILT
-// Input/Output
-#define RotationPin 32
-#define DebounceTime 25
-Bounce RotationDebouncer = Bounce();     // Instantiate a Bounce object
-#endif
+// Blinker 100ßms Interval
+const long interval = 1000;           // interval at which to blink (milliseconds)
+bool blink = false;
+bool prevblink = false;
+bool blinkpos = false;  // Pos Flanc
+bool blinkneg = false;  // Neg Flanc
+unsigned long previousMillis = 0;
 
 // =============================================================================================================
 // ================================================ SETUP ======================================================
@@ -190,9 +196,10 @@ void setup(void) {
   oled.setRotation(2);
 #endif
 
-// Temp Sensor
-#ifdef XMIC184
-  Wire.begin(xmic_SDA, xmic_SCL, 100000);
+// Setup d.to Board (Temp.Sensor/USER_LED)
+#ifdef XDTI
+  pinMode(USER_LED, OUTPUT);
+  Wire.begin(I2C1_SDA, I2C1_SCL, 100000);  // Setup I2C-1 Port
 #ifdef XDEBUG
   Serial.print("Temperature = ");
   Serial.print(tSensor.getTemp());
@@ -203,10 +210,10 @@ void setup(void) {
 // Tilt Sensor
 #ifdef XTILT
   // Setup Tilt-Sensor Input Pin
-  RotationDebouncer.attach(RotationPin,INPUT_PULLUP);     // Attach the debouncer to a pin with INPUT mode
-  RotationDebouncer.interval(DebounceTime);               // Use a debounce interval of 25 milliseconds
+  RotationDebouncer.attach(TILT_PIN,INPUT_PULLUP);     // Attach the debouncer to a pin with INPUT mode
+  RotationDebouncer.interval(DEBOUNCE_TIME);               // Use a debounce interval of 25 milliseconds
   // Set Startup Rotation
-  if (digitalRead(RotationPin)) {
+  if (digitalRead(TILT_PIN)) {
     oled.setRotation(0);
   }
   else {
@@ -222,11 +229,14 @@ void setup(void) {
 // =============================================== MAIN LOOP ===================================================
 // =============================================================================================================
 void loop(void) {
+  unsigned long currentMillis = millis();
 
+  // ESP32 OTA
 #ifdef ESP32  // OTA and Reset only for ESP32
   if (OTAEN) ArduinoOTA.handle();                            // OTA active?
 #endif
 
+  // Tilt Sensor/Auto-Rotation
 #ifdef XTILT
   RotationDebouncer.update();                                     // Update the Bounce instance
   if (RotationDebouncer.rose()) {
@@ -249,7 +259,20 @@ void loop(void) {
   }
 #endif
 
-  // Serial Data
+  // 1000ms Blinker  low--pos--high--neg--low..
+  if (currentMillis - previousMillis >= interval) {         // Interval check
+    previousMillis = currentMillis;                         // save the last time you blinked the LED
+    blink=!blink;
+  }
+  blinkpos = blink & !prevblink;
+  blinkneg = !blink & prevblink;
+  prevblink = blink;
+#ifdef XDEBUG
+  if (blinkpos) Serial.println("Pos...");
+  if (blinkneg) Serial.println("Neg...");
+#endif
+
+  // Get Serial Data
   if (Serial.available()) {
 	prevCommand = newCommand;                                // Save old Command
     newCommand = Serial.readStringUntil('\n');             // Read string from serial until NewLine "\n" (from MiSTer's echo command) is detected or timeout (1000ms) happens.
@@ -261,8 +284,6 @@ void loop(void) {
   }  // end serial available
     
   if (updateDisplay) {                                       // Proceed only if it's allowed because of new data from serial
-
-    // -- First Transmission --
     if (newCommand.endsWith("QWERTZ")) {                     // TESTING: Process first Transmission after PowerOn/Reboot.
         // Do nothing, just receive one string to clear the buffer.
     }                    
@@ -338,6 +359,10 @@ void loop(void) {
       usb2oled_readnsetcontrast();                                          // Read and Set contrast                                   
     }
 
+    else if (newCommand.startsWith("CMDULED,")) {                            // Command from Serial to receive Contrast-Level Data from the MiSTer
+      usb2oled_readnsetuserled();                                          // Read and Set contrast                                   
+    }
+
     else if (newCommand.startsWith("CMDROT,")) {                            // Command from Serial to set Rotation
       usb2oled_readnsetrotation();                                          // Set Rotation
     }
@@ -407,7 +432,7 @@ void oled_mistertext(void) {
   //oled.setCursor(0,0);
   oled.print(BuildVersion);
   oled.drawXBitmap(DispWidth-usb_icon_width, DispHeight-usb_icon_height, usb_icon, usb_icon_width, usb_icon_height, SSD1322_WHITE);
-#ifdef XMIC184
+#ifdef XDTI
   oled.setCursor(115,63);
   oled.print(tSensor.getTemp());    // Show Temperature if Sensor available
   oled.print("^C");
@@ -485,6 +510,28 @@ void usb2oled_readnsetcontrast(void) {
 #endif
 
   oled.setContrast(cT.toInt());            // Read and Set contrast  
+}
+
+// --------------------------------------------------------------
+// ----------------- Read an Set User LED -----------------------
+// --------------------------------------------------------------
+void usb2oled_readnsetuserled(void) {
+  String lT="";
+#ifdef XDEBUG
+  Serial.println("Called Command CMDULED");
+#endif
+  
+  lT=newCommand.substring(8);
+
+#ifdef XDEBUG
+  Serial.printf("Received Text: %s\n", (char*)lT.c_str());
+#endif
+
+#ifdef XDTI
+  //digitalWrite(USER_LED, lT.toInt());
+  if (lT.toInt()==0) digitalWrite(USER_LED, LOW);
+  if (lT.toInt()==1) digitalWrite(USER_LED, HIGH);
+#endif
 }
 
 // --------------------------------------------------------------
@@ -928,7 +975,7 @@ void usb2oled_readndrawgeo(void) {
   lT = TextIn.substring(d7+1);            // Get String for Parameter l
 
 #ifdef XDEBUG
-  Serial.printf("Part-Strings: G:%s C:%s X:%s Y:%s I:%s J:%s K:%s L:%s\n", (char*)gT.c_str(), (char*)cT.c_str(), (char*)xT.c_str(), (char*)yT.c_str(), (char*)iT.c_str(), (char*)jT.c_str(), (char*)kT.c_str() ), (char*)lT.c_str() );
+  Serial.printf("Part-Strings: G:%s C:%s X:%s Y:%s I:%s J:%s K:%s L:%s\n", (char*)gT.c_str(), (char*)cT.c_str(), (char*)xT.c_str(), (char*)yT.c_str(), (char*)iT.c_str(), (char*)jT.c_str(), (char*)kT.c_str(), (char*)lT.c_str());
 #endif
 
   // Convert Strings to Integer

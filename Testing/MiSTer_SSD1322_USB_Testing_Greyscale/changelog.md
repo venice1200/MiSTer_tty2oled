@@ -258,6 +258,11 @@
   -Adding Geo Command, the handling is slightyl slightyl different to the U8G2 Version
   -Adding Text Command with 5 Font's, the handling is slightyl different to the U8G2 Version
 
+  2021-10-01
+  -Renamed Otion XMIC184 to XDTI
+  -Adding USER_LED (Pin 19) for the  XDTI Option (d.ti Board)
+  -Adding Command "CMDULED,0/1" 
+
   ToDo
   -XMIC T-Sensor enhanced (Command)
   -Everything I forgot

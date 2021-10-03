@@ -6,17 +6,15 @@
   -- G R A Y S C A L E  E D I T I O N --
   
   See changelog.md in Sketch folder for more details
-
   
   ToDo
-  -Text & Geo Commands
   -XMIC T-Sensor enhanced (Command)
   -Everything I forgot
    
 */
 
 // Set Version
-#define BuildVersion "211001GT"    // "T" for Testing, "G" for Grayscale
+#define BuildVersion "211003GT"                   // "T" for Testing, "G" for Grayscale
 
 #include <Arduino.h>
 #include <SSD1322_for_Adafruit_GFX.h>             // Display Library
@@ -860,8 +858,11 @@ void drawEightPixel(int x, int y) {
 // ----------------------------------------------------------------------
 void usb2oled_readnwritetext(void) {
   int f=0,c=0,x=0,y=0,d1=0,d2=0,d3=0,d4=0;
+  int16_t x1,y1;
+  uint16_t w1,h1;
   String TextIn="", fT="", cT="", xT="", yT="", TextOut="";
   GFXfont *curFont;                        // Buffer to save the current font
+  bool clearText=false;
   
   curFont=oled.getFont();                  // Rescue current font
 #ifdef XDEBUG
@@ -905,6 +906,11 @@ void usb2oled_readnwritetext(void) {
     y=40;
     TextOut="Parameter Error";
   }
+
+  if (f>100) {                  // Font 1...x +100 = Clear Text in the Buffer without drawing it.
+    clearText=true;
+    f=f-100;
+  }
   
   //Set Font
   switch (f) {
@@ -927,13 +933,19 @@ void usb2oled_readnwritetext(void) {
       oled.setFont();
       break;
   }
-  // Output of Text
-  oled.setTextColor(c, SSD1322_BLACK);
-  oled.setCursor(x,y);
-  oled.print(TextOut);
-  oled.display();
-  oled.setTextColor(SSD1322_WHITE, SSD1322_BLACK);  // Set Font Color Back
-  oled.setFont(curFont);                   // Set Font Back
+  // Write or Clear Text
+  if (clearText) {                                      // Clear Text in Buffer (No Display Update)
+    oled.getTextBounds(TextOut,x,y,&x1,&y1,&w1,&h1);    // Get Bounds
+    oled.fillRect(x1,y1,w1,h1,c);                       // Draw a Filled Rectangle at the Postion of the Text over the Text with the given Color
+  }
+  else {
+    oled.setTextColor(c, SSD1322_BLACK);                // Output of Text
+    oled.setCursor(x,y);
+    oled.print(TextOut);
+    oled.display();
+  }
+  oled.setTextColor(SSD1322_WHITE, SSD1322_BLACK);      // Set Font Color Back
+  oled.setFont(curFont);                                // Set Font Back
 }
 
 

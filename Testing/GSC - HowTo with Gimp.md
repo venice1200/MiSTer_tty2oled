@@ -4,7 +4,7 @@ Have a look for a banner or logo of the desired picture which roughly could
 be scaled down to 256\*64 pixels without losing too much details and contrast.
 Start Gimp, load or insert the found picture and
 
-- if there is a transparent layer, remove it by /Ebene/Transparenz/Alphakanal
+- if there is a transparent layer, remove it by /Layer/Transparency/Remove Alpha Channel
 - /Colours/Desaturate/Colour to Grey
 - /Colours/Invert
 - /Image/Mode/Indexed/Generate optimum palette (16 Colours)

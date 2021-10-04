@@ -11,3 +11,5 @@ e4134a3b4a065c856802bc935c12fa7e9868110a battlezone
 2bbc124cead9aa49b364268735dad8cb1eb6594f james_bond_007  
 
 (keine Extension weil **first find fits**, also gsc -> xbm -> text)
+
+Parallel dazu einen User-eigenen Prüfsummenteil für persönliche Vorlieben, Homebrews, Hacks .....

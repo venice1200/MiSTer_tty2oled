@@ -260,8 +260,13 @@
 
   2021-10-01
   -Renamed Otion XMIC184 to XDTI
-  -Adding USER_LED (Pin 19) for the  XDTI Option (d.ti Board)
-  -Adding Command "CMDULED,0/1" 
+  -Adding USER_LED (Pin 19) for the  XDTI Option (d.ti Board) and 
+  -Adding Command "CMDULED,0/1" (nothing happens without the XDTI Option)
+  
+  2021-10-03
+  -Modify Text Output
+   -Font 1.. = Write Text
+   -Font 1.. +100 = 101.. Clear Text without Output
 
   ToDo
   -XMIC T-Sensor enhanced (Command)

@@ -380,6 +380,12 @@ void loop(void) {
         usb2oled_drawlogo(random(minEffect,maxEffect+1));                   // ...and show them on the OLED with Transition Effect 1..10
       }
     }
+
+    else if (newCommand.startsWith("CMDCOR0,")) {                           // Command from Serial to receive Picture Data via USB Serial from the MiSTer
+      if (usb2oled_readlogo()==1) {                                         // ESP32 Receive Picture Data....
+        usb2oled_drawlogo(0);                                               // ...and show them on the OLED with Transition Effect 1..10
+      }
+    }
     
     else if (newCommand.startsWith("CMDCON,")) {                            // Command from Serial to receive Contrast-Level Data from the MiSTer
       usb2oled_readnsetcontrast();                                          // Read and Set contrast                                   

@@ -154,8 +154,8 @@ enum picType {NONE, XBM, GSC};
 int actPicType=0;
 int16_t xs, ys;
 uint16_t ws, hs;
-//const uint8_t minEffect=1, maxEffect=10;      // Min/Max Effects for Random
-const uint8_t minEffect=9, maxEffect=9;      // Min/Max Effects for Random
+const uint8_t minEffect=1, maxEffect=10;      // Min/Max Effects for Random
+//const uint8_t minEffect=9, maxEffect=9;      // Min/Max Effects for Random
 //uint8_t logoBin[8192];
 //unsigned char *logoBin;           // <<== For malloc in Setup
 
@@ -792,7 +792,7 @@ void usb2oled_drawlogo(uint8_t e) {
         if ((w>2000) && (w<=4000)) { 
           if ((w % 100)==0) oled.display();
         }
-        if (w>4000)) { 
+        if (w>4000) { 
           if ((w % 200)==0) oled.display();
         }
       }

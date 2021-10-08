@@ -61,7 +61,7 @@
 
 // Uncomment for Tilt-Sensor based Display-Auto-Rotation. 
 // The Sensor is connected to Pin 32 (with software activated Pullup) and GND.
-#define XTILT
+//#define XTILT
 #ifdef XTILT
   #include <Bounce2.h>                     // << Extra Library, via Arduino Library Manager
   #define TILT_PIN 32                      // Tilt-Sensor Pin
@@ -70,7 +70,7 @@
 #endif
 
 // Uncomment for Temperatur Sensor Support MIC184 on d.ti's PCB
-#define XDTI
+//#define XDTI
 #ifdef XDTI
   #include <eHaJo_LM75.h>          // << Extra Library, via Arduino Library Manager
   #define I2C1_SDA 17              // I2C_1-SDA
@@ -154,7 +154,8 @@ enum picType {NONE, XBM, GSC};
 int actPicType=0;
 int16_t xs, ys;
 uint16_t ws, hs;
-const uint8_t minEffect=1, maxEffect=10;      // Min/Max Effects for Random
+//const uint8_t minEffect=1, maxEffect=10;      // Min/Max Effects for Random
+const uint8_t minEffect=9, maxEffect=9;      // Min/Max Effects for Random
 //uint8_t logoBin[8192];
 //unsigned char *logoBin;           // <<== For malloc in Setup
 
@@ -775,10 +776,12 @@ void usb2oled_drawlogo(uint8_t e) {
     break; // 8
 
     case 9:                                      // Particle Effect
-      for (w=0; w<20000; w++) {
+      for (w=0; w<7500; w++) {
         x = random(DispWidth);
         y = random(DispHeight);
-        drawEightPixel(x, y);
+        for (int offset=0; offset<8; offset++) {
+          if (y+offset<64) drawEightPixel(x, y+offset);
+        }
         // Different speed
         if (w<=1000) {
           if ((w % 25)==0) oled.display();
@@ -789,11 +792,8 @@ void usb2oled_drawlogo(uint8_t e) {
         if ((w>2000) && (w<=4000)) { 
           if ((w % 100)==0) oled.display();
         }
-        if ((w>4000) && (w<=8000)) { 
+        if (w>4000)) { 
           if ((w % 200)==0) oled.display();
-        }
-        if (w>8000) { 
-          if ((w % 400)==0) oled.display();
         }
       }
       // Finally overwrite the Screen with fill Size Picture

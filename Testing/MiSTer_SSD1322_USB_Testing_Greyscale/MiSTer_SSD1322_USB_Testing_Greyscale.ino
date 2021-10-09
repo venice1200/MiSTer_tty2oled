@@ -1,12 +1,22 @@
 /*
   By Venice
   Get CORENAME from MiSTer via USB-Serial-TTY Device and show CORENAME related text, Pictures or Logos
-  Using Forked Adafruit SSD1327 Library https://github.com/adafruit/Adafruit_SSD1327for the SSD1322
+  Using Forked Adafruit SSD1327 Library https://github.com/adafruit/Adafruit_SSD1327for the an SSD1322
 
   -- G R A Y S C A L E  E D I T I O N --
   
   See changelog.md in Sketch folder for more details
-  
+
+  2021-10-08
+  -Adding Library U8G2 for Adafruit GFX fotr better Text Support
+  -Adding Hidden Write and Draw Modes to the Text and Geo Commands
+   Font or Geo Value +100 write or draw the content only to the Display buffer without displaying it
+   Good for cleaning up Display content
+  -Text Command got Background Color Variable
+   Write Text with give Font Color (c) and Background Color (b)
+  -Adding Command "CMDDUPD"
+   Update Display content (write buffer to Display)
+   
   ToDo
   -XMIC T-Sensor enhanced (Command)
   -Everything I forgot
@@ -14,16 +24,13 @@
 */
 
 // Set Version
-#define BuildVersion "211003GT"                   // "T" for Testing, "G" for Grayscale
+#define BuildVersion "211009GTU"                   // "T" for Testing, "G" for Grayscale, "U" for U8G2 for Adafruit GFX
 
+// Include Libraries
 #include <Arduino.h>
-#include <SSD1322_for_Adafruit_GFX.h>             // Display Library
+#include <SSD1322_for_Adafruit_GFX.h>             // SSD1322 Controller Display Library https://github.com/venice1200/SSD1322_for_Adafruit_GFX
+#include <U8g2_for_Adafruit_GFX.h>                // U8G2 Font Engine for Adafruit GFX  https://github.com/olikraus/U8g2_for_Adafruit_GFX
 #include "logo.h"                                 // The Pics in XMB Format
-#include <Fonts/Picopixel.h>                      // Load some fonts
-#include <Fonts/FreeSans9pt7b.h>
-#include <Fonts/FreeSans12pt7b.h>
-#include <Fonts/FreeSans18pt7b.h>
-#include <Fonts/FreeSans24pt7b.h>
 
 // OTA and Reset only for ESP32
 #ifdef ESP32
@@ -54,16 +61,16 @@
 
 // Uncomment for Tilt-Sensor based Display-Auto-Rotation. 
 // The Sensor is connected to Pin 32 (with software activated Pullup) and GND.
-//#define XTILT
+#define XTILT
 #ifdef XTILT
   #include <Bounce2.h>                     // << Extra Library, via Arduino Library Manager
-  #define TILT_PIN 32                   // Tilt-Sensor Pin
-  #define DEBOUNCE_TIME 25                  // Debounce Time
+  #define TILT_PIN 32                      // Tilt-Sensor Pin
+  #define DEBOUNCE_TIME 25                 // Debounce Time
   Bounce RotationDebouncer = Bounce();     // Create Bounce class
 #endif
 
 // Uncomment for Temperatur Sensor Support MIC184 on d.ti's PCB
-//#define XDTI
+#define XDTI
 #ifdef XDTI
   #include <eHaJo_LM75.h>          // << Extra Library, via Arduino Library Manager
   #define I2C1_SDA 17              // I2C_1-SDA
@@ -122,16 +129,17 @@
 
 // Hardware Constructor OLED Display
 Adafruit_SSD1322 oled(256, 64, &SPI, OLED_DC, OLED_RESET, OLED_CS);
+U8G2_FOR_ADAFRUIT_GFX u8g2;
 
 // -------------------------------------------------------------
 // ------------------------- Variables -------------------------
 // -------------------------------------------------------------
 
 // Strings
-String newCommand = "";             // Received Text, from MiSTer without "\n" currently (2021-01-11)
+String newCommand = "";                // Received Text, from MiSTer without "\n" currently (2021-01-11)
 String prevCommand = "";
-String actCorename = "No Core";     // Actual Received Corename
-uint8_t contrast = 5;               // Contrast (brightness) of display, range: 0 (no contrast) to 255 (maximum)
+String actCorename = "No Core loaded"; // Actual Received Corename
+uint8_t contrast = 5;                  // Contrast (brightness) of display, range: 0 (no contrast) to 255 (maximum)
 //char *newCommandChar;
 bool updateDisplay = false;
 
@@ -147,6 +155,7 @@ int actPicType=0;
 int16_t xs, ys;
 uint16_t ws, hs;
 const uint8_t minEffect=1, maxEffect=10;      // Min/Max Effects for Random
+//const uint8_t minEffect=9, maxEffect=9;      // Min/Max Effects for Random
 //uint8_t logoBin[8192];
 //unsigned char *logoBin;           // <<== For malloc in Setup
 
@@ -176,9 +185,17 @@ void setup(void) {
   oled.setContrast(contrast);                       // Set contrast of display
   oled.setTextSize(1);
   oled.setTextColor(SSD1322_WHITE, SSD1322_BLACK);  // White foreground, black background
-  //oled.setFont(&FreeSans9pt7b);                     // Set Standard Font (available in 9/12/18/24 Pixel)
+  //oled.setFont(&FreeSans9pt7b);                   // Set Standard Font (available in 9/12/18/24 Pixel)
+  oled.cp437(true);                                 // Enable Code Page 437-compatible charset (bugfix)
 
-  // Get Display Dimensions
+  // Init U8G2 for Adafruit GFX
+  u8g2.begin(oled); 
+  //u8g2.setFontMode(1);                             // Transpartent Font Mode, Background is transparent
+  u8g2.setFontMode(0);                               // Non-Transpartent Font Mode, Background is overwritten
+  u8g2.setForegroundColor(SSD1322_WHITE);            // apply Adafruit GFX color
+  //u8g2.setBackgroundColor(SSD1322_BLACK);
+
+   // Get Display Dimensions
   DispWidth = oled.width();
   DispHeight = oled.height();
   DispLineBytes1bpp = DispWidth / 8;                       // How many Bytes uses each Display Line at 1bpp
@@ -238,8 +255,11 @@ void loop(void) {
 #ifdef XTILT
   RotationDebouncer.update();                                     // Update the Bounce instance
   if (RotationDebouncer.rose()) {
+#ifdef XDEBUG
+    Serial.println("Tilt Rose...");
+#endif
     oled.setRotation(0);
-    if (actCorename == "No Core") {
+    if (actCorename.startsWith("No Core")) {
       oled_mistertext();
     }
     else {
@@ -247,8 +267,11 @@ void loop(void) {
     }
   }
   if (RotationDebouncer.fell()) {
+#ifdef XDEBUG
+    Serial.println("Tilt Fell...");
+#endif
     oled.setRotation(2);
-    if (actCorename == "No Core") {
+    if (actCorename.startsWith("No Core")) {
       oled_mistertext();
     }
     else {
@@ -265,6 +288,7 @@ void loop(void) {
   blinkpos = blink & !prevblink;
   blinkneg = !blink & prevblink;
   prevblink = blink;
+
 #ifdef XDEBUG
   if (blinkpos) Serial.println("Pos...");
   if (blinkneg) Serial.println("Neg...");
@@ -335,6 +359,10 @@ void loop(void) {
       usb2oled_displayon();
     }
 
+    else if (newCommand=="CMDDUPD") {                                       // Update Display Content
+      usb2oled_updatedisplay();
+    }
+
     else if (newCommand.startsWith("CMDTXT,")) {                            // Command from Serial to write Text
       usb2oled_readnwritetext();                                            // Read and Write Text
     }
@@ -352,13 +380,19 @@ void loop(void) {
         usb2oled_drawlogo(random(minEffect,maxEffect+1));                   // ...and show them on the OLED with Transition Effect 1..10
       }
     }
+
+    else if (newCommand.startsWith("CMDCOR0,")) {                           // Command from Serial to receive Picture Data via USB Serial from the MiSTer
+      if (usb2oled_readlogo()==1) {                                         // ESP32 Receive Picture Data....
+        usb2oled_drawlogo(0);                                               // ...and show them on the OLED with Transition Effect 0
+      }
+    }
     
     else if (newCommand.startsWith("CMDCON,")) {                            // Command from Serial to receive Contrast-Level Data from the MiSTer
       usb2oled_readnsetcontrast();                                          // Read and Set contrast                                   
     }
 
     else if (newCommand.startsWith("CMDULED,")) {                            // Command from Serial to receive Contrast-Level Data from the MiSTer
-      usb2oled_readnsetuserled();                                          // Read and Set contrast                                   
+      usb2oled_readnsetuserled();                                            // Set LED                                   
     }
 
     else if (newCommand.startsWith("CMDROT,")) {                            // Command from Serial to set Rotation
@@ -425,15 +459,15 @@ void oled_mistertext(void) {
     delay(25);
   }
   delay(500);
-  oled.setFont(&Picopixel);
-  oled.setCursor(0,63);
-  //oled.setCursor(0,0);
-  oled.print(BuildVersion);
+  u8g2.setFont(u8g2_font_5x7_mf);            // 6 Pixel Font
+  u8g2.setCursor(0,63);
+  u8g2.print(BuildVersion);   
   oled.drawXBitmap(DispWidth-usb_icon_width, DispHeight-usb_icon_height, usb_icon, usb_icon_width, usb_icon_height, SSD1322_WHITE);
 #ifdef XDTI
-  oled.setCursor(115,63);
-  oled.print(tSensor.getTemp());    // Show Temperature if Sensor available
-  oled.print("^C");
+  u8g2.setCursor(111,63);
+  u8g2.print(tSensor.getTemp());    // Show Temperature if Sensor available
+  u8g2.print("\xb0");
+  u8g2.print("C");
 #endif
   oled.display();
   //oled.setFont(&FreeSans9pt7b);
@@ -454,20 +488,14 @@ void oled_drawlogo64h(uint16_t w, const uint8_t *bitmap) {
 // ----------------- Just show the Corename ---------------------
 // --------------------------------------------------------------
 void usb2oled_showcorename() {
-  GFXfont *curFont;                        // Buffer to save the current font
-  
-  curFont=oled.getFont();                  // Rescue current font
 #ifdef XDEBUG
   Serial.println("Called Command CMDSNAM");
 #endif
-  oled.setFont(&FreeSans12pt7b);
   oled.clearDisplay();
-  oled.getTextBounds(actCorename,0,30,&xs,&ys,&ws,&hs);
-  oled.setCursor(DispWidth/2-ws/2, DispHeight/2+hs/2);
-  oled.print(actCorename);
+  u8g2.setFont(u8g2_font_tenfatguys_tr);     // 10 Pixel Font
+  u8g2.setCursor(DispWidth/2-(u8g2.getUTF8Width(actCorename.c_str())/2), DispHeight/2 + ( u8g2.getFontAscent()/2 ) );
+  u8g2.print(actCorename);
   oled.display();
-  //oled.setFont(&FreeSans9pt7b);
-  oled.setFont(curFont);                   // Set Font Back
 }
 
 // --------------------------------------------------------------
@@ -490,6 +518,17 @@ void usb2oled_displayon(void) {
 #endif
   
   oled.displayOn();                 // Switch Display on
+}
+
+// --------------------------------------------------------------
+// -------------- Update Display Contentz -----------------------
+// --------------------------------------------------------------
+void usb2oled_updatedisplay(void) {
+#ifdef XDEBUG
+  Serial.println("Called Command CMDDUPD");
+#endif
+  
+  oled.display();                 // Update Display Content
 }
 
 // --------------------------------------------------------------
@@ -743,10 +782,12 @@ void usb2oled_drawlogo(uint8_t e) {
     break; // 8
 
     case 9:                                      // Particle Effect
-      for (w=0; w<20000; w++) {
+      for (w=0; w<7500; w++) {
         x = random(DispWidth);
         y = random(DispHeight);
-        drawEightPixel(x, y);
+        for (int offset=0; offset<8; offset++) {
+          if (y+offset<64) drawEightPixel(x, y+offset);
+        }
         // Different speed
         if (w<=1000) {
           if ((w % 25)==0) oled.display();
@@ -757,11 +798,8 @@ void usb2oled_drawlogo(uint8_t e) {
         if ((w>2000) && (w<=4000)) { 
           if ((w % 100)==0) oled.display();
         }
-        if ((w>4000) && (w<=8000)) { 
+        if (w>4000) { 
           if ((w % 200)==0) oled.display();
-        }
-        if (w>8000) { 
-          if ((w % 400)==0) oled.display();
         }
       }
       // Finally overwrite the Screen with fill Size Picture
@@ -857,16 +895,14 @@ void drawEightPixel(int x, int y) {
 // ----------------------- Read and Write Text --------------------------
 // ----------------------------------------------------------------------
 void usb2oled_readnwritetext(void) {
-  int f=0,c=0,x=0,y=0,d1=0,d2=0,d3=0,d4=0;
+  int f=0,c=0,b=0,x=0,y=0,d1=0,d2=0,d3=0,d4=0,d5=0;
   int16_t x1,y1;
   uint16_t w1,h1;
-  String TextIn="", fT="", cT="", xT="", yT="", TextOut="";
-  GFXfont *curFont;                        // Buffer to save the current font
-  bool clearText=false;
+  String TextIn="", fT="", cT="", bT="", xT="", yT="", TextOut="";
+  bool clearMode=false;
   
-  curFont=oled.getFont();                  // Rescue current font
 #ifdef XDEBUG
-  Serial.println("Called Command CMDTEX");
+  Serial.println("Called Command CMDTEXT");
 #endif
  
   TextIn = newCommand.substring(7);            // Get Command Text from "newCommand"
@@ -879,14 +915,16 @@ void usb2oled_readnwritetext(void) {
   d1 = TextIn.indexOf(',');                 // Find location of first ","
   d2 = TextIn.indexOf(',', d1+1 );          // Find location of second ","
   d3 = TextIn.indexOf(',', d2+1 );          // Find location of third ","
-  d4 = TextIn.indexOf(',', d3+1 );          // Find location of third ","
+  d4 = TextIn.indexOf(',', d3+1 );          // Find location of fourth ","
+  d5 = TextIn.indexOf(',', d4+1 );          // Find location of fifth ","
 
   //Create Substrings
   fT = TextIn.substring(0, d1);             // Get String for Font-Type
   cT = TextIn.substring(d1+1, d2);          // Get String for Draw Color
-  xT = TextIn.substring(d2+1, d3);          // Get String for X-Position
-  yT = TextIn.substring(d3+1, d4);          // Get String for Y-Position
-  TextOut = TextIn.substring(d4+1);         // Get String for Text
+  bT = TextIn.substring(d2+1, d3);          // Get String for Background Color
+  xT = TextIn.substring(d3+1, d4);          // Get String for X-Position
+  yT = TextIn.substring(d4+1, d5);          // Get String for Y-Position
+  TextOut = TextIn.substring(d5+1);         // Get String for Text
   
 #ifdef XDEBUG
   Serial.printf("Created Strings: F:%s C%s X:%s Y:%s T:%s\n", (char*)fT.c_str(), (char*)cT.c_str(), (char*)xT.c_str(), (char*)yT.c_str(), (char*)TextOut.c_str());
@@ -895,57 +933,60 @@ void usb2oled_readnwritetext(void) {
   // Convert Strings to Integer
   f = fT.toInt();
   c = cT.toInt();
+  b = bT.toInt();
   x = xT.toInt();
   y = yT.toInt();
   
   // Parameter check
-  if (f<0 || c<0 || c>15 || x<0 || x>DispWidth-1 || y<0 || y>DispHeight-1 || d1==-1 || d2==-1 || d3==-1 || d4==-1) {
+  if (f<0 || c<0 || c>15 || b<0 || b>15 || x<0 || x>DispWidth-1 || y<0 || y>DispHeight-1 || d1==-1 || d2==-1 || d3==-1 || d4==-1 || d5==-1) {
     f=1;
     c=15;
     x=5;
     y=40;
-    TextOut="Parameter Error";
+    TextOut="Error CMDTEXT";
   }
 
-  if (f>100) {                  // Font 1...x +100 = Clear Text in the Buffer without drawing it.
-    clearText=true;
+  if (f>100) {                  // Do not run oled.display() after printing
+    clearMode=true;
     f=f-100;
   }
   
   //Set Font
   switch (f) {
     case 0:
-      oled.setFont(&Picopixel);               // Transparent Font 5pt
-      break;
+      u8g2.setFont(u8g2_font_5x7_mf);             // Transparent 6 Pixel Font
+    break;
     case 1:
-      oled.setFont(&FreeSans9pt7b);           // Transparent Font 9pt
-      break;
+      u8g2.setFont(u8g2_font_luBS08_tf);          // Transparent Font 20x12, 8 Pixel A
+    break;
     case 2:
-      oled.setFont(&FreeSans12pt7b);          // Transparent Font 12pt
-      break;
+      u8g2.setFont(u8g2_font_luBS10_tf);          // Transparent Font 26x15, 10 Pixel A
+    break;
     case 3:
-      oled.setFont(&FreeSans18pt7b);          // Transparent Font 18pt
-      break;
+      u8g2.setFont(u8g2_font_luBS14_tf);          // Transparent Font 35x22, 14 Pixel A
+    break;
     case 4:
-      oled.setFont(&FreeSans24pt7b);          // Transparent Font 24pt
-      break;
+      u8g2.setFont(u8g2_font_luBS18_tf);          // Transparent Font 44x28, 18 Pixel A
+    break;
+    case 5:
+      u8g2.setFont(u8g2_font_luBS24_tf);          // Transparent Font 61x40, 24 Pixel A
+    break;
+    case 7:
+      u8g2.setFont(u8g2_font_lucasarts_scumm_subtitle_o_tf); // Nice 12 Pixel Font
+    break;
     default:
-      oled.setFont();
-      break;
+      u8g2.setFont(u8g2_font_tenfatguys_tr);
+    break;
   }
   // Write or Clear Text
-  if (clearText) {                                      // Clear Text in Buffer (No Display Update)
-    oled.getTextBounds(TextOut,x,y,&x1,&y1,&w1,&h1);    // Get Bounds
-    oled.fillRect(x1,y1,w1,h1,c);                       // Draw a Filled Rectangle at the Postion of the Text over the Text with the given Color
-  }
-  else {
-    oled.setTextColor(c, SSD1322_BLACK);                // Output of Text
-    oled.setCursor(x,y);
-    oled.print(TextOut);
-    oled.display();
-  }
-  oled.setTextColor(SSD1322_WHITE, SSD1322_BLACK);      // Set Font Color Back
-  oled.setFont(curFont);                                // Set Font Back
+  u8g2.setForegroundColor(c);                           // Set Font Color
+  u8g2.setBackgroundColor(b);                           // Set Backgrounf Color
+  u8g2.setCursor(x,y);                                  // Set Cursor Position
+  u8g2.print(TextOut);                                  // Write Text to Buffer
+  if (!clearMode) oled.display();                       // Update Screen only if not Clear Mode (Font>100)
+  u8g2.setForegroundColor(SSD1322_WHITE);               // Set Color back
+  u8g2.setBackgroundColor(SSD1322_BLACK);
+  //u8g2.setFontMode(0);
 }
 
 
@@ -956,6 +997,7 @@ void usb2oled_readndrawgeo(void) {
   int g=0,c=0,x=0,y=0,i=0,j=0,k=0,l=0,d1=0,d2=0,d3=0,d4=0,d5=0,d6=0,d7=0;
   String TextIn="",gT="",cT="",xT="",yT="",iT="",jT="",kT="",lT="";
   bool pError=false;
+  bool clearMode=false;
   
 #ifdef XDEBUG
   Serial.println("Called Command CMDGEO");
@@ -1005,9 +1047,15 @@ void usb2oled_readndrawgeo(void) {
 #endif
 
   // Enough Parameter given / Parameter Check
-  if (g<1 || g>10 || c<0 || c>15 || x<0 || x>DispWidth-1 || y<0 || y>DispHeight-1 || d1==-1 || d2==-1 || d3==-1  || d4==-1 || d5==-1  || d6==-1 || d7==-1) {
+  if (g<1 || c<0 || c>15 || x<0 || x>DispWidth-1 || y<0 || y>DispHeight-1 || d1==-1 || d2==-1 || d3==-1  || d4==-1 || d5==-1  || d6==-1 || d7==-1) {
     pError=true;
   }
+  
+  if (g>100) {                  // Do not run oled.display() after drawing
+    clearMode=true;
+    g=g-100;
+  }
+  
   if (!pError) {
     switch (g) {
       case 1:  // Pixel x,y
@@ -1049,9 +1097,9 @@ void usb2oled_readndrawgeo(void) {
   }
   else {
     oled.setCursor(5, 40);
-    oled.print("Parameter Error");
+    oled.print("Error CMDGEO");
   }
-  oled.display();       // Draw Display Content
+  if (!clearMode) oled.display();                       // Update Screen only if not Clear Mode (Geo>100)
 }
 
 

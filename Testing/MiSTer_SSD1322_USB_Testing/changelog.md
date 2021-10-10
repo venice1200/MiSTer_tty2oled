@@ -268,6 +268,17 @@
    -Font 1.. = Write Text
    -Font 1.. +100 = 101.. Clear Text without Output
 
-  ToDo
-  -XMIC T-Sensor enhanced (Command)
-  -Everything I forgot
+  2021-10-08
+  -Adding Library "U8G2 for Adafruit GFX" for better Text Support
+  -Adding hidden Text write and Geometric draw Modes to the Text and Geo Commands
+   Font or Geo Value +100 write or draw the content only to the Display buffer without displaying it
+   Good for cleaning up Display content
+  -Text Command got Background Color Variable
+   Write Text with given Font Color (c) and Background Color (b)
+  -Adding Command "CMDDUPD"
+   Update Display content (write buffer to Display)
+
+
+ToDo
+-XMIC T-Sensor enhanced (Command)
+-Everything I forgot

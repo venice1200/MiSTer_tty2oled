@@ -5,6 +5,8 @@
 # tty2oled Utilities
 # v0.1
 # 
+# 
+# Slide "Start Slideshow" \
 
 . /media/fat/tty2oled/tty2oled.ini
 
@@ -159,7 +161,6 @@ function tty_menu() {
   Restart "Restart tty2oled Daemon" \
   Disable "Disable tty2oled at boot" \
   Enable "Enable tty2oled at boot" \
-  Slide "Start Slideshow" \
   Update "Update tty2oled" \
   Exit "Exit now" 2>"/tmp/.TTYmenu"
   menuresponse=$(<"/tmp/.TTYmenu")
@@ -201,13 +202,13 @@ function tty_slideshow() {
 
 function tty_showpic() {
   echo "${fgreen}Showing Picture ${1}${freset}"
-  if [ -f "${picturefolder_pri}/${1}.xbm" ]; then
+  if [ -f "${picturefolder_pri}/${1}" ]; then
     echo "CMDCOR,${1}" > ${TTYDEV}
-    tail -n +4 "${picturefolder_pri}/${1}.xbm" | xxd -r -p > ${TTYDEV}
+    tail -n +4 "${picturefolder_pri}/${1}" | xxd -r -p > ${TTYDEV}
     waitforttyack
-  elif [ -f "${picturefolder}/${1}.xbm" ]; then
+  elif [ -f "${picturefolder}/${1}" ]; then
     echo "CMDCOR,${1}" > ${TTYDEV}
-    tail -n +4 "${picturefolder}/${1}.xbm" | xxd -r -p > ${TTYDEV}
+    tail -n +4 "${picturefolder}/${1}" | xxd -r -p > ${TTYDEV}
     waitforttyack
   else
     echo "${fred}No Picture ${1} found${freset}"

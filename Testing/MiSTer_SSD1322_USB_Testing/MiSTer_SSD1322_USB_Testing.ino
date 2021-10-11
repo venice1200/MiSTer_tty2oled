@@ -1,7 +1,7 @@
 /*
   By Venice
   Get CORENAME from MiSTer via USB-Serial-TTY Device and show CORENAME related text, Pictures or Logos
-  Using Forked Adafruit SSD1327 Library https://github.com/adafruit/Adafruit_SSD1327for the an SSD1322
+  Using forked Adafruit SSD1327 Library https://github.com/adafruit/Adafruit_SSD1327 for the SSD1322
 
   -- G R A Y S C A L E  E D I T I O N --
 
@@ -595,20 +595,20 @@ void usb2oled_readnsetcontrast(void) {
 // ----------------- Read an Set User LED -----------------------
 // --------------------------------------------------------------
 void usb2oled_readnsetuserled(void) {
-  String lT="";
+  String xT="";
 #ifdef XDEBUG
   Serial.println("Called Command CMDULED");
 #endif
   
-  lT=newCommand.substring(8);
+  xT=newCommand.substring(8);
 
 #ifdef XDEBUG
-  Serial.printf("Received Text: %s\n", (char*)lT.c_str());
+  Serial.printf("Received Text: %s\n", (char*)xT.c_str());
 #endif
 
   //digitalWrite(USER_LED, lT.toInt());
-  if (lT.toInt()==0) digitalWrite(USER_LED, LOW);
-  if (lT.toInt()==1) digitalWrite(USER_LED, HIGH);
+  if (xT.toInt()==0) digitalWrite(USER_LED, LOW);
+  if (xT.toInt()==1) digitalWrite(USER_LED, HIGH);
 }
 
 // --------------------------------------------------------------

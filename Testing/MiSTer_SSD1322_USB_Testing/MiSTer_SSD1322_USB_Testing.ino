@@ -4,6 +4,20 @@
   Using Forked Adafruit SSD1327 Library https://github.com/adafruit/Adafruit_SSD1327for the an SSD1322
 
   -- G R A Y S C A L E  E D I T I O N --
+
+  Needed libraries for the Arduino program:
+  - Adafruit GFX (*)
+  - U8G2 for Adafruit GFX (*)
+  - Bounce2 (*) optional, needed for the tilt-sensor
+  - eHaJo_LM75 (*) optional, needed for the MIC145 sensor on d.ti's tty2oled board
+  - SSD1322 for Adafruit GFX, download and extract from here: https://github.com/venice1200/SSD1322_for_Adafruit_GFX/releases/latest
+  (*) These Libraries can be installed using Arduino's library manager.
+  See also https://github.com/venice1200/MiSTer_tty2oled/wiki/Arduino-HowTo-%28Windows%29
+
+  QuickSelect/Copy&Paste for Arduino IDE v2.x:
+  -ESP32 Dev Module
+  -WEMOS LOLIN32
+  -NodeMCU 1.0
   
   See changelog.md in Sketch folder for more details
    

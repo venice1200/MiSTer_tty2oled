@@ -28,7 +28,7 @@
 */
 
 // Set Version
-#define BuildVersion "211010T"                    // "T" for Testing, "G" for Grayscale, "U" for U8G2 for Adafruit GFX
+#define BuildVersion "211011T"                    // "T" for Testing, "G" for Grayscale, "U" for U8G2 for Adafruit GFX
 
 // Include Libraries
 #include <Arduino.h>
@@ -65,7 +65,7 @@
 
 // Uncomment for Tilt-Sensor based Display-Auto-Rotation. 
 // The Sensor is connected to Pin 32 (with software activated Pullup) and GND.
-//#define XTILT
+#define XTILT
 #ifdef XTILT
   #include <Bounce2.h>                     // << Extra Library, via Arduino Library Manager
   #define TILT_PIN 32                      // Tilt-Sensor Pin
@@ -74,7 +74,7 @@
 #endif
 
 // Uncomment for Temperatur Sensor Support MIC184 on d.ti's PCB
-//#define XDTI
+#define XDTI
 #ifdef XDTI
   #include <eHaJo_LM75.h>          // << Extra Library, via Arduino Library Manager
   #define I2C1_SDA 17              // I2C_1-SDA
@@ -151,25 +151,26 @@ bool updateDisplay = false;
 uint16_t DispWidth, DispHeight, DispLineBytes1bpp, DispLineBytes4bpp;
 unsigned int logoBytes1bpp=0;
 unsigned int logoBytes4bpp=0;
-const int cDelay=25;                // Command Delay in ms for Handshake
+const int cDelay=25;                          // Command Delay in ms for Handshake
 size_t bytesReadCount=0;
-uint8_t *logoBin;                   // <<== For malloc in Setup
-enum picType {NONE, XBM, GSC};
+uint8_t *logoBin;                             // <<== For malloc in Setup
+enum picType {NONE, XBM, GSC};                // Enum Picture Type
 int actPicType=0;
 int16_t xs, ys;
 uint16_t ws, hs;
 const uint8_t minEffect=1, maxEffect=10;      // Min/Max Effects for Random
 //const uint8_t minEffect=9, maxEffect=9;      // Min/Max Effects for Random
-//uint8_t logoBin[8192];
-//unsigned char *logoBin;           // <<== For malloc in Setup
 
-// Blinker 100ßms Interval
-const long interval = 1000;           // interval at which to blink (milliseconds)
+// Blinker 500ms Interval
+const long interval = 500;                   // Interval for Blink (milliseconds)
 bool blink = false;
 bool prevblink = false;
 bool blinkpos = false;  // Pos Flanc
 bool blinkneg = false;  // Neg Flanc
 unsigned long previousMillis = 0;
+const int minInterval = 60;                   // Interval for Timer
+int timer=0;                                  // Counter for Timer
+bool timerpos;                                // Positive Timer Signal
 
 // =============================================================================================================
 // ================================================ SETUP ======================================================
@@ -284,7 +285,7 @@ void loop(void) {
   }
 #endif
 
-  // 1000ms Blinker  low--pos--high--neg--low..
+  // Blinker  low--pos--high--neg--low..
   if (currentMillis - previousMillis >= interval) {         // Interval check
     previousMillis = currentMillis;                         // save the last time you blinked the LED
     blink=!blink;
@@ -293,9 +294,15 @@ void loop(void) {
   blinkneg = !blink & prevblink;
   prevblink = blink;
 
+  // Timer
+  if (blinkpos) timer++;
+  if (timer>minInterval) timer = 0;
+  timerpos = (timer == minInterval) && blinkpos;
+
 #ifdef XDEBUG
-  if (blinkpos) Serial.println("Pos...");
-  if (blinkneg) Serial.println("Neg...");
+  if (blinkpos) Serial.println("Blink-Pos...");
+  if (blinkneg) Serial.println("Blink-Neg...");
+  if (timerpos) Serial.println("Blink-Pos-60...");
 #endif
 
   // Get Serial Data
@@ -347,9 +354,11 @@ void loop(void) {
       oled_drawlogo64h(TestPicture_width, TestPicture);
     }
 
+#ifdef XDTI
     else if (newCommand=="CMDSTEMP") {                                      // Show Temperature
     usb2oled_showtemperature();
     }
+#endif
 
     else if (newCommand=="CMDSNAM") {                                       // Show actual loaded Corename
       usb2oled_showcorename();
@@ -399,9 +408,11 @@ void loop(void) {
       usb2oled_readnsetcontrast();                                          // Read and Set contrast                                   
     }
 
+#ifdef XDTI
     else if (newCommand.startsWith("CMDULED,")) {                            // Command from Serial to receive Contrast-Level Data from the MiSTer
       usb2oled_readnsetuserled();                                            // Set LED                                   
     }
+#endif
 
     else if (newCommand.startsWith("CMDROT,")) {                            // Command from Serial to set Rotation
       usb2oled_readnsetrotation();                                          // Set Rotation
@@ -430,9 +441,17 @@ void loop(void) {
     Serial.print("ttyack;");                 // Handshake with delimiter; MiSTer: "read -d ";" ttyresponse < ${TTYDEVICE}"
     Serial.flush();                          // Wait for sendbuffer is clear
 #endif
-    
+
     updateDisplay=false;                     // Clear Update-Display Flag
   } // end updateDisplay
+
+  // Update Temp each Timer Interval
+#ifdef XDTI
+  if (newCommand=="CMDSTEMP" && timerpos) {                                      // Show Temperature
+    usb2oled_showtemperature();
+  }
+#endif
+  
 } // End Main Loop
 
 // =============================================================================================================
@@ -444,10 +463,8 @@ void loop(void) {
 // --------------------------------------------------------------
 void oled_mistertext(void) {
   uint8_t color = 0;
-  GFXfont *curFont;                        // Buffer to save the current font
-  
-  curFont=oled.getFont();              // Rescue current font
-  #ifdef XDEBUG
+
+#ifdef XDEBUG
   Serial.println("Show Startscreen");
 #endif
   oled.clearDisplay();
@@ -471,15 +488,15 @@ void oled_mistertext(void) {
   u8g2.setCursor(0,63);
   u8g2.print(BuildVersion);   
   oled.drawXBitmap(DispWidth-usb_icon_width, DispHeight-usb_icon_height, usb_icon, usb_icon_width, usb_icon_height, SSD1322_WHITE);
+
 #ifdef XDTI
   u8g2.setCursor(111,63);
   u8g2.print(tSensor.getTemp());    // Show Temperature if Sensor available
   u8g2.print("\xb0");
   u8g2.print("C");
 #endif
+
   oled.display();
-  //oled.setFont(&FreeSans9pt7b);
-  oled.setFont(curFont);            // Set Font Back
 } // end mistertext
 
 
@@ -493,6 +510,23 @@ void oled_drawlogo64h(uint16_t w, const uint8_t *bitmap) {
 } // end oled_drawlogo64h
 
 // --------------------------------------------------------------
+// ---------------- Just show the Temperature -------------------
+// --------------------------------------------------------------
+void usb2oled_showtemperature() {
+  String myTemp="";
+#ifdef XDEBUG
+  Serial.println("Called Command CMDSTEMP");
+#endif
+  myTemp=String(tSensor.getTemp())+"\xb0"+"C";
+  oled.clearDisplay();
+  oled.drawRoundRect(0,0,256,64,4,10);
+  u8g2.setFont(u8g2_font_luBS24_tf);
+  u8g2.setCursor(DispWidth/2-(u8g2.getUTF8Width(myTemp.c_str())/2), DispHeight/2 + (u8g2.getFontAscent()/2));
+  u8g2.print(myTemp);
+  oled.display();
+}
+
+// --------------------------------------------------------------
 // ----------------- Just show the Corename ---------------------
 // --------------------------------------------------------------
 void usb2oled_showcorename() {
@@ -504,25 +538,6 @@ void usb2oled_showcorename() {
   u8g2.setCursor(DispWidth/2-(u8g2.getUTF8Width(actCorename.c_str())/2), DispHeight/2 + ( u8g2.getFontAscent()/2 ) );
   u8g2.print(actCorename);
   oled.display();
-}
-
-// --------------------------------------------------------------
-// ---------------- Just show the Temperature -------------------
-// --------------------------------------------------------------
-void usb2oled_showtemperature() {
-  String myTemp="";
-#ifdef XDEBUG
-  Serial.println("Called Command CMDSTEMP");
-#endif
-#ifdef XDTI
-  myTemp=String(tSensor.getTemp())+"\xb0"+"C";
-  oled.clearDisplay();
-  //u8g2.setFont(u8g2_font_tenfatguys_tr);     // 10 Pixel Font
-  u8g2.setFont(u8g2_font_luBS18_tf);
-  u8g2.setCursor(DispWidth/2-(u8g2.getUTF8Width(myTemp.c_str())/2), DispHeight/2 + (u8g2.getFontAscent()/2));
-  u8g2.print(myTemp);
-  oled.display();
-#endif
 }
 
 // --------------------------------------------------------------
@@ -591,11 +606,9 @@ void usb2oled_readnsetuserled(void) {
   Serial.printf("Received Text: %s\n", (char*)lT.c_str());
 #endif
 
-#ifdef XDTI
   //digitalWrite(USER_LED, lT.toInt());
   if (lT.toInt()==0) digitalWrite(USER_LED, LOW);
   if (lT.toInt()==1) digitalWrite(USER_LED, HIGH);
-#endif
 }
 
 // --------------------------------------------------------------

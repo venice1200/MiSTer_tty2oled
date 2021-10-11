@@ -260,8 +260,8 @@
 
   2021-10-01
   -Renamed Otion XMIC184 to XDTI
-  -Adding USER_LED (Pin 19) for the  XDTI Option (d.ti Board) and 
-  -Adding Command "CMDULED,0/1" (nothing happens without the XDTI Option)
+  -Adding USER_LED (Pin 19) for the d.ti Board (Option XDTI) 
+  -Adding Command "CMDULED,0/1" for the d.ti Board (Option XDTI)
   
   2021-10-03
   -Modify Text Output
@@ -277,8 +277,11 @@
    Write Text with given Font Color (c) and Background Color (b)
   -Adding Command "CMDDUPD"
    Update Display content (write buffer to Display)
+   
+  2021-10-11
+  -Adding Command "CMDSTEMP" for the d.ti Board (Option XDTI)
+   If you send this command the Display shows and refreshs the Temperature as long as other Commands are send.
 
 
 ToDo
--XMIC T-Sensor enhanced (Command)
 -Everything I forgot

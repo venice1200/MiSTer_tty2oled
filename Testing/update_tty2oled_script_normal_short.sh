@@ -21,7 +21,7 @@
 
 
 # Changelog:
-# v1.7 Grayscale pictures and new download technics
+# v1.7 Grayscale pictures
 # v1.6 Move from Init based Startup to /media/fat/linux/user-startup.sh
 # v1.5 Splitted script download into install and update using new Option "SCRIPT_UPDATE"
 #      Check for disabled Init Script. If exists skip install.
@@ -123,23 +123,8 @@ fi
 [[ -f /tmp/${DAEMONNAME} ]] && rm /tmp/${DAEMONNAME}
 
 # pictures
-if ! [ -d ${picturefolder}/GSC ];then
-  if [ -d ${picturefolder} ];then
-    mv "${picturefolder}" "${picturefolder}.old"	# ExFAT bug?
-    rm -rf "${picturefolder}.old"
-    sync
-  fi
-  ! [ -d ${picturefolder} ] && mkdir -p ${picturefolder}
-  echo -e "\e[1;33mDownloading Picture Archive (initial)...\e[0m"
-  wget -qN --show-progress --ca-certificate=/etc/ssl/certs/cacert.pem ${PICTURE_REPOSITORY_URL} -O /tmp/MiSTer_tty2oled_pictures.7z
-  echo -e "\e[1;33mDecompressing Pictures Archive...\e[0m"
-  7zr x -bsp0 -bso0 /tmp/MiSTer_tty2oled_pictures.7z -o${picturefolder}
-  rm /tmp/MiSTer_tty2oled_pictures.7z
-else
-  echo -e "\e[1;33mDownloading Pictures...\e[0m"
-  [ "${OVERWRITE_PICTURE}" = "no" ] && RSYNCOPTS="--ignore-existing" || RSYNCOPTS="--delete"
-  rsync -rltDzzP --modify-window=1 ${RSYNCOPTS} rsync://tty2oled-update-daemon@tty2tft.de/tty2oled-pictures/ ${picturefolder}/
-fi
+echo -e "\e[1;33mDownloading Pictures...\e[0m"
+curl --progress-bar --location --continue-at - --fail --output ${TTY2OLED_PATH}/MiSTer_tty2oled_pictures.7z ${PICTURE_REPOSITORY_URL}
 
 # Check and remount root non-writable if neccessary
 [ "${MOUNTRO}" = "true" ] && /bin/mount -o remount,ro /

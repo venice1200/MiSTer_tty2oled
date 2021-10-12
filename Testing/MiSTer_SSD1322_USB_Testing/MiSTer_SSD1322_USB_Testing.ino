@@ -28,7 +28,7 @@
 */
 
 // Set Version
-#define BuildVersion "211011T"                    // "T" for Testing, "G" for Grayscale, "U" for U8G2 for Adafruit GFX
+#define BuildVersion "211012T"                    // "T" for Testing, "G" for Grayscale, "U" for U8G2 for Adafruit GFX
 
 // Include Libraries
 #include <Arduino.h>
@@ -509,6 +509,7 @@ void oled_drawlogo64h(uint16_t w, const uint8_t *bitmap) {
   oled.display();
 } // end oled_drawlogo64h
 
+#ifdef XDTI
 // --------------------------------------------------------------
 // ---------------- Just show the Temperature -------------------
 // --------------------------------------------------------------
@@ -525,6 +526,7 @@ void usb2oled_showtemperature() {
   u8g2.print(myTemp);
   oled.display();
 }
+#endif
 
 // --------------------------------------------------------------
 // ----------------- Just show the Corename ---------------------
@@ -591,6 +593,7 @@ void usb2oled_readnsetcontrast(void) {
   oled.setContrast(cT.toInt());            // Read and Set contrast  
 }
 
+#ifdef XDTI
 // --------------------------------------------------------------
 // ----------------- Read an Set User LED -----------------------
 // --------------------------------------------------------------
@@ -610,6 +613,7 @@ void usb2oled_readnsetuserled(void) {
   if (xT.toInt()==0) digitalWrite(USER_LED, LOW);
   if (xT.toInt()==1) digitalWrite(USER_LED, HIGH);
 }
+#endif
 
 // --------------------------------------------------------------
 // ----------- Command Read and Set Rotation --------------------

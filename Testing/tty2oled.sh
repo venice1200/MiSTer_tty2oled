@@ -85,7 +85,7 @@ sendrotation() {
       echo "CMDROT,1" > ${TTYDEV}						# Send Rotation if set to "yes"
       sleep ${WAITSECS}
       echo "CMDSORG" > ${TTYDEV}						# Show Start Screen rotated
-      sleep 2
+      sleep 4
     #else
     #  ebug "Sending: CMDROT,1" > ${TTYDEV}
     #  echo "CMDROT,0" > ${TTYDEV}						# No Rotation

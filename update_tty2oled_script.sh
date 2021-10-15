@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# v1.6 - Copyright (c) 2021 ojaksch, venice
+# v1.7 - Copyright (c) 2021 ojaksch, venice
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 
 
 # Changelog:
+# v1.7 Grayscale pictures and new download technics
 # v1.6 Move from Init based Startup to /media/fat/linux/user-startup.sh
 # v1.5 Splitted script download into install and update using new Option "SCRIPT_UPDATE"
 #      Check for disabled Init Script. If exists skip install.
@@ -44,7 +45,7 @@ fi
 
 # Check for and delete old fashioned scripts to prefer /media/fat/linux/user-startup.sh
 # (https://misterfpga.org/viewtopic.php?p=32159#p32159)
-[[ -e /etc/init.d/S60tty2oled ]] && rm /etc/init.d/S60tty2oled
+[[ -e /etc/init.d/S60tty2oled ]] && /etc/init.d/S60tty2oled stop && rm /etc/init.d/S60tty2oled
 [[ -e /etc/init.d/_S60tty2oled ]] && rm /etc/init.d/_S60tty2oled
 [[ -e /usr/bin/tty2oled ]] && rm /usr/bin/tty2oled
 
@@ -80,6 +81,7 @@ echo -e "\e[1;32mtty2oled update script"
 echo -e "----------------------\e[0m"
 
 echo -e "\e[1;32mChecking for available tty2oled updates...\e[0m"
+
 
 # init script
 wget ${NODEBUG} "${REPOSITORY_URL}/S60tty2oled" -O /tmp/S60tty2oled
@@ -121,60 +123,23 @@ fi
 [[ -f /tmp/${DAEMONNAME} ]] && rm /tmp/${DAEMONNAME}
 
 # pictures
-if [ "${USBMODE}" = "yes" ]; then
-  [[ -d ${picturefolder} ]] || mkdir -p -m 777 ${picturefolder}
-  [[ -d ${picturefolder_pri} ]] || mkdir -p -m 777 ${picturefolder_pri}
-  # Text-Based Pictures download
-  if [ "${USE_TEXT_PICTURE}" = "yes" ]; then
-    echo -e "\e[1;32mChecking for available Text-Pictures...\e[0m"
-    wget ${NODEBUG} "${PICTURE_REPOSITORY_URL}/XBM_Text/sha1.txt" -O - | grep ".xbm" | dos2unix | \
-    while read SHA1PIC; do
-      PICNAME=$(echo ${SHA1PIC} | cut -d " " -f 2-)
-      CHKSUM1=$(echo ${SHA1PIC,,} | cut -d " " -f 1)
-      [ -f "${picturefolder}/${PICNAME}" ] && CHKSUM2=$(sha1sum ${picturefolder}/${PICNAME} | awk '{print $1}')
-      if ! [ -f "${picturefolder}/${PICNAME}" ] || ([ "${CHKSUM1}" != "${CHKSUM2}" ] && [ "${OVERWRITE_PICTURE}" = "yes" ]); then
-        echo -e "\e[1;33mDownloading Picture \e[1;35m${PICNAME}\e[0m"
-        wget ${NODEBUG} "${PICTURE_REPOSITORY_URL}/XBM_Text/${PICNAME}" -O "${picturefolder}/${PICNAME}"
-      fi
-    done
-  else
-    echo -e "\e[1;31mSkipping\e[1;33m Text-Based Picture download because of the \e[1;36mUSE_TEXT_PICTURE\e[1;33m INI-Option\e[0m"
+if ! [ -d ${picturefolder}/GSC ];then
+  if [ -d ${picturefolder} ];then
+    mv "${picturefolder}" "${picturefolder}.old"	# ExFAT bug?
+    rm -rf "${picturefolder}.old"
+    sync
   fi
-
-  # Graphic-Based Pictures (as Second = Higher Priority)
-  echo -e "\e[1;32mChecking for available Graphic-Pictures...\e[0m"
-  wget ${NODEBUG} "${PICTURE_REPOSITORY_URL}/XBM/sha1.txt" -O - | grep ".xbm" | dos2unix | \
-  while read SHA1PIC; do
-    PICNAME=$(echo ${SHA1PIC} | cut -d " " -f 2-)
-    CHKSUM1=$(echo ${SHA1PIC,,} | cut -d " " -f 1)
-    [ -f "${picturefolder}/${PICNAME}" ] && CHKSUM2=$(sha1sum "${picturefolder}/${PICNAME}" | awk '{print $1}')
-    if ! [ -f "${picturefolder}/${PICNAME}" ] || ([ "${CHKSUM1}" != "${CHKSUM2}" ] && [ "${OVERWRITE_PICTURE}" = "yes" ]); then
-      echo -e "\e[1;33mDownloading Picture \e[1;35m${PICNAME}\e[0m"
-      wget ${NODEBUG} "${PICTURE_REPOSITORY_URL}/XBM/${PICNAME}" -O "${picturefolder}/${PICNAME}"
-    fi
-  done
-
-  # Checking for US version of Graphic-Based Pictures (Genesis = MegaDrive ; Sega CD = Mega CD ; TurboGrafx16 = PCEngine)
-  if [ "${USE_US_PICTURE}" = "yes" ]; then 
-    echo -e "\e[1;32mChecking for available Graphic-Pictures US-Version...\e[0m"
-    wget ${NODEBUG} "${PICTURE_REPOSITORY_URL}/XBM_US/sha1.txt" -O - | grep ".xbm" | dos2unix | \
-    while read SHA1PIC; do
-      PICNAME=$(echo ${SHA1PIC} | cut -d " " -f 2-)
-      CHKSUM1=$(echo ${SHA1PIC,,} | cut -d " " -f 1)
-      [ -f "${picturefolder}/${PICNAME}" ] && CHKSUM2=$(sha1sum ${picturefolder}/${PICNAME} | awk '{print $1}')
-      if ! [ -f "${picturefolder}/${PICNAME}" ] || ([ "${CHKSUM1}" != "${CHKSUM2}" ] && [ "${OVERWRITE_PICTURE}" = "yes" ]); then
-        echo -e "\e[1;33mDownloading Picture \e[1;35m${PICNAME}\e[0m"
-        wget ${NODEBUG} "${PICTURE_REPOSITORY_URL}/XBM_US/${PICNAME}" -O "${picturefolder}/${PICNAME}"
-      fi
-    done
-  else
-    echo -e "\e[1;31mSkipping\e[1;33m US-Version Picture download because of the \e[1;36mUSE_US_PICTURE\e[1;33m INI-Option\e[0m"
-  fi
+  ! [ -d ${picturefolder} ] && mkdir -p ${picturefolder}
+  echo -e "\e[1;33mDownloading Picture Archive (initial)...\e[0m"
+  wget -qN --show-progress --ca-certificate=/etc/ssl/certs/cacert.pem ${PICTURE_REPOSITORY_URL} -O /tmp/MiSTer_tty2oled_pictures.7z
+  echo -e "\e[1;33mDecompressing Pictures Archive...\e[0m"
+  7zr x -bsp0 -bso0 /tmp/MiSTer_tty2oled_pictures.7z -o${picturefolder}
+  rm /tmp/MiSTer_tty2oled_pictures.7z
 else
-  echo -e "\e[5;31mSkipping\e[25;1;33m Picture download because of the \e[1;36mUSBMODE\e[1;33m INI-Option\e[0m"
+  echo -e "\e[1;33mDownloading Pictures...\e[0m"
+  [ "${OVERWRITE_PICTURE}" = "no" ] && RSYNCOPTS="--ignore-existing" || RSYNCOPTS="--delete"
+  rsync -rltDzzP --modify-window=1 ${RSYNCOPTS} rsync://tty2oled-update-daemon@tty2tft.de/tty2oled-pictures/ ${picturefolder}/
 fi
-
-sync
 
 # Check and remount root non-writable if neccessary
 [ "${MOUNTRO}" = "true" ] && /bin/mount -o remount,ro /

@@ -1,38 +1,28 @@
 #!/bin/bash
-
-# /media/fat/Scripts/tty2oled_
+#
+# /media/fat/Scripts/tty2oled_cc.sh
 # by venice
-# tty2oled Updater/Utility Menu
+# tty2oled Utilities
 # v0.1
+# 
+# 
+# Slide "Start Slideshow" \
 
 . /media/fat/tty2oled/tty2oled.ini
 
-#Colors
-fblink=`tput blink`
-fbold=`tput bold`
-freset=`tput sgr0`
-finvers=`tput rev`
-fblue=`tput setf 1`
-fgreen=`tput setf 2`
-fyellow=`tput setf 5`
-fred=`tput setf 4`
 
-slidewait=6
+slidewait=2
 menuwait=2
-counter=0
 
 function parse_cmd() {
   if [ ${#} -gt 2 ]; then # We don't accept more than 2 parameters
     echo "Too much parameter given"
   elif [ ${#} -eq 0 ]; then # Show Main
-    tty_main
+    #tty_main
+    tty_menu
   else
     while [ ${#} -gt 0 ]; do
       case ${1,,} in
-        main)
-          tty_main
-          break
-          ;;
         menu)
           tty_menu
           break
@@ -171,9 +161,7 @@ function tty_menu() {
   Restart "Restart tty2oled Daemon" \
   Disable "Disable tty2oled at boot" \
   Enable "Enable tty2oled at boot" \
-  Slide "Start Slideshow" \
   Update "Update tty2oled" \
-  Main "Back to Main Menu/Updater" \
   Exit "Exit now" 2>"/tmp/.TTYmenu"
   menuresponse=$(<"/tmp/.TTYmenu")
   #echo "Menuresponse: ${menuresponse}"
@@ -181,49 +169,47 @@ function tty_menu() {
 }
 
 function tty_slideshow() {
+  counter=0
   clear
   ${INITSCRIPT} stop
-  echo "Show each ${slidewait} seconds a new Picture"
-  if [ -z "$(ls -A ${picturefolder_pri})" ]; then
-    echo "" 
-    echo "${fred}No Pictures found${freset} in your Private Picture Folder (pri) "
-    echo ""
-  else
-    # Private Pictures
-    cd ${picturefolder_pri}
-    for slidepic in *.xbm; do
-      counter=$((counter+1))
-      echo "Showing Picture ${counter}: ${fgreen}${slidepic}${freset} (pri Folder)"
-      echo "CMDCOR,${slidepic}" > ${TTYDEV}
-      sleep ${WAITSECS}
-      tail -n +4 "${slidepic}" | xxd -r -p > ${TTYDEV}
-      sleep ${slidewait}
-    done
-  fi
+  echo -e "\nShow each ${fgreen}${slidewait}${freset} second(s) a new Picture\n"
 
-  # General Pictures
-  cd ${picturefolder}
-  for slidepic in *.xbm; do
-    counter=$((counter+1))
-    echo "Showing Picture ${counter}: ${fyellow}${slidepic}${freset}"
-    echo "CMDCOR,${slidepic}" > ${TTYDEV}
-    sleep ${WAITSECS}
-    tail -n +4 "${slidepic}" | xxd -r -p > ${TTYDEV}
-    sleep ${slidewait}
+  for pfolder in ${picturefolder_pri} ${picturefolder}; do
+    cd ${pfolder}
+    for ppri in xbm gsc; do
+      for slidepic in *.${ppri}; do
+        if [ -z "$(ls -A ${pfolder}/*.${ppri} 2> /dev/null)" ]; then
+          echo -e "\n${fred}No *.${ppri} Pictures found${freset} in folder ${pfolder}\n"
+        else
+          counter=$((counter+1))
+          echo "Showing ${ppri}-Picture ${counter}: ${fblue}${slidepic}${freset} (Folder ${pfolder})"
+          echo "CMDAPD,${slidepic}" > ${TTYDEV}
+          tail -n +4 "${slidepic}" | xxd -r -p > ${TTYDEV}
+          waitforttyack
+          echo "CMDSNAM" > ${TTYDEV}
+          waitforttyack
+          sleep ${slidewait}
+          echo "CMDSPIC" > ${TTYDEV}
+          waitforttyack
+          sleep ${slidewait}
+        fi
+      done
+    done
   done
+
   ${INITSCRIPT} start
 }
 
 function tty_showpic() {
   echo "${fgreen}Showing Picture ${1}${freset}"
-  if [ -f "${picturefolder_pri}/${1}.xbm" ]; then
+  if [ -f "${picturefolder_pri}/${1}" ]; then
     echo "CMDCOR,${1}" > ${TTYDEV}
-    sleep ${WAITSECS}
-    tail -n +4 "${picturefolder_pri}/${1}.xbm" | xxd -r -p > ${TTYDEV}
-  elif [ -f "${picturefolder}/${1}.xbm" ]; then
+    tail -n +4 "${picturefolder_pri}/${1}" | xxd -r -p > ${TTYDEV}
+    waitforttyack
+  elif [ -f "${picturefolder}/${1}" ]; then
     echo "CMDCOR,${1}" > ${TTYDEV}
-    sleep ${WAITSECS}
-    tail -n +4 "${picturefolder}/${1}.xbm" | xxd -r -p > ${TTYDEV}
+    tail -n +4 "${picturefolder}/${1}" | xxd -r -p > ${TTYDEV}
+    waitforttyack
   else
     echo "${fred}No Picture ${1} found${freset}"
   fi
@@ -233,8 +219,25 @@ function tty_showpic() {
 function tty_update() {
   clear
   ${UPDATESCRIPT}
-  exit 0
+  tty_menu
+  #exit 0
 }
+
+function waitforttyack() {
+  echo -n "Waiting for tty2oled..."
+  while [ "${ttyresponse}" != "ttyack" ]; do
+    read -d ";" ttyresponse < ${TTYDEV}              # Read Serial Line until delimiter ";"
+  done
+  echo "${fgreen}${ttyresponse}${freset}"
+  ttyresponse=""
+}
+
+#------------------- Main Part --------------------
+
+# Clear Serial Input Buffer
+#echo "Clear Serial Input Buffer for Device ${TTYDEV}"
+while read -t 0 sdummy < ${TTYDEV}; do continue; done
+#sleep 2
 
 parse_cmd ${@}  # Parse command line parameters for input
 exit

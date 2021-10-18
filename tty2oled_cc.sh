@@ -15,7 +15,7 @@ slidewait=2
 menuwait=2
 
 function parse_cmd() {
-  if [ ${#} -gt 2 ]; then # We don't accept more than 2 parameters
+  if [ ${#} -gt 3 ]; then # We don't accept more than 2 parameters
     echo "Too much parameter given"
   elif [ ${#} -eq 0 ]; then # Show Main
     #tty_main
@@ -100,13 +100,13 @@ function parse_cmd() {
           break
           ;;
         slide)
-          tty_slideshow
+          tty_slideshow ${2}
           sleep ${menuwait}
-          tty_menu
+          #tty_menu
           break
           ;;
         showpic)
-          tty_showpic ${2}
+          tty_showpic ${2} ${3}
           break
           ;;
         exit)
@@ -173,27 +173,26 @@ function tty_slideshow() {
   clear
   ${INITSCRIPT} stop
   echo -e "\nShow each ${fgreen}${slidewait}${freset} second(s) a new Picture\n"
-
-  for pfolder in ${picturefolder_pri} ${picturefolder}; do
-    cd ${pfolder}
-    for ppri in xbm gsc; do
-      for slidepic in *.${ppri}; do
-        if [ -z "$(ls -A ${pfolder}/*.${ppri} 2> /dev/null)" ]; then
-          echo -e "\n${fred}No *.${ppri} Pictures found${freset} in folder ${pfolder}\n"
-        else
-          counter=$((counter+1))
-          echo "Showing ${ppri}-Picture ${counter}: ${fblue}${slidepic}${freset} (Folder ${pfolder})"
-          echo "CMDAPD,${slidepic}" > ${TTYDEV}
-          tail -n +4 "${slidepic}" | xxd -r -p > ${TTYDEV}
-          waitforttyack
-          echo "CMDSNAM" > ${TTYDEV}
-          waitforttyack
-          sleep ${slidewait}
-          echo "CMDSPIC" > ${TTYDEV}
-          waitforttyack
-          sleep ${slidewait}
-        fi
-      done
+  #pfolder=${picturefolder}/${1}
+  pfolder=${1}
+  cd ${pfolder}
+  for ppri in xbm gsc; do
+    for slidepic in *.${ppri}; do
+      if [ -z "$(ls -A ${pfolder}/*.${ppri} 2> /dev/null)" ]; then
+        echo -e "\n${fred}No *.${ppri} Pictures found${freset} in folder ${pfolder}\n"
+      else
+        counter=$((counter+1))
+        echo "Showing ${ppri}-Picture ${counter}: ${fblue}${slidepic}${freset} (Folder ${pfolder})"
+        echo "CMDAPD,${slidepic}" > ${TTYDEV}
+        tail -n +4 "${slidepic}" | xxd -r -p > ${TTYDEV}
+        waitforttyack
+        echo "CMDSNAM" > ${TTYDEV}
+        waitforttyack
+        sleep ${slidewait}
+        echo "CMDSPIC" > ${TTYDEV}
+        waitforttyack
+        sleep ${slidewait}
+      fi
     done
   done
 
@@ -201,17 +200,13 @@ function tty_slideshow() {
 }
 
 function tty_showpic() {
-  echo "${fgreen}Showing Picture ${1}${freset}"
-  if [ -f "${picturefolder_pri}/${1}" ]; then
+  echo "${fgreen}Showing Picture ${2}${freset}"
+  if [ -f "${1}/${2}" ]; then
     echo "CMDCOR,${1}" > ${TTYDEV}
-    tail -n +4 "${picturefolder_pri}/${1}" | xxd -r -p > ${TTYDEV}
-    waitforttyack
-  elif [ -f "${picturefolder}/${1}" ]; then
-    echo "CMDCOR,${1}" > ${TTYDEV}
-    tail -n +4 "${picturefolder}/${1}" | xxd -r -p > ${TTYDEV}
+    tail -n +4 "${1}/${2}" | xxd -r -p > ${TTYDEV}
     waitforttyack
   else
-    echo "${fred}No Picture ${1} found${freset}"
+    echo "${fred}No Picture ${2} found${freset}"
   fi
   exit 0
 }

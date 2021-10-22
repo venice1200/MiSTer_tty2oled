@@ -16,8 +16,8 @@ $seread=""
 $contrast=50
 
 $serial = New-Object System.IO.Ports.SerialPort
-#$serial.PortName = "COM5"
-$serial.PortName = "COM6"
+$serial.PortName = "COM5"
+#$serial.PortName = "COM6"
 #$serial.PortName = "COM22"
 $serial.BaudRate = "115200"
 $serial.Parity = "None"
@@ -45,7 +45,8 @@ waitforack
 #waitforack
 #$serial.WriteLine("CMDGEO,7,15,0,18,256,46,4,0")
 #waitforack
-$serial.WriteLine("CMDTXT,0,15,0,80,8,tty2oled & PowerShell")
+#$serial.WriteLine("CMDTXT,0,15,0,80,8,tty2oled & PowerShell")
+$serial.WriteLine("CMDTXT,0,15,0,0,8,tty2oled & PowerShell")
 waitforack
 
 while (1) {
@@ -62,6 +63,8 @@ while (1) {
   }
 
   if ($mymin -ne $myminbuf) {
+    $serial.WriteLine("CMDTXT,100,10,0,220,8,TEP184")
+    waitforack
     $serial.WriteLine("CMDTXT,108,0,0,105,58,"+$myminbuf+":")
     waitforack
     $serial.WriteLine("CMDTXT,108,15,0,105,58,"+$mymin+":")

@@ -20,6 +20,9 @@
   -NodeMCU 1.0
   
   See changelog.md in Sketch folder for more details
+
+  2021-10-22
+  -d.ti Board only: If you sent "TEP184" via Command "CMDTEXT" the Text will be replaced with the Temperature Sensor Value and "°C"
    
   ToDo
   -Everything I forgot
@@ -28,7 +31,7 @@
 */
 
 // Set Version
-#define BuildVersion "211020T"                    // "T" for Testing, "G" for Grayscale, "U" for U8G2 for Adafruit GFX
+#define BuildVersion "211021T"                    // "T" for Testing, "G" for Grayscale, "U" for U8G2 for Adafruit GFX
 
 // Include Libraries
 #include <Arduino.h>
@@ -65,7 +68,7 @@
 
 // Uncomment for Tilt-Sensor based Display-Auto-Rotation. 
 // The Sensor is connected to Pin 32 (with software activated Pullup) and GND.
-//#define XTILT
+#define XTILT
 #ifdef XTILT
   #include <Bounce2.h>                     // << Extra Library, via Arduino Library Manager
   #define TILT_PIN 32                      // Tilt-Sensor Pin
@@ -74,7 +77,7 @@
 #endif
 
 // Uncomment for Temperatur Sensor Support MIC184 on d.ti's PCB
-//#define XDTI
+#define XDTI
 #ifdef XDTI
   #include <eHaJo_LM75.h>          // << Extra Library, via Arduino Library Manager
   #define I2C1_SDA 17              // I2C_1-SDA
@@ -989,10 +992,17 @@ void usb2oled_readnwritetext(void) {
     TextOut="Error CMDTEXT";
   }
 
-  if (f>100) {                  // Do not run oled.display() after printing
+  if (f>=100) {                  // Do not run oled.display() after printing
     clearMode=true;
     f=f-100;
   }
+
+#ifdef XDTI
+  if (TextOut=="TEP184") {      // If Text is "TEP184" show Temperature Value
+    //TextOut=String(tSensor.getTemp());
+    TextOut=String(tSensor.getTemp())+"\xb0"+"C";
+  }
+#endif
   
   //Set Font
   switch (f) {

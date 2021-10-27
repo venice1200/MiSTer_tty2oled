@@ -36,7 +36,6 @@ function waitforack {
   #$serial.ReadTo(";")
 }
 
-#$serial.WriteLine("CMDCON,$contrast")
 $serial.WriteLine("CMDCON,"+$contrast)
 waitforack
 $serial.WriteLine("CMDCLS")
@@ -63,7 +62,7 @@ while (1) {
   }
 
   if ($mymin -ne $myminbuf) {
-    $serial.WriteLine("CMDTXT,100,10,0,220,8,TEP184")
+    $serial.WriteLine("CMDTXT,0,10,0,220,8,TEP184")
     waitforack
     $serial.WriteLine("CMDTXT,108,0,0,105,58,"+$myminbuf+":")
     waitforack
@@ -75,7 +74,9 @@ while (1) {
   if ($mysec -ne $mysecbuf) {
     $serial.WriteLine("CMDTXT,108,0,0,185,58,"+$mysecbuf)
     waitforack
-    $serial.WriteLine("CMDTXT,8,15,0,185,58,"+$mysec)
+    $serial.WriteLine("CMDTXT,108,15,0,185,58,"+$mysec)
+    waitforack
+    $serial.WriteLine("CMDDUPD")
     waitforack
     $mysecbuf=$mysec
     Start-Sleep -s 0.90 # Without "sleep" = 5.5% CPU, with sleep 0.2%

@@ -280,7 +280,7 @@
    
   2021-10-11
   -Adding Command "CMDSTEMP" for the d.ti Board (Option XDTI)
-   If you send this command the Display shows and refreshs the Temperature as long as other Commands are send.
+   If you send this command the Display shows and refreshs the Temperature as long as no other Commands are sent.
 
   2021-10-12
   -Release "Greyscale Mode"
@@ -288,5 +288,8 @@
   2021-10-20
   -Added 7 Segment Font (Font 8)
 
+  2021-10-22
+  -d.ti Board only: If you sent the Text "TEP184" via Command "CMDTEXT" the Text will be replaced with the Temperature Sensor Value including "°C"
+   
 ToDo
 -Everything I forgot

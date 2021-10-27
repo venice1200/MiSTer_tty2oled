@@ -21,9 +21,6 @@
   
   See changelog.md in Sketch folder for more details
 
-  2021-10-22
-  -d.ti Board only: If you sent "TEP184" via Command "CMDTEXT" the Text will be replaced with the Temperature Sensor Value and "°C"
-   
   ToDo
   -Everything I forgot
   -Add u8g2_font_7Segments_26x42_mn
@@ -31,7 +28,7 @@
 */
 
 // Set Version
-#define BuildVersion "211021T"                    // "T" for Testing, "G" for Grayscale, "U" for U8G2 for Adafruit GFX
+#define BuildVersion "211027T"                    // "T" for Testing, "G" for Grayscale, "U" for U8G2 for Adafruit GFX
 
 // Include Libraries
 #include <Arduino.h>
@@ -68,7 +65,7 @@
 
 // Uncomment for Tilt-Sensor based Display-Auto-Rotation. 
 // The Sensor is connected to Pin 32 (with software activated Pullup) and GND.
-#define XTILT
+//#define XTILT
 #ifdef XTILT
   #include <Bounce2.h>                     // << Extra Library, via Arduino Library Manager
   #define TILT_PIN 32                      // Tilt-Sensor Pin
@@ -77,7 +74,7 @@
 #endif
 
 // Uncomment for Temperatur Sensor Support MIC184 on d.ti's PCB
-#define XDTI
+//#define XDTI
 #ifdef XDTI
   #include <eHaJo_LM75.h>          // << Extra Library, via Arduino Library Manager
   #define I2C1_SDA 17              // I2C_1-SDA
@@ -945,7 +942,7 @@ void usb2oled_readnwritetext(void) {
   int16_t x1,y1;
   uint16_t w1,h1;
   String TextIn="", fT="", cT="", bT="", xT="", yT="", TextOut="";
-  bool clearMode=false;
+  bool bufferMode=false;
   
 #ifdef XDEBUG
   Serial.println("Called Command CMDTEXT");
@@ -993,7 +990,7 @@ void usb2oled_readnwritetext(void) {
   }
 
   if (f>=100) {                  // Do not run oled.display() after printing
-    clearMode=true;
+    bufferMode=true;
     f=f-100;
   }
 
@@ -1042,7 +1039,7 @@ void usb2oled_readnwritetext(void) {
   u8g2.setBackgroundColor(b);                           // Set Backgrounf Color
   u8g2.setCursor(x,y);                                  // Set Cursor Position
   u8g2.print(TextOut);                                  // Write Text to Buffer
-  if (!clearMode) oled.display();                       // Update Screen only if not Clear Mode (Font>100)
+  if (!bufferMode) oled.display();                       // Update Screen only if not Clear Mode (Font>100)
   u8g2.setForegroundColor(SSD1322_WHITE);               // Set Color back
   u8g2.setBackgroundColor(SSD1322_BLACK);
   //u8g2.setFontMode(0);
@@ -1056,7 +1053,7 @@ void usb2oled_readndrawgeo(void) {
   int g=0,c=0,x=0,y=0,i=0,j=0,k=0,l=0,d1=0,d2=0,d3=0,d4=0,d5=0,d6=0,d7=0;
   String TextIn="",gT="",cT="",xT="",yT="",iT="",jT="",kT="",lT="";
   bool pError=false;
-  bool clearMode=false;
+  bool bufferMode=false;
   
 #ifdef XDEBUG
   Serial.println("Called Command CMDGEO");
@@ -1111,7 +1108,7 @@ void usb2oled_readndrawgeo(void) {
   }
   
   if (g>100) {                  // Do not run oled.display() after drawing
-    clearMode=true;
+    bufferMode=true;
     g=g-100;
   }
   
@@ -1158,7 +1155,7 @@ void usb2oled_readndrawgeo(void) {
     oled.setCursor(5, 40);
     oled.print("Error CMDGEO");
   }
-  if (!clearMode) oled.display();                       // Update Screen only if not Clear Mode (Geo>100)
+  if (!bufferMode) oled.display();                       // Update Screen only if not Buffer Mode (Geo>100)
 }
 
 

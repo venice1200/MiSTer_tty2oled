@@ -989,7 +989,7 @@ void usb2oled_readnwritetext(void) {
     TextOut="Error CMDTEXT";
   }
 
-  if (f>100) {                  // Do not run oled.display() after printing
+  if (f>=100) {                  // Do not run oled.display() after printing
     clearMode=true;
     f=f-100;
   }

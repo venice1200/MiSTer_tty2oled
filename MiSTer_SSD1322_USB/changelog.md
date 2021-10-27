@@ -280,7 +280,7 @@
    
   2021-10-11
   -Adding Command "CMDSTEMP" for the d.ti Board (Option XDTI)
-   If you send this command the Display shows and refreshs the Temperature as long as other Commands are send.
+   If you send this command the Display shows and refreshs the Temperature as long as no other Commands are send.
 
 
 ToDo

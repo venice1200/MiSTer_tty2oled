@@ -290,6 +290,10 @@
 
   2021-10-22
   -d.ti Board only: If you sent the Text "TEP184" via Command "CMDTEXT" the Text will be replaced with the Temperature Sensor Value including "°C"
+
+  2021-10-27
+  -d.ti Board only: Actualize Temperature on plain boot screen if activated
+
    
 ToDo
 -Everything I forgot

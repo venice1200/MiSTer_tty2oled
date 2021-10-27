@@ -28,7 +28,7 @@
 */
 
 // Set Version
-#define BuildVersion "211027T"                    // "T" for Testing, "G" for Grayscale, "U" for U8G2 for Adafruit GFX
+#define BuildVersion "211027T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -38,12 +38,12 @@
 
 // OTA and Reset only for ESP32
 #ifdef ESP32
-  #include "cred.h"              // Load your WLAN Credentials for OTA
+  #include "cred.h"                               // Load your WLAN Credentials for OTA
   #include <WiFi.h>
   #include <ESPmDNS.h>
   #include <WiFiUdp.h>
   #include <ArduinoOTA.h>
-  bool OTAEN=false;              // Will be set to "true" by Command "CMDENOTA"
+  bool OTAEN=false;                               // Will be set to "true" by Command "CMDENOTA"
 #endif
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -51,6 +51,7 @@
 // ------------------------------------------- Activate your Options ---------------------------------------------------
 // ---------------------------------------------------------------------------------------------------------------------
 
+// How-To...
 // Comment (add "//" in front of the Option) to de-activate the Option
 // Uncomment (remove "//" in front of the Option) to activate the Option
 
@@ -65,7 +66,7 @@
 
 // Uncomment for Tilt-Sensor based Display-Auto-Rotation. 
 // The Sensor is connected to Pin 32 (with software activated Pullup) and GND.
-//#define XTILT
+#define XTILT
 #ifdef XTILT
   #include <Bounce2.h>                     // << Extra Library, via Arduino Library Manager
   #define TILT_PIN 32                      // Tilt-Sensor Pin
@@ -74,7 +75,7 @@
 #endif
 
 // Uncomment for Temperatur Sensor Support MIC184 on d.ti's PCB
-//#define XDTI
+#define XDTI
 #ifdef XDTI
   #include <eHaJo_LM75.h>          // << Extra Library, via Arduino Library Manager
   #define I2C1_SDA 17              // I2C_1-SDA
@@ -321,9 +322,9 @@ void loop(void) {
         // Do nothing, just receive one string to clear the buffer.
     }                    
 
-    // ----------------------------
-    // ----- C O M M A N D 's -----
-    // ----------------------------
+    // ---------------------------------------------------
+    // ---------------- C O M M A N D 's -----------------
+    // ---------------------------------------------------
 
     else if (newCommand=="cls") {                                        // Clear Screen
       oled.clearDisplay();
@@ -445,8 +446,18 @@ void loop(void) {
     updateDisplay=false;                     // Clear Update-Display Flag
   } // end updateDisplay
 
-  // Update Temp each Timer Interval
+
 #ifdef XDTI
+  // Update Temp each Timer Interval
+  // ..if just the plain Boot Screen is shown..
+  if (actCorename.startsWith("No Core") && timerpos) {
+    u8g2.setCursor(111,63);
+    u8g2.print(tSensor.getTemp());          // Show Temperature if Sensor available
+    u8g2.print("\xb0");
+    u8g2.print("C");
+    oled.display();
+  }
+  // ..or CMDSTEMP was called
   if (newCommand=="CMDSTEMP" && timerpos) {                                      // Show Temperature
     usb2oled_showtemperature();
   }

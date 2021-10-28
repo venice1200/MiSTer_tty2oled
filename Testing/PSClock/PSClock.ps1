@@ -1,5 +1,5 @@
 #
-# PowerShell tty2oled Test
+# tty2oled PSClock
 # See https://www.msxfaq.de/code/powershell/ps_serial.htm#lesen_und_schreiben
 # 
 #
@@ -40,12 +40,7 @@ $serial.WriteLine("CMDCON,"+$contrast)
 waitforack
 $serial.WriteLine("CMDCLS")
 waitforack
-#$serial.WriteLine("CMDGEO,7,15,0,0,256,64,4,0")
-#waitforack
-#$serial.WriteLine("CMDGEO,7,15,0,18,256,46,4,0")
-#waitforack
-#$serial.WriteLine("CMDTXT,0,15,0,80,8,tty2oled & PowerShell")
-$serial.WriteLine("CMDTXT,0,15,0,0,8,tty2oled & PowerShell")
+$serial.WriteLine("CMDTXT,0,15,0,0,8,tty2oled PSClock")
 waitforack
 
 while (1) {

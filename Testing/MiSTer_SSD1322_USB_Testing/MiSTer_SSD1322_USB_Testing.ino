@@ -449,6 +449,7 @@ void loop(void) {
 
 #ifdef XDTI
   // Update Temp each Timer Interval
+/*
   // ..if just the plain Boot Screen is shown..
   if (actCorename.startsWith("No Core") && timerpos) {
     u8g2.setCursor(111,63);
@@ -457,6 +458,7 @@ void loop(void) {
     u8g2.print("C");
     oled.display();
   }
+*/
   // ..or CMDSTEMP was called
   if (newCommand=="CMDSTEMP" && timerpos) {                                      // Show Temperature
     usb2oled_showtemperature();
@@ -1006,7 +1008,7 @@ void usb2oled_readnwritetext(void) {
   }
 
 #ifdef XDTI
-  if (TextOut=="TEP184") {      // If Text is "TEP184" show Temperature Value
+  if (TextOut=="TEP184") {      // If Text is "TEP184" replace Text with Temperature Value
     //TextOut=String(tSensor.getTemp());
     TextOut=String(tSensor.getTemp())+"\xb0"+"C";
   }

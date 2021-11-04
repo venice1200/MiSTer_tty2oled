@@ -21,6 +21,7 @@
   
   See changelog.md in Sketch folder for more details
 
+
   ToDo
   -Everything I forgot
   -Add u8g2_font_7Segments_26x42_mn
@@ -28,7 +29,7 @@
 */
 
 // Set Version
-#define BuildVersion "211027T"                    // "T" for Testing
+#define BuildVersion "211104T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -66,7 +67,7 @@
 
 // Uncomment for Tilt-Sensor based Display-Auto-Rotation. 
 // The Sensor is connected to Pin 32 (with software activated Pullup) and GND.
-#define XTILT
+//#define XTILT
 #ifdef XTILT
   #include <Bounce2.h>                     // << Extra Library, via Arduino Library Manager
   #define TILT_PIN 32                      // Tilt-Sensor Pin
@@ -75,7 +76,7 @@
 #endif
 
 // Uncomment for Temperatur Sensor Support MIC184 on d.ti's PCB
-#define XDTI
+//#define XDTI
 #ifdef XDTI
   #include <eHaJo_LM75.h>          // << Extra Library, via Arduino Library Manager
   #define I2C1_SDA 17              // I2C_1-SDA
@@ -146,7 +147,9 @@ String prevCommand = "";
 String actCorename = "No Core loaded"; // Actual Received Corename
 uint8_t contrast = 5;                  // Contrast (brightness) of display, range: 0 (no contrast) to 255 (maximum)
 //char *newCommandChar;
+
 bool updateDisplay = false;
+bool startScreenActive = false;
 
 // Display Vars
 uint16_t DispWidth, DispHeight, DispLineBytes1bpp, DispLineBytes4bpp;
@@ -159,8 +162,8 @@ enum picType {NONE, XBM, GSC};                // Enum Picture Type
 int actPicType=0;
 int16_t xs, ys;
 uint16_t ws, hs;
-const uint8_t minEffect=1, maxEffect=10;      // Min/Max Effects for Random
-//const uint8_t minEffect=9, maxEffect=9;      // Min/Max Effects for Random
+const uint8_t minEffect=1, maxEffect=12;      // Min/Max Effects for Random
+//const uint8_t minEffect=12, maxEffect=12;      // Min/Max Effects for Random
 
 // Blinker 500ms Interval
 const long interval = 500;                   // Interval for Blink (milliseconds)
@@ -204,11 +207,11 @@ void setup(void) {
    // Get Display Dimensions
   DispWidth = oled.width();
   DispHeight = oled.height();
-  DispLineBytes1bpp = DispWidth / 8;                       // How many Bytes uses each Display Line at 1bpp
-  DispLineBytes4bpp = DispWidth / 2;                       // How many Bytes uses each Display Line at 4bpp
-  logoBytes1bpp = DispWidth * DispHeight / 8;              // 2048
-  logoBytes4bpp = DispWidth * DispHeight / 2;              // 8192
-  logoBin = (uint8_t *) malloc(logoBytes4bpp);             // Create Picture Buffer, better than create (malloc) & destroy (free)
+  DispLineBytes1bpp = DispWidth / 8;                       // How many Bytes uses each Display Line at 1bpp (32 byte for width 256 Pixel)
+  DispLineBytes4bpp = DispWidth / 2;                       // How many Bytes uses each Display Line at 4bpp (128 byte for width 256 Pixel)
+  logoBytes1bpp = DispWidth * DispHeight / 8;              // 2048 Bytes
+  logoBytes4bpp = DispWidth * DispHeight / 2;              // 8192 Bytes
+  logoBin = (uint8_t *) malloc(logoBytes4bpp);             // Create Picture Buffer, better than permanent create (malloc) and destroy (free)
 
 // Activate Options
 
@@ -220,8 +223,10 @@ void setup(void) {
 // Setup d.to Board (Temp.Sensor/USER_LED)
 #ifdef XDTI
   pinMode(USER_LED, OUTPUT);
-  Wire.begin(I2C1_SDA, I2C1_SCL, 100000);  // Setup I2C-1 Port
+  Wire.begin(I2C1_SDA, I2C1_SCL, 100000);                  // Setup I2C-1 Port
 #ifdef XDEBUG
+  //tSensor.setZone(LM75_ZONE_INTERNAL);                   // Internal = Standard/Default
+  //tSensor.setZone(LM75_ZONE_REMOTE);                     // Remote = External using MMBT3906
   Serial.print("Temperature = ");
   Serial.print(tSensor.getTemp());
   Serial.print("°C");
@@ -243,7 +248,7 @@ void setup(void) {
 #endif
 
 // Go...
-  oled_mistertext();                                       // OLED Startup with Some Text
+  oled_showStartScreen();                                       // OLED Startup with Some Text
 }
 
 // =============================================================================================================
@@ -266,7 +271,7 @@ void loop(void) {
 #endif
     oled.setRotation(0);
     if (actCorename.startsWith("No Core")) {
-      oled_mistertext();
+      oled_showStartScreen();
     }
     else {
       usb2oled_drawlogo(0);
@@ -278,7 +283,7 @@ void loop(void) {
 #endif
     oled.setRotation(2);
     if (actCorename.startsWith("No Core")) {
-      oled_mistertext();
+      oled_showStartScreen();
     }
     else {
       usb2oled_drawlogo(0);
@@ -317,8 +322,12 @@ void loop(void) {
 #endif
   }  // end serial available
     
-  if (updateDisplay) {                                       // Proceed only if it's allowed because of new data from serial
-    if (newCommand.endsWith("QWERTZ")) {                     // TESTING: Process first Transmission after PowerOn/Reboot.
+  if (updateDisplay) {                                           // Proceed only if it's allowed because of new data from serial
+    if (startScreenActive && newCommand.startsWith("CMD")) {     // If any Command is processed the StartScreen isn't shown any more
+      startScreenActive=false;                                   // This variable should prevent "side effects" with Commands and is used to disable automatic drawings
+    }
+
+    if (newCommand.endsWith("QWERTZ")) {                         // Process first Transmission after PowerOn/Reboot.
         // Do nothing, just receive one string to clear the buffer.
     }                    
 
@@ -330,7 +339,7 @@ void loop(void) {
       oled.clearDisplay();
       oled.display();
     }
-    else if (newCommand=="sorg")         oled_mistertext();
+    else if (newCommand=="sorg")         oled_showStartScreen();
     else if (newCommand=="bye")          oled_drawlogo64h(sorgelig_icon64_width, sorgelig_icon64);
     
     // ---------------------------------------------------
@@ -344,7 +353,7 @@ void loop(void) {
     }
     
     else if (newCommand=="CMDSORG") {                                       // Show Startscreen
-      oled_mistertext();
+      oled_showStartScreen();
     }
     
     else if (newCommand=="CMDBYE") {                                        // Show Sorgelig's Icon
@@ -449,18 +458,16 @@ void loop(void) {
 
 #ifdef XDTI
   // Update Temp each Timer Interval
-/*
   // ..if just the plain Boot Screen is shown..
-  if (actCorename.startsWith("No Core") && timerpos) {
+  if (startScreenActive && timerpos) {
     u8g2.setCursor(111,63);
-    u8g2.print(tSensor.getTemp());          // Show Temperature if Sensor available
+    u8g2.print(tSensor.getTemp());                  // Show Temperature if Sensor available
     u8g2.print("\xb0");
     u8g2.print("C");
     oled.display();
   }
-*/
   // ..or CMDSTEMP was called
-  if (newCommand=="CMDSTEMP" && timerpos) {                                      // Show Temperature
+  if (newCommand=="CMDSTEMP" && timerpos) {         // Show Temperature
     usb2oled_showtemperature();
   }
 #endif
@@ -474,7 +481,7 @@ void loop(void) {
 // --------------------------------------------------------------
 // -------------------- Show Start-Up Text ----------------------
 // --------------------------------------------------------------
-void oled_mistertext(void) {
+void oled_showStartScreen(void) {
   uint8_t color = 0;
 
 #ifdef XDEBUG
@@ -510,6 +517,7 @@ void oled_mistertext(void) {
 #endif
 
   oled.display();
+  startScreenActive=true;
 } // end mistertext
 
 
@@ -714,7 +722,7 @@ int usb2oled_readlogo() {
 // ----------------------- Draw Logo ----------------------------
 // --------------------------------------------------------------
 void usb2oled_drawlogo(uint8_t e) {
-  int w,x,y,x2;
+  int w,x,y,x2,y2;
   unsigned char logoByteValue;
   int logoByte;
 
@@ -884,6 +892,28 @@ void usb2oled_drawlogo(uint8_t e) {
         oled.display();
       }  // end for x
     break;  // 10
+    
+    case 11:                                      // Slide in left to right
+      for (x=0; x<DispLineBytes1bpp; x++) {
+        for (x2=DispLineBytes1bpp-1-x; x2<DispLineBytes1bpp; x2++) {
+          for (y=0; y<DispHeight; y++) {
+            drawEightPixelXY(x+x2-(DispLineBytes1bpp-1), y, x2, y);
+          }
+        }
+        oled.display();
+      }
+    break;  // 11
+
+    case 12:                                     // Slide from Top to Bottom
+      for (y=0; y<DispHeight; y++) {
+        for (y2=DispHeight-1-y; y2<DispHeight; y2++) {
+          for (x=0; x<DispLineBytes1bpp; x++) {
+            drawEightPixelXY(x, y+y2-(DispHeight-1), x, y2);
+          }
+        }
+        oled.display();
+      }
+    break;  // 12
 
     default:
       if (actPicType == XBM) {
@@ -937,6 +967,40 @@ void drawEightPixel(int x, int y) {
     case GSC:
       for (i=0; i<4; i++) {
         b=logoBin[(x*4)+i+y*DispLineBytes4bpp];          // Get Data Byte for 2 Pixels
+        oled.drawPixel(x*8+i*2+0, y, (0xF0 & b) >> 4);   // Draw Pixel 1, Left Nibble
+        oled.drawPixel(x*8+i*2+1, y, 0x0F & b);          // Draw Pixel 2, Right Nibble
+      }
+    break;
+  }
+#ifdef USE_NODEMCU
+  yield();
+#endif
+}
+
+// --------------- Draw 8 Pixel to Display Buffer ----------------
+// x,y: Data Coordinates of the Pixels on the Display
+// dx,dy: Data Coordinates of the Pixels in the Array
+// 8 Pixels are written, Data Byte(s) are taken from Array
+// Display Positions are calculated from x,y and Type of Pic
+// --------------------------------------------------------------- 
+void drawEightPixelXY(int x, int y, int dx, int dy) {
+  unsigned char b;
+  int i;
+  switch (actPicType) {
+    case XBM:
+      b=logoBin[dx+dy*DispLineBytes1bpp];            // Get Data Byte for 8 Pixels
+      for (i=0; i<8; i++){
+        if (bitRead(b, i)) {
+          oled.drawPixel(x*8+i,y,SSD1322_WHITE);   // Draw Pixel if "1"
+        }
+        else {
+          oled.drawPixel(x*8+i,y,SSD1322_BLACK);   // Clear Pixel if "0"
+        }
+      }
+    break;
+    case GSC:
+      for (i=0; i<4; i++) {
+        b=logoBin[(dx*4)+i+dy*DispLineBytes4bpp];        // Get Data Byte for 2 Pixels
         oled.drawPixel(x*8+i*2+0, y, (0xF0 & b) >> 4);   // Draw Pixel 1, Left Nibble
         oled.drawPixel(x*8+i*2+1, y, 0x0F & b);          // Draw Pixel 2, Right Nibble
       }

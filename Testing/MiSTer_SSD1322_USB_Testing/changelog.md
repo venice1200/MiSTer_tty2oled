@@ -292,7 +292,14 @@
   -d.ti Board only: If you sent the Text "TEP184" via Command "CMDTEXT" the Text will be replaced with the Temperature Sensor Value including "°C"
 
   2021-10-27
-  DISABLED => -d.ti Board only: Actualize Temperature on plain boot screen if activated
+  -d.ti Board only: Actualize Temperature on plain boot screen if activated
+  
+  2021-10-28
+  -Adding Bool-Variable "startScreenActive"
+  -Renamed function "oled_mistertext" to "oled_showStartScreen"
+
+  2021-11-04
+  -New Slide-In Effects (11+12)
 
    
 ToDo

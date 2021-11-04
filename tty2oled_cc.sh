@@ -106,7 +106,7 @@ function parse_cmd() {
           break
           ;;
         showpic)
-          tty_showpic ${2} ${3}
+          tty_showpic ${2}
           break
           ;;
         exit)
@@ -200,13 +200,14 @@ function tty_slideshow() {
 }
 
 function tty_showpic() {
-  echo "${fgreen}Showing Picture ${2}${freset}"
-  if [ -f "${1}/${2}" ]; then
-    echo "CMDCOR,${1}" > ${TTYDEV}
-    tail -n +4 "${1}/${2}" | xxd -r -p > ${TTYDEV}
+  basepic="`basename ${1}`"
+  echo "${fgreen}Showing Picture ${basepic}${freset}"
+  if [ -f "${1}" ]; then
+    echo "CMDCOR,${basepic}" > ${TTYDEV}
+    tail -n +4 ${1} | xxd -r -p > ${TTYDEV}
     waitforttyack
   else
-    echo "${fred}No Picture ${2} found${freset}"
+    echo "${fred}No Picture ${basepic} found${freset}"
   fi
   exit 0
 }

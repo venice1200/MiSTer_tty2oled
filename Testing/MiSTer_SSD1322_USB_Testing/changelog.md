@@ -299,7 +299,7 @@
   -Renamed function "oled_mistertext" to "oled_showStartScreen"
 
   2021-11-04
-  -New Slide-In Effects (11+12)
+  -New Picture Slide-In Effects (11..14)
 
    
 ToDo

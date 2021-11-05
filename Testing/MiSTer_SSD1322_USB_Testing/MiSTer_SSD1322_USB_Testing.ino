@@ -29,7 +29,7 @@
 */
 
 // Set Version
-#define BuildVersion "211104T"                    // "T" for Testing
+#define BuildVersion "211105T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -162,8 +162,8 @@ enum picType {NONE, XBM, GSC};                // Enum Picture Type
 int actPicType=0;
 int16_t xs, ys;
 uint16_t ws, hs;
-const uint8_t minEffect=1, maxEffect=12;      // Min/Max Effects for Random
-//const uint8_t minEffect=12, maxEffect=12;      // Min/Max Effects for Random
+const uint8_t minEffect=1, maxEffect=14;      // Min/Max Effects for Random
+//const uint8_t minEffect=14, maxEffect=14;      // Min/Max Effects for Random
 
 // Blinker 500ms Interval
 const long interval = 500;                   // Interval for Blink (milliseconds)
@@ -175,6 +175,15 @@ unsigned long previousMillis = 0;
 const int minInterval = 60;                   // Interval for Timer
 int timer=0;                                  // Counter for Timer
 bool timerpos;                                // Positive Timer Signal
+
+// =============================================================================================================
+// ====================================== NEEDED FUNCTION PROTOTYPES ===========================================
+// =============================================================================================================
+
+// Info about overloading found here
+// https://stackoverflow.com/questions/1880866/can-i-set-a-default-argument-from-a-previous-argument
+void drawEightPixelXY(int x, int y, int dx, int dy);
+inline void drawEightPixelXY(int x, int y) { drawEightPixelXY(x,y,x,y); };
 
 // =============================================================================================================
 // ================================================ SETUP ======================================================
@@ -734,7 +743,7 @@ void usb2oled_drawlogo(uint8_t e) {
     case 1:                                  // Left to Right
       for (x=0; x<DispLineBytes1bpp; x++) {
         for (y=0; y<DispHeight; y++) {
-          drawEightPixel(x, y);
+          drawEightPixelXY(x, y);
         }
         oled.display();
       }
@@ -743,7 +752,7 @@ void usb2oled_drawlogo(uint8_t e) {
     case 2:                                  // Top to Bottom
       for (y=0; y<DispHeight; y++) {
         for (x=0; x<DispLineBytes1bpp; x++) {
-          drawEightPixel(x, y);
+          drawEightPixelXY(x, y);
         }
         oled.display();
       }
@@ -752,7 +761,7 @@ void usb2oled_drawlogo(uint8_t e) {
     case 3:                                  // Right to left
       for (x=DispLineBytes1bpp-1; x>=0; x--) {
         for (y=0; y<DispHeight; y++) {
-          drawEightPixel(x, y);
+          drawEightPixelXY(x, y);
         }
         oled.display();
       }
@@ -761,7 +770,7 @@ void usb2oled_drawlogo(uint8_t e) {
     case 4:                                  // Bottom to Top
       for (y=DispHeight-1; y>=0; y--) {
         for (x=0; x<DispLineBytes1bpp; x++) {
-          drawEightPixel(x, y);
+          drawEightPixelXY(x, y);
         }
         oled.display();
       }
@@ -776,7 +785,7 @@ void usb2oled_drawlogo(uint8_t e) {
           else {
             x2 = x*-1 + DispLineBytes1bpp -1;
           }
-          drawEightPixel(x2, y);
+          drawEightPixelXY(x2, y);
         }  // end for y
         oled.display();
       }  // end for x
@@ -791,7 +800,7 @@ void usb2oled_drawlogo(uint8_t e) {
           else {
             x2 = x*-1 + DispLineBytes1bpp -1;
           }
-          drawEightPixel(x2, y);
+          drawEightPixelXY(x2, y);
         }  // end for y
         oled.display();
       }  // end for x
@@ -807,7 +816,7 @@ void usb2oled_drawlogo(uint8_t e) {
             else {
               x2 = x*-1 + DispLineBytes1bpp -1;
             }
-            drawEightPixel(x2, y+w*16);
+            drawEightPixelXY(x2, y+w*16);
           }  // end for y
           oled.display();
         }  // end for x
@@ -818,28 +827,28 @@ void usb2oled_drawlogo(uint8_t e) {
       // Part 1 Top Left
       for (x=0; x<DispLineBytes1bpp/2; x++) {
         for (y=0; y<DispHeight/2; y++) {
-          drawEightPixel(x, y);
+          drawEightPixelXY(x, y);
         }  // end for y
         oled.display();
       }  // end for x
       // Part 2 Bottom Right
       for (x=DispLineBytes1bpp/2; x<DispLineBytes1bpp; x++) {
         for (y=DispHeight/2; y<DispHeight; y++) {
-          drawEightPixel(x, y);
+          drawEightPixelXY(x, y);
         }  // end for y
         oled.display();
       }  // end for x
       // Part 3 Top Right
       for (x=DispLineBytes1bpp-1; x>=DispLineBytes1bpp/2; x--) {
         for (y=0; y<DispHeight/2; y++) {
-          drawEightPixel(x, y);
+          drawEightPixelXY(x, y);
         }  // end for y
         oled.display();
       }  // end for x
       // Part 4 Bottom Left
       for (x=DispLineBytes1bpp/2-1; x>=0; x--) {
         for (y=DispHeight/2; y<DispHeight; y++) {
-          drawEightPixel(x, y);
+          drawEightPixelXY(x, y);
         }  // end for y
         oled.display();
       }  // end for x
@@ -850,7 +859,7 @@ void usb2oled_drawlogo(uint8_t e) {
         x = random(DispWidth);
         y = random(DispHeight);
         for (int offset=0; offset<8; offset++) {
-          if (y+offset<64) drawEightPixel(x, y+offset);
+          if (y+offset<64) drawEightPixelXY(x, y+offset);
         }
         // Different speed
         if (w<=1000) {
@@ -881,7 +890,7 @@ void usb2oled_drawlogo(uint8_t e) {
           //x2=x-y/2;                              // Middle Diagonal
           x2=x-y/4;                                // Short Diagonal
           if ((x2>=0) && (x2<DispLineBytes1bpp)) {
-            drawEightPixel(x2, y);
+            drawEightPixelXY(x2, y);
           }  // end for x2
           else {
 #ifdef USE_NODEMCU
@@ -904,7 +913,7 @@ void usb2oled_drawlogo(uint8_t e) {
       }
     break;  // 11
 
-    case 12:                                     // Slide from Top to Bottom
+    case 12:                                     // Slide in Top to Bottom
       for (y=0; y<DispHeight; y++) {
         for (y2=DispHeight-1-y; y2<DispHeight; y2++) {
           for (x=0; x<DispLineBytes1bpp; x++) {
@@ -914,6 +923,28 @@ void usb2oled_drawlogo(uint8_t e) {
         oled.display();
       }
     break;  // 12
+
+    case 13:                                  // Slide in Right to left
+      for (x=DispLineBytes1bpp-1; x>=0; x--) {
+        for (x2=DispLineBytes1bpp-1-x; x2>=0; x2--) {
+          for (y=0; y<DispHeight; y++) {
+            drawEightPixelXY(x+x2, y, x2, y);
+          }
+        }
+        oled.display();
+      }
+    break;  // 13
+
+    case 14:                                  // Slide in Bottom to Top
+      for (y=DispHeight-1; y>=0; y--) {
+        for (y2=DispHeight-1-y; y2>=0; y2--) {
+          for (x=0; x<DispLineBytes1bpp; x++) {
+            drawEightPixelXY(x, y+y2, x, y2); 
+          }
+        }
+        oled.display();
+      }
+    break;  // 14
 
     default:
       if (actPicType == XBM) {
@@ -944,6 +975,7 @@ void usb2oled_drawlogo(uint8_t e) {
   } // end switch (e)
 }  // end sd2oled_drawlogo
 
+/*
 // --------------- Draw 8 Pixel to Display Buffer ----------------
 // x,y: Data Coordinates of the Pixels in the Array
 // 8 Pixels are written, Data Byte(s) are taken from Array
@@ -976,13 +1008,15 @@ void drawEightPixel(int x, int y) {
   yield();
 #endif
 }
+*/
 
-// --------------- Draw 8 Pixel to Display Buffer ----------------
+// --------------- Draw 8 Pixel to Display Buffer ----------------------
 // x,y: Data Coordinates of the Pixels on the Display
 // dx,dy: Data Coordinates of the Pixels in the Array
+// Normaly x=dx and y=dy but for the slide effects it's different.
 // 8 Pixels are written, Data Byte(s) are taken from Array
-// Display Positions are calculated from x,y and Type of Pic
-// --------------------------------------------------------------- 
+// Display Positions are calculated from x,y and Type of Pic (XBM/GSX)
+// ---------------------------------------------------------------------
 void drawEightPixelXY(int x, int y, int dx, int dy) {
   unsigned char b;
   int i;

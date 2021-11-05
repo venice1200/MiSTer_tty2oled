@@ -138,7 +138,7 @@ if ! [ -d ${picturefolder}/GSC ];then
 else
   echo -e "\e[1;33mDownloading Pictures...\e[0m"
   [ "${OVERWRITE_PICTURE}" = "no" ] && RSYNCOPTS="--ignore-existing" || RSYNCOPTS="--delete"
-  rsync -rltDzzP --modify-window=1 ${RSYNCOPTS} rsync://tty2oled-update-daemon@tty2tft.de/tty2oled-pictures/ ${picturefolder}/
+  rsync -crlzzP --modify-window=1 ${RSYNCOPTS} rsync://tty2oled-update-daemon@tty2tft.de/tty2oled-pictures/ ${picturefolder}/
 fi
 
 # Check and remount root non-writable if neccessary

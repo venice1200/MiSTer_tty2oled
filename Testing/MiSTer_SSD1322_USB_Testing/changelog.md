@@ -298,8 +298,8 @@
   -Adding Bool-Variable "startScreenActive"
   -Renamed function "oled_mistertext" to "oled_showStartScreen"
 
-  2021-11-04
-  -New Picture Slide-In Effects (11..14)
+  2021-11-04/07
+  -New Picture Slide-In Effects (11..14) and some effect speed adjustments
 
    
 ToDo

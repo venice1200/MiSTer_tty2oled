@@ -29,7 +29,7 @@
 */
 
 // Set Version
-#define BuildVersion "211105T"                    // "T" for Testing
+#define BuildVersion "211107T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -163,7 +163,7 @@ int actPicType=0;
 int16_t xs, ys;
 uint16_t ws, hs;
 const uint8_t minEffect=1, maxEffect=14;      // Min/Max Effects for Random
-//const uint8_t minEffect=14, maxEffect=14;      // Min/Max Effects for Random
+//const uint8_t minEffect=11, maxEffect=14;      // Min/Max Effects for Random
 
 // Blinker 500ms Interval
 const long interval = 500;                   // Interval for Blink (milliseconds)
@@ -754,7 +754,7 @@ void usb2oled_drawlogo(uint8_t e) {
         for (x=0; x<DispLineBytes1bpp; x++) {
           drawEightPixelXY(x, y);
         }
-        oled.display();
+        if (y%2==1) oled.display();
       }
     break;  // 2
 
@@ -772,7 +772,7 @@ void usb2oled_drawlogo(uint8_t e) {
         for (x=0; x<DispLineBytes1bpp; x++) {
           drawEightPixelXY(x, y);
         }
-        oled.display();
+        if (y%2==0) oled.display();
       }
     break;  // 4
 
@@ -920,7 +920,7 @@ void usb2oled_drawlogo(uint8_t e) {
             drawEightPixelXY(x, y+y2-(DispHeight-1), x, y2);
           }
         }
-        oled.display();
+        if (y%2==1) oled.display();
       }
     break;  // 12
 
@@ -942,7 +942,7 @@ void usb2oled_drawlogo(uint8_t e) {
             drawEightPixelXY(x, y+y2, x, y2); 
           }
         }
-        oled.display();
+        if (y%2==0) oled.display();
       }
     break;  // 14
 

@@ -20,7 +20,8 @@
   -NodeMCU 1.0
   
   See changelog.md in Sketch folder for more details
-   
+
+
   ToDo
   -Everything I forgot
   -Add u8g2_font_7Segments_26x42_mn
@@ -28,7 +29,7 @@
 */
 
 // Set Version
-#define BuildVersion "211012"                    // "T" for Testing, "G" for Grayscale, "U" for U8G2 for Adafruit GFX
+#define BuildVersion "211107"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -38,12 +39,12 @@
 
 // OTA and Reset only for ESP32
 #ifdef ESP32
-  #include "cred.h"              // Load your WLAN Credentials for OTA
+  #include "cred.h"                               // Load your WLAN Credentials for OTA
   #include <WiFi.h>
   #include <ESPmDNS.h>
   #include <WiFiUdp.h>
   #include <ArduinoOTA.h>
-  bool OTAEN=false;              // Will be set to "true" by Command "CMDENOTA"
+  bool OTAEN=false;                               // Will be set to "true" by Command "CMDENOTA"
 #endif
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -51,6 +52,7 @@
 // ------------------------------------------- Activate your Options ---------------------------------------------------
 // ---------------------------------------------------------------------------------------------------------------------
 
+// How-To...
 // Comment (add "//" in front of the Option) to de-activate the Option
 // Uncomment (remove "//" in front of the Option) to activate the Option
 
@@ -65,7 +67,7 @@
 
 // Uncomment for Tilt-Sensor based Display-Auto-Rotation. 
 // The Sensor is connected to Pin 32 (with software activated Pullup) and GND.
-//#define XTILT
+#define XTILT
 #ifdef XTILT
   #include <Bounce2.h>                     // << Extra Library, via Arduino Library Manager
   #define TILT_PIN 32                      // Tilt-Sensor Pin
@@ -74,7 +76,7 @@
 #endif
 
 // Uncomment for Temperatur Sensor Support MIC184 on d.ti's PCB
-//#define XDTI
+#define XDTI
 #ifdef XDTI
   #include <eHaJo_LM75.h>          // << Extra Library, via Arduino Library Manager
   #define I2C1_SDA 17              // I2C_1-SDA
@@ -145,7 +147,9 @@ String prevCommand = "";
 String actCorename = "No Core loaded"; // Actual Received Corename
 uint8_t contrast = 5;                  // Contrast (brightness) of display, range: 0 (no contrast) to 255 (maximum)
 //char *newCommandChar;
+
 bool updateDisplay = false;
+bool startScreenActive = false;
 
 // Display Vars
 uint16_t DispWidth, DispHeight, DispLineBytes1bpp, DispLineBytes4bpp;
@@ -158,8 +162,8 @@ enum picType {NONE, XBM, GSC};                // Enum Picture Type
 int actPicType=0;
 int16_t xs, ys;
 uint16_t ws, hs;
-const uint8_t minEffect=1, maxEffect=10;      // Min/Max Effects for Random
-//const uint8_t minEffect=9, maxEffect=9;      // Min/Max Effects for Random
+const uint8_t minEffect=1, maxEffect=14;      // Min/Max Effects for Random
+//const uint8_t minEffect=11, maxEffect=14;      // Min/Max Effects for Random
 
 // Blinker 500ms Interval
 const long interval = 500;                   // Interval for Blink (milliseconds)
@@ -171,6 +175,15 @@ unsigned long previousMillis = 0;
 const int minInterval = 60;                   // Interval for Timer
 int timer=0;                                  // Counter for Timer
 bool timerpos;                                // Positive Timer Signal
+
+// =============================================================================================================
+// ====================================== NEEDED FUNCTION PROTOTYPES ===========================================
+// =============================================================================================================
+
+// Info about overloading found here
+// https://stackoverflow.com/questions/1880866/can-i-set-a-default-argument-from-a-previous-argument
+void drawEightPixelXY(int x, int y, int dx, int dy);
+inline void drawEightPixelXY(int x, int y) { drawEightPixelXY(x,y,x,y); };
 
 // =============================================================================================================
 // ================================================ SETUP ======================================================
@@ -203,11 +216,11 @@ void setup(void) {
    // Get Display Dimensions
   DispWidth = oled.width();
   DispHeight = oled.height();
-  DispLineBytes1bpp = DispWidth / 8;                       // How many Bytes uses each Display Line at 1bpp
-  DispLineBytes4bpp = DispWidth / 2;                       // How many Bytes uses each Display Line at 4bpp
-  logoBytes1bpp = DispWidth * DispHeight / 8;              // 2048
-  logoBytes4bpp = DispWidth * DispHeight / 2;              // 8192
-  logoBin = (uint8_t *) malloc(logoBytes4bpp);             // Create Picture Buffer, better than create (malloc) & destroy (free)
+  DispLineBytes1bpp = DispWidth / 8;                       // How many Bytes uses each Display Line at 1bpp (32 byte for width 256 Pixel)
+  DispLineBytes4bpp = DispWidth / 2;                       // How many Bytes uses each Display Line at 4bpp (128 byte for width 256 Pixel)
+  logoBytes1bpp = DispWidth * DispHeight / 8;              // 2048 Bytes
+  logoBytes4bpp = DispWidth * DispHeight / 2;              // 8192 Bytes
+  logoBin = (uint8_t *) malloc(logoBytes4bpp);             // Create Picture Buffer, better than permanent create (malloc) and destroy (free)
 
 // Activate Options
 
@@ -219,8 +232,10 @@ void setup(void) {
 // Setup d.to Board (Temp.Sensor/USER_LED)
 #ifdef XDTI
   pinMode(USER_LED, OUTPUT);
-  Wire.begin(I2C1_SDA, I2C1_SCL, 100000);  // Setup I2C-1 Port
+  Wire.begin(I2C1_SDA, I2C1_SCL, 100000);                  // Setup I2C-1 Port
 #ifdef XDEBUG
+  //tSensor.setZone(LM75_ZONE_INTERNAL);                   // Internal = Standard/Default
+  //tSensor.setZone(LM75_ZONE_REMOTE);                     // Remote = External using MMBT3906
   Serial.print("Temperature = ");
   Serial.print(tSensor.getTemp());
   Serial.print("°C");
@@ -242,7 +257,7 @@ void setup(void) {
 #endif
 
 // Go...
-  oled_mistertext();                                       // OLED Startup with Some Text
+  oled_showStartScreen();                                       // OLED Startup with Some Text
 }
 
 // =============================================================================================================
@@ -265,7 +280,7 @@ void loop(void) {
 #endif
     oled.setRotation(0);
     if (actCorename.startsWith("No Core")) {
-      oled_mistertext();
+      oled_showStartScreen();
     }
     else {
       usb2oled_drawlogo(0);
@@ -277,7 +292,7 @@ void loop(void) {
 #endif
     oled.setRotation(2);
     if (actCorename.startsWith("No Core")) {
-      oled_mistertext();
+      oled_showStartScreen();
     }
     else {
       usb2oled_drawlogo(0);
@@ -316,20 +331,24 @@ void loop(void) {
 #endif
   }  // end serial available
     
-  if (updateDisplay) {                                       // Proceed only if it's allowed because of new data from serial
-    if (newCommand.endsWith("QWERTZ")) {                     // TESTING: Process first Transmission after PowerOn/Reboot.
+  if (updateDisplay) {                                           // Proceed only if it's allowed because of new data from serial
+    if (startScreenActive && newCommand.startsWith("CMD")) {     // If any Command is processed the StartScreen isn't shown any more
+      startScreenActive=false;                                   // This variable should prevent "side effects" with Commands and is used to disable automatic drawings
+    }
+
+    if (newCommand.endsWith("QWERTZ")) {                         // Process first Transmission after PowerOn/Reboot.
         // Do nothing, just receive one string to clear the buffer.
     }                    
 
-    // ----------------------------
-    // ----- C O M M A N D 's -----
-    // ----------------------------
+    // ---------------------------------------------------
+    // ---------------- C O M M A N D 's -----------------
+    // ---------------------------------------------------
 
     else if (newCommand=="cls") {                                        // Clear Screen
       oled.clearDisplay();
       oled.display();
     }
-    else if (newCommand=="sorg")         oled_mistertext();
+    else if (newCommand=="sorg")         oled_showStartScreen();
     else if (newCommand=="bye")          oled_drawlogo64h(sorgelig_icon64_width, sorgelig_icon64);
     
     // ---------------------------------------------------
@@ -343,7 +362,7 @@ void loop(void) {
     }
     
     else if (newCommand=="CMDSORG") {                                       // Show Startscreen
-      oled_mistertext();
+      oled_showStartScreen();
     }
     
     else if (newCommand=="CMDBYE") {                                        // Show Sorgelig's Icon
@@ -445,9 +464,19 @@ void loop(void) {
     updateDisplay=false;                     // Clear Update-Display Flag
   } // end updateDisplay
 
-  // Update Temp each Timer Interval
+
 #ifdef XDTI
-  if (newCommand=="CMDSTEMP" && timerpos) {                                      // Show Temperature
+  // Update Temp each Timer Interval
+  // ..if just the plain Boot Screen is shown..
+  if (startScreenActive && timerpos) {
+    u8g2.setCursor(111,63);
+    u8g2.print(tSensor.getTemp());                  // Show Temperature if Sensor available
+    u8g2.print("\xb0");
+    u8g2.print("C");
+    oled.display();
+  }
+  // ..or CMDSTEMP was called
+  if (newCommand=="CMDSTEMP" && timerpos) {         // Show Temperature
     usb2oled_showtemperature();
   }
 #endif
@@ -461,7 +490,7 @@ void loop(void) {
 // --------------------------------------------------------------
 // -------------------- Show Start-Up Text ----------------------
 // --------------------------------------------------------------
-void oled_mistertext(void) {
+void oled_showStartScreen(void) {
   uint8_t color = 0;
 
 #ifdef XDEBUG
@@ -497,6 +526,7 @@ void oled_mistertext(void) {
 #endif
 
   oled.display();
+  startScreenActive=true;
 } // end mistertext
 
 
@@ -701,7 +731,7 @@ int usb2oled_readlogo() {
 // ----------------------- Draw Logo ----------------------------
 // --------------------------------------------------------------
 void usb2oled_drawlogo(uint8_t e) {
-  int w,x,y,x2;
+  int w,x,y,x2,y2;
   unsigned char logoByteValue;
   int logoByte;
 
@@ -713,7 +743,7 @@ void usb2oled_drawlogo(uint8_t e) {
     case 1:                                  // Left to Right
       for (x=0; x<DispLineBytes1bpp; x++) {
         for (y=0; y<DispHeight; y++) {
-          drawEightPixel(x, y);
+          drawEightPixelXY(x, y);
         }
         oled.display();
       }
@@ -722,16 +752,16 @@ void usb2oled_drawlogo(uint8_t e) {
     case 2:                                  // Top to Bottom
       for (y=0; y<DispHeight; y++) {
         for (x=0; x<DispLineBytes1bpp; x++) {
-          drawEightPixel(x, y);
+          drawEightPixelXY(x, y);
         }
-        oled.display();
+        if (y%2==1) oled.display();
       }
     break;  // 2
 
     case 3:                                  // Right to left
       for (x=DispLineBytes1bpp-1; x>=0; x--) {
         for (y=0; y<DispHeight; y++) {
-          drawEightPixel(x, y);
+          drawEightPixelXY(x, y);
         }
         oled.display();
       }
@@ -740,9 +770,9 @@ void usb2oled_drawlogo(uint8_t e) {
     case 4:                                  // Bottom to Top
       for (y=DispHeight-1; y>=0; y--) {
         for (x=0; x<DispLineBytes1bpp; x++) {
-          drawEightPixel(x, y);
+          drawEightPixelXY(x, y);
         }
-        oled.display();
+        if (y%2==0) oled.display();
       }
     break;  // 4
 
@@ -755,7 +785,7 @@ void usb2oled_drawlogo(uint8_t e) {
           else {
             x2 = x*-1 + DispLineBytes1bpp -1;
           }
-          drawEightPixel(x2, y);
+          drawEightPixelXY(x2, y);
         }  // end for y
         oled.display();
       }  // end for x
@@ -770,7 +800,7 @@ void usb2oled_drawlogo(uint8_t e) {
           else {
             x2 = x*-1 + DispLineBytes1bpp -1;
           }
-          drawEightPixel(x2, y);
+          drawEightPixelXY(x2, y);
         }  // end for y
         oled.display();
       }  // end for x
@@ -786,7 +816,7 @@ void usb2oled_drawlogo(uint8_t e) {
             else {
               x2 = x*-1 + DispLineBytes1bpp -1;
             }
-            drawEightPixel(x2, y+w*16);
+            drawEightPixelXY(x2, y+w*16);
           }  // end for y
           oled.display();
         }  // end for x
@@ -797,28 +827,28 @@ void usb2oled_drawlogo(uint8_t e) {
       // Part 1 Top Left
       for (x=0; x<DispLineBytes1bpp/2; x++) {
         for (y=0; y<DispHeight/2; y++) {
-          drawEightPixel(x, y);
+          drawEightPixelXY(x, y);
         }  // end for y
         oled.display();
       }  // end for x
       // Part 2 Bottom Right
       for (x=DispLineBytes1bpp/2; x<DispLineBytes1bpp; x++) {
         for (y=DispHeight/2; y<DispHeight; y++) {
-          drawEightPixel(x, y);
+          drawEightPixelXY(x, y);
         }  // end for y
         oled.display();
       }  // end for x
       // Part 3 Top Right
       for (x=DispLineBytes1bpp-1; x>=DispLineBytes1bpp/2; x--) {
         for (y=0; y<DispHeight/2; y++) {
-          drawEightPixel(x, y);
+          drawEightPixelXY(x, y);
         }  // end for y
         oled.display();
       }  // end for x
       // Part 4 Bottom Left
       for (x=DispLineBytes1bpp/2-1; x>=0; x--) {
         for (y=DispHeight/2; y<DispHeight; y++) {
-          drawEightPixel(x, y);
+          drawEightPixelXY(x, y);
         }  // end for y
         oled.display();
       }  // end for x
@@ -829,7 +859,7 @@ void usb2oled_drawlogo(uint8_t e) {
         x = random(DispWidth);
         y = random(DispHeight);
         for (int offset=0; offset<8; offset++) {
-          if (y+offset<64) drawEightPixel(x, y+offset);
+          if (y+offset<64) drawEightPixelXY(x, y+offset);
         }
         // Different speed
         if (w<=1000) {
@@ -860,7 +890,7 @@ void usb2oled_drawlogo(uint8_t e) {
           //x2=x-y/2;                              // Middle Diagonal
           x2=x-y/4;                                // Short Diagonal
           if ((x2>=0) && (x2<DispLineBytes1bpp)) {
-            drawEightPixel(x2, y);
+            drawEightPixelXY(x2, y);
           }  // end for x2
           else {
 #ifdef USE_NODEMCU
@@ -871,6 +901,50 @@ void usb2oled_drawlogo(uint8_t e) {
         oled.display();
       }  // end for x
     break;  // 10
+    
+    case 11:                                      // Slide in left to right
+      for (x=0; x<DispLineBytes1bpp; x++) {
+        for (x2=DispLineBytes1bpp-1-x; x2<DispLineBytes1bpp; x2++) {
+          for (y=0; y<DispHeight; y++) {
+            drawEightPixelXY(x+x2-(DispLineBytes1bpp-1), y, x2, y);
+          }
+        }
+        oled.display();
+      }
+    break;  // 11
+
+    case 12:                                     // Slide in Top to Bottom
+      for (y=0; y<DispHeight; y++) {
+        for (y2=DispHeight-1-y; y2<DispHeight; y2++) {
+          for (x=0; x<DispLineBytes1bpp; x++) {
+            drawEightPixelXY(x, y+y2-(DispHeight-1), x, y2);
+          }
+        }
+        if (y%2==1) oled.display();
+      }
+    break;  // 12
+
+    case 13:                                  // Slide in Right to left
+      for (x=DispLineBytes1bpp-1; x>=0; x--) {
+        for (x2=DispLineBytes1bpp-1-x; x2>=0; x2--) {
+          for (y=0; y<DispHeight; y++) {
+            drawEightPixelXY(x+x2, y, x2, y);
+          }
+        }
+        oled.display();
+      }
+    break;  // 13
+
+    case 14:                                  // Slide in Bottom to Top
+      for (y=DispHeight-1; y>=0; y--) {
+        for (y2=DispHeight-1-y; y2>=0; y2--) {
+          for (x=0; x<DispLineBytes1bpp; x++) {
+            drawEightPixelXY(x, y+y2, x, y2); 
+          }
+        }
+        if (y%2==0) oled.display();
+      }
+    break;  // 14
 
     default:
       if (actPicType == XBM) {
@@ -901,6 +975,7 @@ void usb2oled_drawlogo(uint8_t e) {
   } // end switch (e)
 }  // end sd2oled_drawlogo
 
+/*
 // --------------- Draw 8 Pixel to Display Buffer ----------------
 // x,y: Data Coordinates of the Pixels in the Array
 // 8 Pixels are written, Data Byte(s) are taken from Array
@@ -933,6 +1008,42 @@ void drawEightPixel(int x, int y) {
   yield();
 #endif
 }
+*/
+
+// --------------- Draw 8 Pixel to Display Buffer ----------------------
+// x,y: Data Coordinates of the Pixels on the Display
+// dx,dy: Data Coordinates of the Pixels in the Array
+// Normaly x=dx and y=dy but for the slide effects it's different.
+// 8 Pixels are written, Data Byte(s) are taken from Array
+// Display Positions are calculated from x,y and Type of Pic (XBM/GSX)
+// ---------------------------------------------------------------------
+void drawEightPixelXY(int x, int y, int dx, int dy) {
+  unsigned char b;
+  int i;
+  switch (actPicType) {
+    case XBM:
+      b=logoBin[dx+dy*DispLineBytes1bpp];            // Get Data Byte for 8 Pixels
+      for (i=0; i<8; i++){
+        if (bitRead(b, i)) {
+          oled.drawPixel(x*8+i,y,SSD1322_WHITE);   // Draw Pixel if "1"
+        }
+        else {
+          oled.drawPixel(x*8+i,y,SSD1322_BLACK);   // Clear Pixel if "0"
+        }
+      }
+    break;
+    case GSC:
+      for (i=0; i<4; i++) {
+        b=logoBin[(dx*4)+i+dy*DispLineBytes4bpp];        // Get Data Byte for 2 Pixels
+        oled.drawPixel(x*8+i*2+0, y, (0xF0 & b) >> 4);   // Draw Pixel 1, Left Nibble
+        oled.drawPixel(x*8+i*2+1, y, 0x0F & b);          // Draw Pixel 2, Right Nibble
+      }
+    break;
+  }
+#ifdef USE_NODEMCU
+  yield();
+#endif
+}
 
 // ----------------------------------------------------------------------
 // ----------------------- Read and Write Text --------------------------
@@ -942,7 +1053,7 @@ void usb2oled_readnwritetext(void) {
   int16_t x1,y1;
   uint16_t w1,h1;
   String TextIn="", fT="", cT="", bT="", xT="", yT="", TextOut="";
-  bool clearMode=false;
+  bool bufferMode=false;
   
 #ifdef XDEBUG
   Serial.println("Called Command CMDTEXT");
@@ -990,9 +1101,16 @@ void usb2oled_readnwritetext(void) {
   }
 
   if (f>=100) {                  // Do not run oled.display() after printing
-    clearMode=true;
+    bufferMode=true;
     f=f-100;
   }
+
+#ifdef XDTI
+  if (TextOut=="TEP184") {      // If Text is "TEP184" replace Text with Temperature Value
+    //TextOut=String(tSensor.getTemp());
+    TextOut=String(tSensor.getTemp())+"\xb0"+"C";
+  }
+#endif
   
   //Set Font
   switch (f) {
@@ -1020,6 +1138,9 @@ void usb2oled_readnwritetext(void) {
     case 7:
       u8g2.setFont(u8g2_font_tenfatguys_tr);      // Nice 10 Pixel Font
     break;
+    case 8:
+      u8g2.setFont(u8g2_font_7Segments_26x42_mn); // 7 Segments 42 Pixel Font
+    break;
     default:
       u8g2.setFont(u8g2_font_tenfatguys_tr);      // Nice 10 Pixel Font
     break;
@@ -1029,7 +1150,7 @@ void usb2oled_readnwritetext(void) {
   u8g2.setBackgroundColor(b);                           // Set Backgrounf Color
   u8g2.setCursor(x,y);                                  // Set Cursor Position
   u8g2.print(TextOut);                                  // Write Text to Buffer
-  if (!clearMode) oled.display();                       // Update Screen only if not Clear Mode (Font>100)
+  if (!bufferMode) oled.display();                       // Update Screen only if not Clear Mode (Font>100)
   u8g2.setForegroundColor(SSD1322_WHITE);               // Set Color back
   u8g2.setBackgroundColor(SSD1322_BLACK);
   //u8g2.setFontMode(0);
@@ -1043,7 +1164,7 @@ void usb2oled_readndrawgeo(void) {
   int g=0,c=0,x=0,y=0,i=0,j=0,k=0,l=0,d1=0,d2=0,d3=0,d4=0,d5=0,d6=0,d7=0;
   String TextIn="",gT="",cT="",xT="",yT="",iT="",jT="",kT="",lT="";
   bool pError=false;
-  bool clearMode=false;
+  bool bufferMode=false;
   
 #ifdef XDEBUG
   Serial.println("Called Command CMDGEO");
@@ -1098,7 +1219,7 @@ void usb2oled_readndrawgeo(void) {
   }
   
   if (g>100) {                  // Do not run oled.display() after drawing
-    clearMode=true;
+    bufferMode=true;
     g=g-100;
   }
   
@@ -1145,7 +1266,7 @@ void usb2oled_readndrawgeo(void) {
     oled.setCursor(5, 40);
     oled.print("Error CMDGEO");
   }
-  if (!clearMode) oled.display();                       // Update Screen only if not Clear Mode (Geo>100)
+  if (!bufferMode) oled.display();                       // Update Screen only if not Buffer Mode (Geo>100)
 }
 
 

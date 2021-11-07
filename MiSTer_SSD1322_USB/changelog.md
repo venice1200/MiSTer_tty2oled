@@ -280,8 +280,27 @@
    
   2021-10-11
   -Adding Command "CMDSTEMP" for the d.ti Board (Option XDTI)
-   If you send this command the Display shows and refreshs the Temperature as long as no other Commands are send.
+   If you send this command the Display shows and refreshs the Temperature as long as no other Commands are sent.
 
+  2021-10-12
+  -Release "Greyscale Mode"
 
+  2021-10-20
+  -Added 7 Segment Font (Font 8)
+
+  2021-10-22
+  -d.ti Board only: If you sent the Text "TEP184" via Command "CMDTEXT" the Text will be replaced with the Temperature Sensor Value including "°C"
+
+  2021-10-27
+  -d.ti Board only: Actualize Temperature on plain boot screen if activated
+  
+  2021-10-28
+  -Adding Bool-Variable "startScreenActive"
+  -Renamed function "oled_mistertext" to "oled_showStartScreen"
+
+  2021-11-04/07 -RELEASE-
+  -New Picture Slide-In Effects (11..14) and some effect speed adjustments
+
+   
 ToDo
 -Everything I forgot

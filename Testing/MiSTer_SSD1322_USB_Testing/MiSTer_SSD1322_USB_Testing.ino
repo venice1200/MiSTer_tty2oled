@@ -23,11 +23,11 @@
   
   2021-11-08
   -New Command "CMDHWINF"
-   Send HW Infos back to the CMD-Sender. Useful for ESP Firmware Updates.
+   Send HW Info back to the MiSTer/CMD-Sender. Useful for ESP Firmware Updates.
+   Currently: HW01=TTGO-T8 ESP32, HW02=Lolin&DevKit ESP32, HW03=ESP8266, HW04=d.ti Board ESP32
 
   ToDo
   -Everything I forgot
-  -Add u8g2_font_7Segments_26x42_mn
    
 */
 
@@ -543,19 +543,19 @@ void oled_showStartScreen(void) {
 void oled_sendHardwareInfo(void) {
   int hwinfo=0;
 
-#ifdef USE_TTGOT8                         // TTGO or DTI Board
+#if defined(USE_TTGOT8) && !defined(XDTI)  // TTGO-T8 & d.ti Board without XDTI Option
   hwinfo=1;
 #endif
 
-#ifdef USE_LOLIN32                        // Wemos LOLIN32, LOLIN32, DevKit_V4
+#ifdef USE_LOLIN32                         // Wemos LOLIN32, LOLIN32, DevKit_V4 (Wemos Lolin32)
   hwinfo=2;
 #endif
 
-#ifdef USE_NODEMCU                        // ESP8266 NodeMCU
+#ifdef USE_NODEMCU                         // ESP8266 NodeMCU
   hwinfo=3;
 #endif
 
-#if defined(XDTI) && defined(USE_TTGOT8)  // DTI Board
+#if defined(USE_TTGOT8) && defined(XDTI)   // TTGO-T8 & d.ti Board with XDTI Option
   hwinfo=4;
 #endif
   
@@ -563,7 +563,7 @@ void oled_sendHardwareInfo(void) {
 
   switch (hwinfo) {
     case 0:
-      Serial.print("HW00;");
+      Serial.print("HW00;");              // No known Hardware in use
     break;
     case 1:
       Serial.print("HW01;");              // TTGO, DTI
@@ -581,7 +581,7 @@ void oled_sendHardwareInfo(void) {
       Serial.print("HW05;");              // Currently unused
     break;
     default:
-      Serial.print("HW00;");
+      Serial.print("HW00;");              // Default
     break;
   }
 }

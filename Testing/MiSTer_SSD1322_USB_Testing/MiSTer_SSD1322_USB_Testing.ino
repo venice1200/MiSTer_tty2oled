@@ -20,7 +20,10 @@
   -NodeMCU 1.0
   
   See changelog.md in Sketch folder for more details
-
+  
+  2021-11-08
+  -New Command "CMDHWINF"
+   Send HW Infos back to the CMD-Sender. Useful for ESP Firmware Updates.
 
   ToDo
   -Everything I forgot
@@ -29,7 +32,7 @@
 */
 
 // Set Version
-#define BuildVersion "211107T"                    // "T" for Testing
+#define BuildVersion "211108T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -369,6 +372,10 @@ void loop(void) {
       oled_drawlogo64h(sorgelig_icon64_width, sorgelig_icon64);
     }
 
+    else if (newCommand=="CMDHWINF") {                                      // Send HW Info
+      oled_sendHardwareInfo();
+    }
+
     else if (newCommand=="CMDTEST") {                                       // Show Test-Picture
       oled_drawlogo64h(TestPicture_width, TestPicture);
     }
@@ -529,6 +536,55 @@ void oled_showStartScreen(void) {
   startScreenActive=true;
 } // end mistertext
 
+
+// --------------------------------------------------------------
+// ----------- Send Hardware Info Back to the MiSTer ------------
+// --------------------------------------------------------------
+void oled_sendHardwareInfo(void) {
+  int hwinfo=0;
+
+#ifdef USE_TTGOT8                         // TTGO or DTI Board
+  hwinfo=1;
+#endif
+
+#ifdef USE_LOLIN32                        // Wemos LOLIN32, LOLIN32, DevKit_V4
+  hwinfo=2;
+#endif
+
+#ifdef USE_NODEMCU                        // ESP8266 NodeMCU
+  hwinfo=3;
+#endif
+
+#if defined(XDTI) && defined(USE_TTGOT8)  // DTI Board
+  hwinfo=4;
+#endif
+  
+  delay(cDelay);                           // Command Response Delay
+
+  switch (hwinfo) {
+    case 0:
+      Serial.print("HW00;");
+    break;
+    case 1:
+      Serial.print("HW01;");              // TTGO, DTI
+    break;
+    case 2:
+      Serial.print("HW02;");              // Wemos,Lolin,DevKit_V4
+    break;
+    case 3:
+      Serial.print("HW03;");              // ESP8266
+    break;
+    case 4:
+      Serial.print("HW04;");              // DTI Board
+    break;
+    case 5:
+      Serial.print("HW05;");              // Currently unused
+    break;
+    default:
+      Serial.print("HW00;");
+    break;
+  }
+}
 
 // --------------------------------------------------------------
 // ---- Draw Pictures with an height of 64 Pixel centerred ------

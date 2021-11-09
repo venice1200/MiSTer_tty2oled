@@ -39,6 +39,8 @@ function waitforack {
   #$serial.ReadTo(";")
 }
 
+$serial.WriteLine("CMDTZONE,1")
+waitforack
 $serial.WriteLine("CMDCON,"+$contrast)
 waitforack
 $serial.WriteLine("CMDCLS")
@@ -53,7 +55,10 @@ $serial.WriteLine("CMDTXT,8,15,0,179,58,00")
 waitforack
 $serial.WriteLine("CMDDUPD")
 waitforack
-Start-Sleep -s 2.00
+$serial.WriteLine("CMDTZONE,1")
+waitforack
+
+Start-Sleep -s 1.00
 
 while (1) {
   $myhrs=Get-Date -Format HH

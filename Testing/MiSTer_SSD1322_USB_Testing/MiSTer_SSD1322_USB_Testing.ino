@@ -28,6 +28,8 @@
 
   2021-11-09
   -MIC184 uses now the Library MIC184
+  -New Command "CMDTZONE,z"
+   Set the Temperature Zone for the MIC184. z=0 Internal Zone, z=1 Remote Zone.
 
   ToDo
   -Everything I forgot
@@ -35,7 +37,7 @@
 */
 
 // Set Version
-#define BuildVersion "211108T"                    // "T" for Testing
+#define BuildVersion "211109T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -64,10 +66,10 @@
 
 // Uncomment for Tilt-Sensor based Display-Auto-Rotation. 
 // The Sensor is connected to Pin 32 (with software activated Pullup) and GND.
-//#define XTILT
+#define XTILT
 
-// Uncomment for Temperatur Sensor Support MIC184 on d.ti's PCB and User LED
-//#define XDTI
+// Uncomment for Temperatur Sensor MIC184 Support and User LED on d.ti's PCB
+#define XDTI
 
 // ---------------------------------------------------------------------------------------------------------------------
 // ---------------------------- Auto-Board-Config via Arduino IDE Board Selection --------------------------------------
@@ -134,7 +136,7 @@ U8G2_FOR_ADAFRUIT_GFX u8g2;
 #ifdef XDTI
   //#include <eHaJo_LM75.h>          // << Extra Library, via Arduino Library Manager
   //EHAJO_LM75 tSensor;              // Create Sensor Class
-  #include <MIC184.h>              // << Extra Library, via Arduino Library Manager
+  #include <MIC184.h>              // << Extra Library
   MIC184 tSensor;                  // Create Sensor Class
   #define I2C1_SDA 17              // I2C_1-SDA
   #define I2C1_SCL 16              // I2C_1-SCL
@@ -186,7 +188,8 @@ bool prevblink = false;
 bool blinkpos = false;  // Pos Flanc
 bool blinkneg = false;  // Neg Flanc
 unsigned long previousMillis = 0;
-const int minInterval = 60;                   // Interval for Timer
+const int minInterval = 30;                   // Interval for Timer
+//const int minInterval = 60;                   // Interval for Timer
 int timer=0;                                  // Counter for Timer
 bool timerpos;                                // Positive Timer Signal
 
@@ -249,7 +252,7 @@ void setup(void) {
   Wire.begin(int(I2C1_SDA), int(I2C1_SCL), uint32_t(100000));                  // Setup I2C-1 Port
 #ifdef XDEBUG
   //tSensor.setZone(MIC184_ZONE_INTERNAL);                   // Internal = Standard/Default
-  tSensor.setZone(MIC184_ZONE_REMOTE);                     // Remote = External using LM3906/MMBT3906
+  //tSensor.setZone(MIC184_ZONE_REMOTE);                     // Remote = External using LM3906/MMBT3906
   Serial.print("Temperature = ");
   Serial.print(tSensor.getTemp());
   Serial.print("°C");
@@ -391,12 +394,6 @@ void loop(void) {
       oled_drawlogo64h(TestPicture_width, TestPicture);
     }
 
-#ifdef XDTI
-    else if (newCommand=="CMDSTEMP") {                                      // Show Temperature
-    usb2oled_showtemperature();
-    }
-#endif
-
     else if (newCommand=="CMDSNAM") {                                       // Show actual loaded Corename
       usb2oled_showcorename();
     }
@@ -445,15 +442,24 @@ void loop(void) {
       usb2oled_readnsetcontrast();                                          // Read and Set contrast                                   
     }
 
+    else if (newCommand.startsWith("CMDROT,")) {                            // Command from Serial to set Rotation
+      usb2oled_readnsetrotation();                                          // Set Rotation
+    }
+
+    // The following Commands are only for the d.ti Board
 #ifdef XDTI
     else if (newCommand.startsWith("CMDULED,")) {                            // Command from Serial to receive Contrast-Level Data from the MiSTer
       usb2oled_readnsetuserled();                                            // Set LED                                   
     }
-#endif
 
-    else if (newCommand.startsWith("CMDROT,")) {                            // Command from Serial to set Rotation
-      usb2oled_readnsetrotation();                                          // Set Rotation
+    else if (newCommand=="CMDSTEMP") {                                      // Show Temperature
+    usb2oled_showtemperature();
     }
+
+    else if (newCommand.startsWith("CMDTZONE")) {                           // Set Temperature Zone
+    usb2oled_settempzone();
+    }
+#endif
 
     // The following Commands are only for ESP32
 #ifdef ESP32  // OTA and Reset only for ESP32
@@ -1292,7 +1298,7 @@ void usb2oled_showtemperature() {
 
 
 // --------------------------------------------------------------
-// ----------------- Read an Set User LED -----------------------
+// ----------------------- Set User LED -------------------------
 // --------------------------------------------------------------
 void usb2oled_readnsetuserled(void) {
   String xT="";
@@ -1310,7 +1316,27 @@ void usb2oled_readnsetuserled(void) {
   if (xT.toInt()==0) digitalWrite(USER_LED, LOW);
   if (xT.toInt()==1) digitalWrite(USER_LED, HIGH);
 }
+
+
+// --------------------------------------------------------------
+// ------------- Set MIC184 Temperature Zone --------------------
+// --------------------------------------------------------------
+void usb2oled_settempzone(void) {
+  String xZ="";
+#ifdef XDEBUG
+  Serial.println("Called Command CMDTZONE");
 #endif
+  
+  xZ=newCommand.substring(9);
+
+#ifdef XDEBUG
+  Serial.printf("Received Text: %s\n", (char*)xZ.c_str());
+#endif
+
+  if (xZ.toInt()==0) tSensor.setZONE(MIC184_ZONE_INTERNAL);
+  if (xZ.toInt()==1) tSensor.setZONE(MIC184_ZONE_REMOTE);
+}
+#endif  // d.ti functions
 
 
 // -------------- ESP32 Funtions -------------------- 

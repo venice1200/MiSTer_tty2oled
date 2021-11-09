@@ -23,7 +23,10 @@ $serial.BaudRate = "115200"
 $serial.Parity = "None"
 $serial.DataBits = 8
 $serial.StopBits = 1
-$serial.ReadTimeout = 5000
+#$serial.ReadTimeout = 5000
+$serial.ReadTimeout = 500
+$serial.DiscardInBuffer
+$serial.DiscardOutBuffer
 
 $serial.Open()
 
@@ -42,6 +45,15 @@ $serial.WriteLine("CMDCLS")
 waitforack
 $serial.WriteLine("CMDTXT,0,15,0,0,8,tty2oled PSClock")
 waitforack
+$serial.WriteLine("CMDTXT,8,15,0,15,58,00:")
+waitforack
+$serial.WriteLine("CMDTXT,8,15,0,97,58,00:")
+waitforack
+$serial.WriteLine("CMDTXT,8,15,0,179,58,00")
+waitforack
+$serial.WriteLine("CMDDUPD")
+waitforack
+Start-Sleep -s 2.00
 
 while (1) {
   $myhrs=Get-Date -Format HH
@@ -49,31 +61,31 @@ while (1) {
   $mysec=Get-Date -Format ss
   
   if ($myhrs -ne $myhrsbuf) {
-    $serial.WriteLine("CMDTXT,108,0,0,25,58,"+$myhrsbuf+":")
+    $serial.WriteLine("CMDTXT,108,0,0,15,58,"+$myhrsbuf+":")
     waitforack
-    $serial.WriteLine("CMDTXT,108,15,0,25,58,"+$myhrs+":")
+    $serial.WriteLine("CMDTXT,108,15,0,15,58,"+$myhrs+":")
     waitforack
     $myhrsbuf=$myhrs
   }
 
   if ($mymin -ne $myminbuf) {
+    $serial.WriteLine("CMDTXT,108,0,0,97,58,"+$myminbuf+":")
+    waitforack
+    $serial.WriteLine("CMDTXT,108,15,0,97,58,"+$mymin+":")
+    waitforack
     $serial.WriteLine("CMDTXT,0,10,0,220,8,TEP184")
-    waitforack
-    $serial.WriteLine("CMDTXT,108,0,0,105,58,"+$myminbuf+":")
-    waitforack
-    $serial.WriteLine("CMDTXT,108,15,0,105,58,"+$mymin+":")
     waitforack
     $myminbuf=$mymin
   }
 
   if ($mysec -ne $mysecbuf) {
-    $serial.WriteLine("CMDTXT,108,0,0,185,58,"+$mysecbuf)
+    $serial.WriteLine("CMDTXT,108,0,0,179,58,"+$mysecbuf)
     waitforack
-    $serial.WriteLine("CMDTXT,108,15,0,185,58,"+$mysec)
+    $serial.WriteLine("CMDTXT,108,15,0,179,58,"+$mysec)
     waitforack
     $serial.WriteLine("CMDDUPD")
     waitforack
     $mysecbuf=$mysec
-    Start-Sleep -s 0.90 # Without "sleep" = 5.5% CPU, with sleep 0.2%
+    Start-Sleep -s 0.85 # Without "sleep" = 5.5% CPU, with sleep 0.2%
   }
 }

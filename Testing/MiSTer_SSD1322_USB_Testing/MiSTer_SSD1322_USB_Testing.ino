@@ -27,8 +27,8 @@
    Currently: HW01=TTGO-T8 ESP32, HW02=Lolin&DevKit ESP32, HW03=ESP8266, HW04=d.ti Board ESP32
 
   2021-11-09
-  -MIC184 uses now the Library MIC184
-  -New Command "CMDTZONE,z"
+  -MIC184 uses now the Library MIC184 (modified LM75 Library)
+  -New Command "CMDTZONE,z" for d.ti Board only!
    Set the Temperature Zone for the MIC184. z=0 Internal Zone, z=1 Remote Zone.
 
   ToDo
@@ -68,7 +68,7 @@
 // The Sensor is connected to Pin 32 (with software activated Pullup) and GND.
 #define XTILT
 
-// Uncomment for Temperatur Sensor MIC184 Support and User LED on d.ti's PCB
+// Uncomment for Temperatur Sensor MIC184 and User LED Support on d.ti's PCB
 #define XDTI
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -77,7 +77,7 @@
 // ---------------------------------------------------------------------------------------------------------------------
 
 #ifdef ARDUINO_ESP32_DEV
-  #define USE_TTGOT8             // TTGO-T8, tty2oled Board by d.ti. Set Arduino Board to "ESP32 Dev Module", chose your xx MB Flash
+  #define USE_TTGOT8             // TTGO-T8, tty2oled Board by d.ti. Set Arduino Board to "ESP32 Dev Module"
 #endif
 
 #ifdef ARDUINO_LOLIN32
@@ -123,7 +123,7 @@
 Adafruit_SSD1322 oled(256, 64, &SPI, OLED_DC, OLED_RESET, OLED_CS);
 U8G2_FOR_ADAFRUIT_GFX u8g2;
 
-// ------------ Opütinals Libraries -----------------
+// ------------ Optional Libraries -----------------
 // Tilt Sensor at PIN 32
 #ifdef XTILT
   #include <Bounce2.h>                     // << Extra Library, via Arduino Library Manager
@@ -132,7 +132,7 @@ U8G2_FOR_ADAFRUIT_GFX u8g2;
   Bounce RotationDebouncer = Bounce();     // Create Bounce class
 #endif
 
-// D.TI T-Sensor & User LED at PIN 19
+// D.TI T-Sensor MIC184 & User LED
 #ifdef XDTI
   //#include <eHaJo_LM75.h>          // << Extra Library, via Arduino Library Manager
   //EHAJO_LM75 tSensor;              // Create Sensor Class

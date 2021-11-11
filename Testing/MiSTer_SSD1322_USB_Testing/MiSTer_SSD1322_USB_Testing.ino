@@ -72,8 +72,8 @@
 #define XDTI
 
 // ---------------------------------------------------------------------------------------------------------------------
-// ---------------------------- Auto-Board-Config via Arduino IDE Board Selection --------------------------------------
-// -------------------------------- Make sure the Manual-Config is not active ------------------------------------------
+// ---------------------------------- Auto-Board-Config via Arduino IDE Board Selection --------------------------------
+// ------------------------------------ Make sure the Auto-Board-Config is not active ----------------------------------
 // ---------------------------------------------------------------------------------------------------------------------
 
 #ifdef ARDUINO_ESP32_DEV
@@ -249,7 +249,7 @@ void setup(void) {
 // Setup d.ti Board (Temp.Sensor/USER_LED)
 #ifdef XDTI
   pinMode(USER_LED, OUTPUT);
-  Wire.begin(int(I2C1_SDA), int(I2C1_SCL), uint32_t(100000));                  // Setup I2C-1 Port
+  Wire.begin(int(I2C1_SDA), int(I2C1_SCL), uint32_t(100000));   // Setup I2C-1 Port
 #ifdef XDEBUG
   //tSensor.setZone(MIC184_ZONE_INTERNAL);                   // Internal = Standard/Default
   //tSensor.setZone(MIC184_ZONE_REMOTE);                     // Remote = External using LM3906/MMBT3906

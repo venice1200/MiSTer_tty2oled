@@ -21,15 +21,15 @@
   
   See changelog.md in Sketch folder for more details
   
-  2021-11-08
-  -New Command "CMDHWINF"
-   Send HW Info back to the MiSTer/CMD-Sender. Useful for ESP Firmware Updates.
-   Currently: HW01=TTGO-T8 ESP32, HW02=Lolin&DevKit ESP32, HW03=ESP8266, HW04=d.ti Board ESP32
-
-  2021-11-09
+  2021-11-11
   -MIC184 uses now the Library MIC184 (modified LM75 Library)
   -New Command "CMDTZONE,z" for d.ti Board only!
    Set the Temperature Zone for the MIC184. z=0 Internal Zone, z=1 Remote Zone.
+
+  2021-11-14
+  -New Command "CMDHWINF"
+   Send HW Info back to the MiSTer/CMD-Sender. Useful for ESP Firmware Updates.
+   Currently: "TTGO"=TTGO-T8 ESP32, "LOLI"=Lolin&DevKit ESP32, "8266"=ESP8266, "DTI0"=d.ti Board ESP32
 
   ToDo
   -Everything I forgot
@@ -37,13 +37,13 @@
 */
 
 // Set Version
-#define BuildVersion "211109T"                    // "T" for Testing
+#define BuildVersion "211114T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
 #include <SSD1322_for_Adafruit_GFX.h>             // SSD1322 Controller Display Library https://github.com/venice1200/SSD1322_for_Adafruit_GFX
 #include <U8g2_for_Adafruit_GFX.h>                // U8G2 Font Engine for Adafruit GFX  https://github.com/olikraus/U8g2_for_Adafruit_GFX
-#include "logo.h"                                 // The Pics in XMB Format
+#include "logo.h"                                 // Some needed Pictures
 
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -69,7 +69,7 @@
 #define XTILT
 
 // Uncomment for Temperatur Sensor MIC184 and User LED Support on d.ti's PCB
-#define XDTI
+//#define XDTI
 
 // ---------------------------------------------------------------------------------------------------------------------
 // ---------------------------------- Auto-Board-Config via Arduino IDE Board Selection --------------------------------
@@ -580,25 +580,25 @@ void oled_sendHardwareInfo(void) {
 
   switch (hwinfo) {
     case 0:
-      Serial.print("HW00;");              // No known Hardware in use
+      Serial.print("HWNONE;");              // No known Hardware in use
     break;
     case 1:
-      Serial.print("HW01;");              // TTGO, DTI
+      Serial.print("HWTTGO;");              // TTGO, DTI
     break;
     case 2:
-      Serial.print("HW02;");              // Wemos,Lolin,DevKit_V4
+      Serial.print("HWLOLI;");              // Wemos,Lolin,DevKit_V4
     break;
     case 3:
-      Serial.print("HW03;");              // ESP8266
+      Serial.print("HW8266;");              // ESP8266
     break;
     case 4:
-      Serial.print("HW04;");              // DTI Board
+      Serial.print("HWDTI0;");              // DTI Board v1.0
     break;
     case 5:
-      Serial.print("HW05;");              // Currently unused
+      Serial.print("HWDTI1;");              // Currently unused
     break;
     default:
-      Serial.print("HW00;");              // Default
+      Serial.print("HWNONE;");              // Default
     break;
   }
 }
@@ -1335,8 +1335,9 @@ void usb2oled_settempzone(void) {
 
   if (xZ.toInt()==0) tSensor.setZONE(MIC184_ZONE_INTERNAL);
   if (xZ.toInt()==1) tSensor.setZONE(MIC184_ZONE_REMOTE);
+  //delay(1000);
 }
-#endif  // d.ti functions
+#endif  // ----------- d.ti functions---------------
 
 
 // -------------- ESP32 Funtions -------------------- 

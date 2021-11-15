@@ -31,13 +31,16 @@
    Send HW Info back to the MiSTer/CMD-Sender. Useful for ESP Firmware Updates.
    Currently: "TTGO"=TTGO-T8 ESP32, "LOLI"=Lolin&DevKit ESP32, "8266"=ESP8266, "DTI0"=d.ti Board ESP32
 
+  2021-11-15
+  -Changed Option USE_TTGOT8=USE_ESP32DEV
+
   ToDo
   -Everything I forgot
    
 */
 
 // Set Version
-#define BuildVersion "211114T"                    // "T" for Testing
+#define BuildVersion "211115T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -69,7 +72,7 @@
 #define XTILT
 
 // Uncomment for Temperatur Sensor MIC184 and User LED Support on d.ti's PCB
-//#define XDTI
+#define XDTI
 
 // ---------------------------------------------------------------------------------------------------------------------
 // ---------------------------------- Auto-Board-Config via Arduino IDE Board Selection --------------------------------
@@ -77,7 +80,7 @@
 // ---------------------------------------------------------------------------------------------------------------------
 
 #ifdef ARDUINO_ESP32_DEV
-  #define USE_TTGOT8             // TTGO-T8, tty2oled Board by d.ti. Set Arduino Board to "ESP32 Dev Module"
+  #define USE_ESP32DEV             // TTGO-T8, tty2oled Board by d.ti. Set Arduino Board to "ESP32 Dev Module"
 #endif
 
 #ifdef ARDUINO_LOLIN32
@@ -93,13 +96,13 @@
 // ------------------------------------ Make sure the Auto-Board-Config is not active ----------------------------------
 // ---------------------------------------------------------------------------------------------------------------------
 
-//#define USE_TTGOT8             // TTGO-T8. Set Arduino Board to ESP32 Dev Module, xx MB Flash, def. Part. Schema
+//#define USE_ESP32DEV             // TTGO-T8. Set Arduino Board to ESP32 Dev Module, xx MB Flash, def. Part. Schema
 //#define USE_LOLIN32            // Wemos LOLIN32, LOLIN32, DevKit_V4. Set Arduino Board to "WEMOS LOLIN32"
 //#define USE_NODEMCU            // ESP8266 NodeMCU v3. Set Arduino Board to NodeMCU 1.0 (ESP-12E Module)
 
 // ------------ Display Objects -----------------
 // TTGO-T8 using VSPI SCLK = 18, MISO = 19, MOSI = 23 and...
-#ifdef USE_TTGOT8
+#ifdef USE_ESP32DEV
   #define OLED_CS 26
   #define OLED_DC 25
   #define OLED_RESET 27
@@ -172,6 +175,7 @@ uint16_t DispWidth, DispHeight, DispLineBytes1bpp, DispLineBytes4bpp;
 unsigned int logoBytes1bpp=0;
 unsigned int logoBytes4bpp=0;
 const int cDelay=25;                          // Command Delay in ms for Handshake
+const int hwDelay=100;                        // Delay for HWINFO Request
 size_t bytesReadCount=0;
 uint8_t *logoBin;                             // <<== For malloc in Setup
 enum picType {NONE, XBM, GSC};                // Enum Picture Type
@@ -560,7 +564,7 @@ void oled_showStartScreen(void) {
 void oled_sendHardwareInfo(void) {
   int hwinfo=0;
 
-#if defined(USE_TTGOT8) && !defined(XDTI)  // TTGO-T8 & d.ti Board without XDTI Option
+#if defined(USE_ESP32DEV) && !defined(XDTI)  // TTGO-T8 & d.ti Board without XDTI Option
   hwinfo=1;
 #endif
 
@@ -572,33 +576,33 @@ void oled_sendHardwareInfo(void) {
   hwinfo=3;
 #endif
 
-#if defined(USE_TTGOT8) && defined(XDTI)   // TTGO-T8 & d.ti Board with XDTI Option
+#if defined(USE_ESP32DEV) && defined(XDTI)   // TTGO-T8 & d.ti Board with XDTI Option
   hwinfo=4;
 #endif
   
-  delay(cDelay);                           // Command Response Delay
+  delay(hwDelay);                            // Small Delay
 
   switch (hwinfo) {
     case 0:
-      Serial.print("HWNONE;");              // No known Hardware in use
+      Serial.println("HWNONEXXX;" BuildVersion ";");              // No known Hardware in use
     break;
     case 1:
-      Serial.print("HWTTGO;");              // TTGO, DTI
+      Serial.println("HWESP32DE;" BuildVersion ";");              // ESP32-DEV, TTGO, DTI-Board without active Options
     break;
     case 2:
-      Serial.print("HWLOLI;");              // Wemos,Lolin,DevKit_V4
+      Serial.println("HWLOLIN32;" BuildVersion ";");              // Wemos,Lolin,DevKit_V4
     break;
     case 3:
-      Serial.print("HW8266;");              // ESP8266
+      Serial.println("HWESP8266;" BuildVersion ";");              // ESP8266
     break;
     case 4:
-      Serial.print("HWDTI0;");              // DTI Board v1.0
+      Serial.println("HWDTIPCB0;" BuildVersion ";");              // DTI Board v1.0
     break;
     case 5:
-      Serial.print("HWDTI1;");              // Currently unused
+      Serial.println("HWDTIPCB1;" BuildVersion ";");              // Currently unused
     break;
     default:
-      Serial.print("HWNONE;");              // Default
+      Serial.println("HWNONEXXX;" BuildVersion ";");              // Default
     break;
   }
 }

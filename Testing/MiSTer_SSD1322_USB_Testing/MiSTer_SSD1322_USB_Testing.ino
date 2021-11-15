@@ -72,7 +72,7 @@
 #define XTILT
 
 // Uncomment for Temperatur Sensor MIC184 and User LED Support on d.ti's PCB
-#define XDTI
+//#define XDTI
 
 // ---------------------------------------------------------------------------------------------------------------------
 // ---------------------------------- Auto-Board-Config via Arduino IDE Board Selection --------------------------------

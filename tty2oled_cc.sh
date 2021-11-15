@@ -220,13 +220,15 @@ function tty_update() {
 }
 
 function waitforttyack() {
-  echo -n "Waiting for tty2oled..."
+  echo -n "Waiting for tty2oled Acknowledge... "
+  read -d ";" ttyresponse < ${TTYDEV}                # The "read" command at this position simulates an "do..while" loop
   while [ "${ttyresponse}" != "ttyack" ]; do
     read -d ";" ttyresponse < ${TTYDEV}              # Read Serial Line until delimiter ";"
   done
   echo "${fgreen}${ttyresponse}${freset}"
   ttyresponse=""
 }
+
 
 #------------------- Main Part --------------------
 

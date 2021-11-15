@@ -6,6 +6,7 @@
 
 function waitforttyack() {  
   echo -n "Waiting for tty2oled Acknowledge... "  
+  read -d ";" ttyresponse < ${TTYDEV}                # The "read" at this position simulates an "do..while" loop
   while [ "${ttyresponse}" != "ttyack" ]; do    
     read -d ";" ttyresponse < ${TTYDEV}              # Read Serial Line until delimiter ";"  
   done  
@@ -16,6 +17,7 @@ function waitforttyack() {
 
 function waitforttyhwinfo() {
   echo -n "Waiting for tty2oled HW-Info: "
+  read -d ";" hwinfo < ${TTYDEV}                      # The "read" at this position simulates an "do.. while" loop
   while [[ "${hwinfo}" != "HW"* ]]; do
     read -d ";" hwinfo < ${TTYDEV}                    # Read Serial Line until delimiter ";"
   done

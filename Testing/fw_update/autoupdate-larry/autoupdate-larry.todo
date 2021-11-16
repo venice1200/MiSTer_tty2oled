@@ -11,6 +11,10 @@ Verifying 0xc00 (3072) bytes @ 0x00008000 in flash against ./binaries/partitions
 Hard resetting via RTS pin...
 
 - bin-Files checksum
-- Erstbespielung
-- Baust Du noch ein y/n für den Fall ein das das System nicht auf HWINFO reagiert (Sketch zu alt/Neue MCU).
 - up/down https://github.com/mrchrisster/MiSTer_SAM/blob/7e56aac2dd2c8c2e541c06c659d9ffd5a270f8e6/MiSTer_SAM_on.sh#L211
+- pip / Virtual Environments (WiP)
+
+
+https://docs.python.org/3/tutorial/venv.html
+https://pip.pypa.io/en/latest/topics/caching/
+https://pip.pypa.io/en/latest/cli/pip_cache/#pip-cache

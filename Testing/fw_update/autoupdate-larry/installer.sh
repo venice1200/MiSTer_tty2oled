@@ -1,7 +1,10 @@
 #!/bin/bash
 
-[ -f ./tty2oled.ini ] && source ./tty2oled.ini
-[ -f /media/fat/tty2oled/tty2oled.ini ] && source /media/fat/tty2oled/tty2oled.ini
+REPOSITORY_URL="https://raw.githubusercontent.com/venice1200/MiSTer_tty2oled/main"
+REPOSITORY_URL2="https://raw.githubusercontent.com/venice1200/MiSTer_tty2oled/main/Testing"	# Testing branch
+
+wget -q ${REPOSITORY_URL}/tty2oled.ini -O /tmp/tty2oled.ini
+./tmp/tty2oled.ini
 
 BUILDVER="2112115T"
 
@@ -15,6 +18,10 @@ DBAUD="921600"
 DSTD="--before default_reset --after hard_reset"
 TTYPARAM="${BAUDRATE} cs8 raw -parenb -cstopb -hupcl -echo"
 stty -F ${DUSB} ${TTYPARAM}
+
+echo "cls" > /tmp/CORENAME
+echo -e "${CGRN}Downloading, checking and (maybe) installing and updating ${CYEL}tty2oled${CNON}"
+wget -q ${REPOSITORY_URL}/update_tty2oled.sh -O - | bash
 
 #Check if Python is installed
 echo -en "${CNON}Checking for Python installation: ${CGRN}"
@@ -71,7 +78,7 @@ fi
 
 #Check for MCU
 case "${MCUtype}" in
-    HWNONE) echo -e "${CRED}Unknown hardware, can't continue.${CNON}" ; exit 1 ;;
+    HWNONEXXX)	echo -e "${CRED}Unknown hardware, can't continue.${CNON}" ; exit 1 ;;
     HWESP32DE)	echo -e "${CYEL}ESP32 selected/detected (TTGO/DTI).${CNON}"
 		MCU="espdti" ;;
     HWLOLIN32)	echo -e "${CYEL}ESP32 selected/detected (Wemos/Lolin/DevKit_V4).${CNON}"
@@ -85,16 +92,21 @@ case "${MCUtype}" in
 esac
 
 if [[ "${SWver}" < "${BUILDVER}" ]]; then
+    echo "Updating tty2oled" > /dev/ttyUSB0
     echo -e "${CYEL}Version of your tty2oled device is ${SWver}, but BUILDVER is ${BUILDVER}. Updating!${CNON}"
     echo "------------------------------------"
-	[ "${MCU}" = "esp32" ] && esptool.py --chip esp32 --port ${DUSB} --baud ${DBAUD} ${DSTD} write_flash -z --flash_mode dio --flash_freq 80m --flash_size detect 0xe000 ./binaries/boot_app0.bin 0x1000 ./binaries/bootloader_qio_80m.bin 0x10000 ./binaries/firmware.bin 0x8000 ./binaries/partitions.bin
-	[ "${MCU}" = "espdti" ] && esptool.py --chip esp32 --port ${DUSB} --baud ${DBAUD} ${DSTD} write_flash -z --flash_mode qio --flash_freq 80m --flash_size detect 0xe000 ./binaries/boot_app0.bin 0x1000 ./binaries/bootloader_qio_80m.bin 0x10000 ./binaries/firmware.bin 0x8000 ./binaries/partitions.bin
-	[ "${MCU}" = "esp8266" ] && esptool.py --chip esp8266 --port ${DUSB} --baud ${DBAUD} ${DSTD} write_flash -z --flash_mode dio --flash_freq 80m --flash_size detect 0x00000 ./binaries/MiSTer_SSD1322_USB.ino.esp8266.bin
+	[ "${MCU}" = "esp32" ] && esptool.py --chip esp32 --port ${DUSB} --baud ${DBAUD} ${DSTD} write_flash -z --flash_mode dio --flash_freq 80m --flash_size detect 0xe000 ./binaries/boot_app0.bin 0x1000 ./binaries/bootloader_dio_80m.bin 0x10000 ./binaries/firmware_esp32de.bin 0x8000 ./binaries/partitions.bin
+	[ "${MCU}" = "espdti" ] && esptool.py --chip esp32 --port ${DUSB} --baud ${DBAUD} ${DSTD} write_flash -z --flash_mode qio --flash_freq 80m --flash_size detect 0xe000 ./binaries/boot_app0.bin 0x1000 ./binaries/bootloader_qio_80m.bin 0x10000 ./binaries/firmware_dtipcb0.bin 0x8000 ./binaries/partitions.bin
+	[ "${MCU}" = "esp8266" ] && esptool.py --chip esp8266 --port ${DUSB} --baud ${DBAUD} ${DSTD} write_flash -z --flash_mode dio --flash_freq 80m --flash_size detect 0x00000 /tmp/MiSTer_SSD1322_USB.ino.esp8266.bin
     echo "------------------------------------"
     echo -en "${CYEL}${CBLNK}...waiting for reboot of device...${CNON}" ; sleep 3 ; echo -e "\033[2K"
-    echo -en "${CYEL}" ; read -t5 -n1 -p "Do you want to verify the flash (y/n)? - Waiting 5 seconds for input..." BLA ; echo -e "${CNON}"
-    if [ "${BLA}" = "y" ]; then
-	[ "${MCU}" = "esp32" ] && esptool.py --chip esp32 --port ${DUSB} --baud ${DBAUD} ${DSTD} verify_flash --flash_size detect 0xe000 ./binaries/boot_app0.bin 0x1000 ./binaries/bootloader_qio_80m.bin 0x10000 ./binaries/firmware.bin 0x8000 ./binaries/partitions.bin
-	[ "${MCU}" = "esp8266" ] && esptool.py --chip esp8266 --port ${DUSB} --baud ${DBAUD} ${DSTD} verify_flash --flash_size detect 0x00000 ./binaries/MiSTer_SSD1322_USB.ino.esp8266.bin
-    fi
+#    echo -en "${CYEL}" ; read -t5 -n1 -p "Do you want to verify the flash (y/n)? - Waiting 5 seconds for input..." BLA ; echo -e "${CNON}"
+#    if [ "${BLA}" = "y" ]; then
+#	[ "${MCU}" = "esp32" ] && esptool.py --chip esp32 --port ${DUSB} --baud ${DBAUD} ${DSTD} verify_flash --flash_size detect 0xe000 ./binaries/boot_app0.bin 0x1000 ./binaries/bootloader_dio_80m.bin 0x10000 ./binaries/firmware_esp32de.bin 0x8000 ./binaries/partitions.bin
+#	[ "${MCU}" = "espdti" ] && esptool.py --chip esp32 --port ${DUSB} --baud ${DBAUD} ${DSTD} verify_flash --flash_size detect 0xe000 ./binaries/boot_app0.bin 0x1000 ./binaries/bootloader_qio_80m.bin 0x10000 ./binaries/firmware_dtipcb0.bin 0x8000 ./binaries/partitions.bin
+#	[ "${MCU}" = "esp8266" ] && esptool.py --chip esp8266 --port ${DUSB} --baud 460800 ${DSTD} verify_flash --flash_size detect 0x00000 ./binaries/MiSTer_SSD1322_USB.ino.esp8266.bin
+#    fi
 fi
+
+exit 0
+# esptool.py --port ${DUSB} --baud 115200 erase_flash

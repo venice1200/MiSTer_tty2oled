@@ -13,3 +13,4 @@ Hard resetting via RTS pin...
 - bin-Files checksum
 - Erstbespielung
 - Baust Du noch ein y/n für den Fall ein das das System nicht auf HWINFO reagiert (Sketch zu alt/Neue MCU).
+- up/down https://github.com/mrchrisster/MiSTer_SAM/blob/7e56aac2dd2c8c2e541c06c659d9ffd5a270f8e6/MiSTer_SAM_on.sh#L211

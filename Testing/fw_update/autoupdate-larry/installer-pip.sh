@@ -24,14 +24,39 @@ TTYPARAM="${BAUDRATE} cs8 raw -parenb -cstopb -hupcl -echo"
 stty -F ${DUSB} ${TTYPARAM}
 echo "cls" > /tmp/CORENAME
 
+#Check if Python is installed
+#echo -en "${CNON}Checking for Python installation: ${CGRN}"
+#python --version || (echo -e "\n${CRED}Python installation missing. Please install Python and run script again.${CGRN}" && exit 1)
+
+#Check if PIP is installed
+#echo -en "${CNON}Checking for PIP installation: ${CGRN}"
+#pip --version || (echo -e "\nPIP installation missing. Will install.${CNON}" && (wget -Nq https://bootstrap.pypa.io/get-pip.py -O /tmp/get-pip.py || (echo -e "${CRED}Unable to download PIP. Please check network connection an run script again.${CNON}" && exit 1)) && python /tmp/get-pip.py)
+
+#Check if PIP is installed
+echo -en "${CNON}Checking for PIP installation: ${CNON}"
+if ! [ -f ${TTY2OLED_PATH}/esptool/bin/activate ]; then
+    echo -e "${CGRN}PIP installation missing. Will install...this can take a while..${CNON}"
+    python -m venv ${TTY2OLED_PATH}/esptool
+fi
+. ${TTY2OLED_PATH}/esptool/bin/activate
+python -m pip install --upgrade pip
+
 #Install pySerial (if it is missing)
-if ! python -c "import serial" &> /dev/null; then
-  ! [ -f /lib/python3.9/site-packages/pyserial-3.5-py3.9.egg ] && wget -q ${REPOSITORY_URL}/Testing/fw_update/autoupdate-larry/pyserial-3.5-py3.9.egg -O /lib/python3.9/site-packages/pyserial-3.5-py3.9.egg
-  echo "./pyserial-3.5-py3.9.egg" >> /lib/python3.9/site-packages/easy-install.pth
+echo -en "${CNON}Checking for pySerial installation: ${CNON}"
+pip_list="$(pip list)"
+if [[ $(grep "pyserial" <<< "${pip_list}") ]]; then
+    echo $(grep "pyserial" <<< "${pip_list}")
+else
+    pip install --no-cache-dir pyserial
 fi
 
 #Install esptool (if it is missing)
-! [ -f ${TTY2OLED_PATH}/esptool.py ] && wget -q ${REPOSITORY_URL}/Testing/fw_update/autoupdate-larry/esptool.py -O ${TTY2OLED_PATH}/esptool.py
+echo -en "${CNON}Checking for ESPtool installation: ${CNON}"
+if [[ $(grep "esptool" <<< "${pip_list}") ]]; then
+    echo $(grep "esptool" <<< "${pip_list}")
+else
+    pip install --no-cache-dir esptool
+fi
 
 #Check if interface ttyUSB0 is present
 echo -en "${CNON}Checking for device at ${DUSB}${CNON}: "
@@ -93,6 +118,12 @@ if [[ "${SWver}" < "${BUILDVER}" ]]; then
     echo -e "${CGRN}Downloading, checking and (maybe) installing and updating ${CYEL}tty2oled${CNON}"
     wget -q ${REPOSITORY_URL}/update_tty2oled.sh -O - | bash
     echo "MENU" > /tmp/CORENAME
+#    echo -en "${CYEL}" ; read -t5 -n1 -p "Do you want to verify the flash (y/n)? - Waiting 5 seconds for input..." BLA ; echo -e "${CNON}"
+#    if [ "${BLA}" = "y" ]; then
+#	[ "${MCU}" = "esp32" ] && esptool.py --chip esp32 --port ${DUSB} --baud ${DBAUD} ${DSTD} verify_flash --flash_size detect 0xe000 ./binaries/boot_app0.bin 0x1000 ./binaries/bootloader_dio_80m.bin 0x10000 ./binaries/firmware_esp32de.bin 0x8000 ./binaries/partitions.bin
+#	[ "${MCU}" = "espdti" ] && esptool.py --chip esp32 --port ${DUSB} --baud ${DBAUD} ${DSTD} verify_flash --flash_size detect 0xe000 ./binaries/boot_app0.bin 0x1000 ./binaries/bootloader_qio_80m.bin 0x10000 ./binaries/firmware_dtipcb0.bin 0x8000 ./binaries/partitions.bin
+#	[ "${MCU}" = "esp8266" ] && esptool.py --chip esp8266 --port ${DUSB} --baud 460800 ${DSTD} verify_flash --flash_size detect 0x00000 ./binaries/MiSTer_SSD1322_USB.ino.esp8266.bin
+#    fi
     echo -e "\n${CGRN}Install/Update completed. Have fun!${CNON}"
 fi
 
@@ -102,4 +133,3 @@ fi
 
 exit 0
 # esptool.py --port ${DUSB} --baud 115200 erase_flash
-# rm /lib/python3.9/site-packages/easy-install.pth /lib/python3.9/site-packages/pyserial-3.5-py3.9.egg

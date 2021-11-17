@@ -22,7 +22,7 @@ CNON="\e[0m\033[0m"
 CBLNK="\033[5m"
 DUSB="/dev/ttyUSB0"
 DBAUD="921600"
-DSTD="--before default_reset --after hard_reset write_flash --compress --flash_mode dio --flash_freq 80m --flash_size detect"
+DSTD="--before default_reset --after hard_reset write_flash --compress --flash_mode qio --flash_freq 80m --flash_size detect"
 TTYPARAM="${BAUDRATE} cs8 raw -parenb -cstopb -hupcl -echo"
 stty -F ${DUSB} ${TTYPARAM}
 echo "cls" > /tmp/CORENAME
@@ -85,16 +85,16 @@ if [[ "${SWver}" < "${BUILDVER}" ]]; then
     echo "------------------------------------------------------------------------"
     case "${MCUtype}" in
 	HWESP32DE)
-	    wget -q ${REPOSITORY_URL}/Testing/fw_update/binaries/boot_app0.bin ${REPOSITORY_URL}/Testing/fw_update/binaries/bootloader_dio_80m.bin ${REPOSITORY_URL}/Testing/fw_update/binaries/partitions.bin ${REPOSITORY_URL}/Testing/fw_update/binaries/firmware_dtipcb0.bin
-	    ${TMPDIR}/esptool.py --chip esp32 --port ${DUSB} --baud ${DBAUD} ${DSTD} 0xe000 ${TMPDIR}/boot_app0.bin 0x1000 ${TMPDIR}/bootloader_dio_80m.bin 0x10000 ${TMPDIR}/firmware_dtipcb0.bin 0x8000 ${TMPDIR}/partitions.bin
+	    wget -q ${REPOSITORY_URL}/Testing/fw_update/binaries/boot_app0.bin ${REPOSITORY_URL}/Testing/fw_update/binaries/bootloader_dio_80m.bin ${REPOSITORY_URL}/Testing/fw_update/binaries/partitions.bin ${REPOSITORY_URL}/Testing/fw_update/binaries/esp32de_211117T.bin
+	    ${TMPDIR}/esptool.py --chip esp32 --port ${DUSB} --baud ${DBAUD} ${DSTD} 0xe000 ${TMPDIR}/boot_app0.bin 0x1000 ${TMPDIR}/bootloader_dio_80m.bin 0x10000 ${TMPDIR}/esp32de_211117T.bin 0x8000 ${TMPDIR}/partitions.bin
 	    ;;
 	HWLOLIN32 | HWDTIPCB0 | HWDTIPCB1)
-	    wget -q ${REPOSITORY_URL}/Testing/fw_update/binaries/boot_app0.bin ${REPOSITORY_URL}/Testing/fw_update/binaries/bootloader_dio_80m.bin ${REPOSITORY_URL}/Testing/fw_update/binaries/partitions.bin${REPOSITORY_URL}/Testing/fw_update/binaries/firmware_esp32de.bin
-	    ${TMPDIR}/esptool.py --chip esp32 --port ${DUSB} --baud ${DBAUD} ${DSTD} 0xe000 ${TMPDIR}/boot_app0.bin 0x1000 ${TMPDIR}/bootloader_dio_80m.bin 0x10000 ${TMPDIR}/firmware_esp32de.bin 0x8000 ${TMPDIR}/partitions.bin
+	    wget -q ${REPOSITORY_URL}/Testing/fw_update/binaries/boot_app0.bin ${REPOSITORY_URL}/Testing/fw_update/binaries/bootloader_dio_80m.bin ${REPOSITORY_URL}/Testing/fw_update/binaries/partitions.bin ${REPOSITORY_URL}/Testing/fw_update/binaries/lolin32_2111117T.bin
+	    ${TMPDIR}/esptool.py --chip esp32 --port ${DUSB} --baud ${DBAUD} ${DSTD} 0xe000 ${TMPDIR}/boot_app0.bin 0x1000 ${TMPDIR}/bootloader_dio_80m.bin 0x10000 ${TMPDIR}/lolin32_2111117T.bin 0x8000 ${TMPDIR}/partitions.bin
 	    ;;
 	HWESP8266)
-	    wget -q ${REPOSITORY_URL}/Testing/fw_update/binaries/firmware_esp8266.bin
-	    ${TMPDIR}/esptool.py --chip esp8266 --port ${DUSB} --baud ${DBAUD} ${DSTD} 0x00000 ${TMPDIR}/firmware_esp8266.bin
+	    wget -q ${REPOSITORY_URL}/Testing/fw_update/binaries/esp8266_211117T.bin
+	    ${TMPDIR}/esptool.py --chip esp8266 --port ${DUSB} --baud ${DBAUD} ${DSTD} 0x00000 ${TMPDIR}/esp8266_211117T.bin
 	    ;;
     esac
     echo "------------------------------------------------------------------------"
@@ -114,7 +114,7 @@ if [[ "${SWver}" = "${BUILDVER}" ]]; then
     echo "MENU" > /tmp/CORENAME
 fi
 
-rm -rf ${TMPDIR}
+cd - ; rm -rf ${TMPDIR}
 exit 0
 # esptool.py --port ${DUSB} --baud 115200 erase_flash
 # rm /lib/python3.9/site-packages/easy-install.pth /lib/python3.9/site-packages/pyserial-3.5-py3.9.egg

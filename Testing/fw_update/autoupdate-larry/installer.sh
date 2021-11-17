@@ -1,11 +1,11 @@
 #!/bin/bash
 
-BUILDVER="211116T"
-
-REPOSITORY_URL="https://raw.githubusercontent.com/venice1200/MiSTer_tty2oled/main"
+REPOSITORY_URL1="https://raw.githubusercontent.com/venice1200/MiSTer_tty2oled/main"
+REPOSITORY_URL2="https://www.tty2tft.de//MiSTer_tty2oled-installer"
+BUILDVER=$(wget -q ${REPOSITORY_URL2}/buildver -O -)
 TMPDIR=$(mktemp -d)
 cd ${TMPDIR}
-wget -q ${REPOSITORY_URL}/tty2oled.ini -O ${TMPDIR}/tty2oled.ini
+wget -q ${REPOSITORY_URL1}/tty2oled.ini -O ${TMPDIR}/tty2oled.ini
 . ${TMPDIR}/tty2oled.ini
 
 mkdir -p ${TTY2OLED_PATH}
@@ -22,20 +22,20 @@ CNON="\e[0m\033[0m"
 CBLNK="\033[5m"
 DUSB="/dev/ttyUSB0"
 DBAUD="921600"
-DSTD="--before default_reset --after hard_reset write_flash --compress --flash_mode qio --flash_freq 80m --flash_size detect"
+DSTD="--before default_reset --after hard_reset write_flash --compress --flash_mode dio --flash_freq 80m --flash_size detect"
 TTYPARAM="${BAUDRATE} cs8 raw -parenb -cstopb -hupcl -echo"
 stty -F ${DUSB} ${TTYPARAM}
 echo "cls" > /tmp/CORENAME
 
 #Install pySerial (if it is missing)
 if ! python -c "import serial" &> /dev/null; then
-  ! [ -f /lib/python3.9/site-packages/pyserial-3.5-py3.9.egg ] && wget -q ${REPOSITORY_URL}/Testing/fw_update/autoupdate-larry/pyserial-3.5-py3.9.egg -O /lib/python3.9/site-packages/pyserial-3.5-py3.9.egg
+  ! [ -f /lib/python3.9/site-packages/pyserial-3.5-py3.9.egg ] && wget -q ${REPOSITORY_URL2}/pyserial-3.5-py3.9.egg -O /lib/python3.9/site-packages/pyserial-3.5-py3.9.egg
   echo "./pyserial-3.5-py3.9.egg" >> /lib/python3.9/site-packages/easy-install.pth
 fi
 
 #Install esptool (if it is missing)
 if ! [ -f ${TMPDIR}/esptool.py ]; then
-    wget -q ${REPOSITORY_URL}/Testing/fw_update/autoupdate-larry/esptool.py -O ${TMPDIR}/esptool.py
+    wget -q ${REPOSITORY_URL2}/esptool.py -O ${TMPDIR}/esptool.py
     chmod +x ${TMPDIR}/esptool.py
 fi
 
@@ -85,16 +85,16 @@ if [[ "${SWver}" < "${BUILDVER}" ]]; then
     echo "------------------------------------------------------------------------"
     case "${MCUtype}" in
 	HWESP32DE)
-	    wget -q ${REPOSITORY_URL}/Testing/fw_update/binaries/boot_app0.bin ${REPOSITORY_URL}/Testing/fw_update/binaries/bootloader_dio_80m.bin ${REPOSITORY_URL}/Testing/fw_update/binaries/partitions.bin ${REPOSITORY_URL}/Testing/fw_update/binaries/esp32de_211117T.bin
-	    ${TMPDIR}/esptool.py --chip esp32 --port ${DUSB} --baud ${DBAUD} ${DSTD} 0xe000 ${TMPDIR}/boot_app0.bin 0x1000 ${TMPDIR}/bootloader_dio_80m.bin 0x10000 ${TMPDIR}/esp32de_211117T.bin 0x8000 ${TMPDIR}/partitions.bin
+	    wget -q ${REPOSITORY_URL2}/boot_app0.bin ${REPOSITORY_URL2}/bootloader_dio_80m.bin ${REPOSITORY_URL2}/partitions.bin ${REPOSITORY_URL2}/esp32de_${BUILDVER}.bin
+	    ${TMPDIR}/esptool.py --chip esp32 --port ${DUSB} --baud ${DBAUD} ${DSTD} 0xe000 ${TMPDIR}/boot_app0.bin 0x1000 ${TMPDIR}/bootloader_dio_80m.bin 0x10000 ${TMPDIR}/esp32de_${BUILDVER}.bin 0x8000 ${TMPDIR}/partitions.bin
 	    ;;
 	HWLOLIN32 | HWDTIPCB0 | HWDTIPCB1)
-	    wget -q ${REPOSITORY_URL}/Testing/fw_update/binaries/boot_app0.bin ${REPOSITORY_URL}/Testing/fw_update/binaries/bootloader_dio_80m.bin ${REPOSITORY_URL}/Testing/fw_update/binaries/partitions.bin ${REPOSITORY_URL}/Testing/fw_update/binaries/lolin32_2111117T.bin
-	    ${TMPDIR}/esptool.py --chip esp32 --port ${DUSB} --baud ${DBAUD} ${DSTD} 0xe000 ${TMPDIR}/boot_app0.bin 0x1000 ${TMPDIR}/bootloader_dio_80m.bin 0x10000 ${TMPDIR}/lolin32_2111117T.bin 0x8000 ${TMPDIR}/partitions.bin
+	    wget -q ${REPOSITORY_URL2}/boot_app0.bin ${REPOSITORY_URL2}/bootloader_dio_80m.bin ${REPOSITORY_URL2}/partitions.bin ${REPOSITORY_URL2}/lolin32_${BUILDVER}.bin
+	    ${TMPDIR}/esptool.py --chip esp32 --port ${DUSB} --baud ${DBAUD} ${DSTD} 0xe000 ${TMPDIR}/boot_app0.bin 0x1000 ${TMPDIR}/bootloader_dio_80m.bin 0x10000 ${TMPDIR}/lolin32_${BUILDVER}.bin 0x8000 ${TMPDIR}/partitions.bin
 	    ;;
 	HWESP8266)
-	    wget -q ${REPOSITORY_URL}/Testing/fw_update/binaries/esp8266_211117T.bin
-	    ${TMPDIR}/esptool.py --chip esp8266 --port ${DUSB} --baud ${DBAUD} ${DSTD} 0x00000 ${TMPDIR}/esp8266_211117T.bin
+	    wget -q ${REPOSITORY_URL2}/esp8266_${BUILDVER}.bin
+	    ${TMPDIR}/esptool.py --chip esp8266 --port ${DUSB} --baud ${DBAUD} ${DSTD} 0x00000 ${TMPDIR}/esp8266_${BUILDVER}.bin
 	    ;;
     esac
     echo "------------------------------------------------------------------------"
@@ -102,7 +102,7 @@ if [[ "${SWver}" < "${BUILDVER}" ]]; then
     stty -F ${DUSB} ${TTYPARAM} ; sleep 1
     echo "Updating tty2oled software" > /dev/ttyUSB0
     echo -e "${CGRN}Downloading, checking and (maybe) installing and updating ${CYEL}tty2oled${CNON}"
-    wget -q ${REPOSITORY_URL}/update_tty2oled.sh -O - | bash
+    wget -q ${REPOSITORY_URL1}/update_tty2oled.sh -O - | bash
     echo "MENU" > /tmp/CORENAME
     echo -e "\n${CGRN}Install/Update completed. Have fun!${CNON}"
 fi

@@ -10,8 +10,10 @@ Verifying 0xbce70 (773744) bytes @ 0x00010000 in flash against ./binaries/firmwa
 Verifying 0xc00 (3072) bytes @ 0x00008000 in flash against ./binaries/partitions.bin...
 Hard resetting via RTS pin...
 
-- bin-Files checksum
-- up/down https://github.com/mrchrisster/MiSTer_SAM/blob/7e56aac2dd2c8c2e541c06c659d9ffd5a270f8e6/MiSTer_SAM_on.sh#L211
+
+#############
+shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+#############
 
 
 https://docs.python.org/3/tutorial/venv.html

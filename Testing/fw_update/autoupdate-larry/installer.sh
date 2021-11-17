@@ -54,7 +54,7 @@ if [[ -c ${DUSB} ]]; then
 	HWESP8266 "NodeMCU v3 (ESP8266)" \
 	Exit "Exit now" 2>&1 1>&3)
 	exec 3>&-;
-	cls
+	clear
 	SWver="0"
     fi
 else

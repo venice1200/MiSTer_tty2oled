@@ -1,15 +1,18 @@
 #!/bin/bash
 
-#BUILDVER="211215T"
-BUILDVER="211115T"
+BUILDVER="211116T"
 
 REPOSITORY_URL="https://raw.githubusercontent.com/venice1200/MiSTer_tty2oled/main"
-wget -q ${REPOSITORY_URL}/tty2oled.ini -O /tmp/tty2oled.ini
-. /tmp/tty2oled.ini
+TMPDIR=$(mktemp -d)
+cd ${TMPDIR}
+wget -q ${REPOSITORY_URL}/tty2oled.ini -O ${TMPDIR}/tty2oled.ini
+. ${TMPDIR}/tty2oled.ini
 
 mkdir -p ${TTY2OLED_PATH}
-if [ $(pidof ${DAEMONNAME}) ] && [ -f ${TTY2OLED_PATH}/${INITSCRIPT} ] ; then
-    ${TTY2OLED_PATH}/${INITSCRIPT} stop
+if [ $(pidof ${DAEMONNAME}) ] && [ -f ${INITSCRIPT} ] ; then
+    ${INITSCRIPT} stop
+    INITSTOPPED="yes"
+    sleep 0.5
 fi
 
 CRED="\e[1;31m"
@@ -19,7 +22,7 @@ CNON="\e[0m\033[0m"
 CBLNK="\033[5m"
 DUSB="/dev/ttyUSB0"
 DBAUD="921600"
-DSTD="--before default_reset --after hard_reset write_flash --compress"
+DSTD="--before default_reset --after hard_reset write_flash --compress --flash_mode dio --flash_freq 80m --flash_size detect"
 TTYPARAM="${BAUDRATE} cs8 raw -parenb -cstopb -hupcl -echo"
 stty -F ${DUSB} ${TTYPARAM}
 echo "cls" > /tmp/CORENAME
@@ -31,7 +34,10 @@ if ! python -c "import serial" &> /dev/null; then
 fi
 
 #Install esptool (if it is missing)
-! [ -f ${TTY2OLED_PATH}/esptool.py ] && wget -q ${REPOSITORY_URL}/Testing/fw_update/autoupdate-larry/esptool.py -O ${TTY2OLED_PATH}/esptool.py
+if ! [ -f ${TMPDIR}/esptool.py ]; then
+    wget -q ${REPOSITORY_URL}/Testing/fw_update/autoupdate-larry/esptool.py -O ${TMPDIR}/esptool.py
+    chmod +x ${TMPDIR}/esptool.py
+fi
 
 #Check if interface ttyUSB0 is present
 echo -en "${CNON}Checking for device at ${DUSB}${CNON}: "
@@ -64,29 +70,34 @@ fi
 
 #Check for MCU
 case "${MCUtype}" in
+    Exit)	exit 0 ;;
     HWNONEXXX)	echo -e "${CRED}Unknown hardware, can't continue.${CNON}" ; exit 1 ;;
-    HWESP32DE)	echo -e "${CYEL}ESP32 selected/detected (TTGO/DTI).${CNON}"
-		MCU="espdti" ;;
-    HWLOLIN32)	echo -e "${CYEL}ESP32 selected/detected (Wemos/Lolin/DevKit_V4).${CNON}"
-		MCU="esp32" ;;
-    HWDTIPCB0)	echo -e "${CYEL}ESP32 selected/detected (DTI v1.0).${CNON}"
-		MCU="esp32" ;;
-    HWDTIPCB1)	echo -e "${CYEL}ESP32 selected/detected (DTI n/a).${CNON}"
-		MCU="esp32" ;;
-    HWESP8266)	echo -e "${CYEL}ESP8266 selected/detected.${CNON}"
-		MCU="esp8266"
-		wget -q ${REPOSITORY_URL}/Testing/fw_update/binaries/firmware_esp8266.bin -O /tmp/firmware_esp8266.bin
-		;;
+    HWESP32DE)	echo -e "${CYEL}ESP32 selected/detected (TTGO/DTI).${CNON}" ;;
+    HWLOLIN32)	echo -e "${CYEL}ESP32 selected/detected (Wemos/Lolin/DevKit_V4).${CNON}" ;;
+    HWDTIPCB0)	echo -e "${CYEL}ESP32 selected/detected (DTI v1.0).${CNON}" ;;
+    HWDTIPCB1)	echo -e "${CYEL}ESP32 selected/detected (DTI n/a).${CNON}" ;;
+    HWESP8266)	echo -e "${CYEL}ESP8266 selected/detected.${CNON}" ;;
 esac
 
 if [[ "${SWver}" < "${BUILDVER}" ]]; then
     echo "Updating tty2oled sketch" > /dev/ttyUSB0
     echo -e "${CYEL}Version of your tty2oled device is ${SWver}, but BUILDVER is ${BUILDVER}. Updating!${CNON}"
-    echo "------------------------------------"
-	[ "${MCU}" = "esp32" ] && esptool.py --chip esp32 --port ${DUSB} --baud ${DBAUD} ${DSTD} --flash_mode dio --flash_freq 80m --flash_size detect 0xe000 ./binaries/boot_app0.bin 0x1000 ./binaries/bootloader_dio_80m.bin 0x10000 ./binaries/firmware_esp32de.bin 0x8000 ./binaries/partitions.bin
-	[ "${MCU}" = "espdti" ] && esptool.py --chip esp32 --port ${DUSB} --baud ${DBAUD} ${DSTD} --flash_mode qio --flash_freq 80m --flash_size detect 0xe000 ./binaries/boot_app0.bin 0x1000 ./binaries/bootloader_qio_80m.bin 0x10000 ./binaries/firmware_dtipcb0.bin 0x8000 ./binaries/partitions.bin
-	[ "${MCU}" = "esp8266" ] && esptool.py --chip esp8266 --port ${DUSB} --baud ${DBAUD} ${DSTD} --flash_mode dio --flash_freq 80m --flash_size detect 0x00000 /tmp/firmware_esp8266.bin
-    echo "------------------------------------"
+    echo "------------------------------------------------------------------------"
+    case "${MCUtype}" in
+	HWESP32DE)
+	    wget -q ${REPOSITORY_URL}/Testing/fw_update/binaries/boot_app0.bin ${REPOSITORY_URL}/Testing/fw_update/binaries/bootloader_dio_80m.bin ${REPOSITORY_URL}/Testing/fw_update/binaries/partitions.bin ${REPOSITORY_URL}/Testing/fw_update/binaries/firmware_dtipcb0.bin
+	    ${TMPDIR}/esptool.py --chip esp32 --port ${DUSB} --baud ${DBAUD} ${DSTD} 0xe000 ${TMPDIR}/boot_app0.bin 0x1000 ${TMPDIR}/bootloader_dio_80m.bin 0x10000 ${TMPDIR}/firmware_dtipcb0.bin 0x8000 ${TMPDIR}/partitions.bin
+	    ;;
+	HWLOLIN32 | HWDTIPCB0 | HWDTIPCB1)
+	    wget -q ${REPOSITORY_URL}/Testing/fw_update/binaries/boot_app0.bin ${REPOSITORY_URL}/Testing/fw_update/binaries/bootloader_dio_80m.bin ${REPOSITORY_URL}/Testing/fw_update/binaries/partitions.bin${REPOSITORY_URL}/Testing/fw_update/binaries/firmware_esp32de.bin
+	    ${TMPDIR}/esptool.py --chip esp32 --port ${DUSB} --baud ${DBAUD} ${DSTD} 0xe000 ${TMPDIR}/boot_app0.bin 0x1000 ${TMPDIR}/bootloader_dio_80m.bin 0x10000 ${TMPDIR}/firmware_esp32de.bin 0x8000 ${TMPDIR}/partitions.bin
+	    ;;
+	HWESP8266)
+	    wget -q ${REPOSITORY_URL}/Testing/fw_update/binaries/firmware_esp8266.bin
+	    ${TMPDIR}/esptool.py --chip esp8266 --port ${DUSB} --baud ${DBAUD} ${DSTD} 0x00000 ${TMPDIR}/firmware_esp8266.bin
+	    ;;
+    esac
+    echo "------------------------------------------------------------------------"
     echo -en "${CYEL}${CBLNK}...waiting for reboot of device...${CNON}" ; sleep 4 ; echo -e "\033[2K"
     stty -F ${DUSB} ${TTYPARAM} ; sleep 1
     echo "Updating tty2oled software" > /dev/ttyUSB0
@@ -98,8 +109,12 @@ fi
 
 if [[ "${SWver}" = "${BUILDVER}" ]]; then
     echo -e "${CYEL}Good boy, you're hardware is up-to-date!${CNON}"
+    [ "${INITSTOPPED}" = "yes" ] && ${INITSCRIPT} start
+    sleep 0.5
+    echo "MENU" > /tmp/CORENAME
 fi
 
+rm -rf ${TMPDIR}
 exit 0
 # esptool.py --port ${DUSB} --baud 115200 erase_flash
 # rm /lib/python3.9/site-packages/easy-install.pth /lib/python3.9/site-packages/pyserial-3.5-py3.9.egg

@@ -18,3 +18,4 @@ Hard resetting via RTS pin...
 https://docs.python.org/3/tutorial/venv.html
 https://pip.pypa.io/en/latest/topics/caching/
 https://pip.pypa.io/en/latest/cli/pip_cache/#pip-cache
+https://stackoverflow.com/questions/66623980/error-no-matching-distribution-found-for-cryptography-3-2-1

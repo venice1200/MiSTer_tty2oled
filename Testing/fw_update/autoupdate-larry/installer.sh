@@ -22,9 +22,8 @@ CNON="\e[0m\033[0m"
 CBLNK="\033[5m"
 DUSB="/dev/ttyUSB0"
 DBAUD="921600"
-DSTD="--before default_reset --after hard_reset write_flash --compress --flash_mode dio --flash_freq 80m --flash_size detect"
-TTYPARAM="${BAUDRATE} cs8 raw -parenb -cstopb -hupcl -echo"
-stty -F ${DUSB} ${TTYPARAM}
+#DSTD="--before default_reset --after hard_reset write_flash --compress --flash_mode dio --flash_freq 80m --flash_size detect"
+DSTD="--before default_reset --after hard_reset write_flash --compress --flash_size detect"
 echo "cls" > /tmp/CORENAME
 
 #Install pySerial (if it is missing)
@@ -42,6 +41,7 @@ fi
 #Check if interface ttyUSB0 is present
 echo -en "${CNON}Checking for device at ${DUSB}${CNON}: "
 if [[ -c ${DUSB} ]]; then
+    stty -F ${DUSB} ${TTYPARAM}
     echo -e "${CGRN}available${CNON}"
     echo -en "${CNON}Trying to identify device... ${CNON}"
     echo "CMDHWINF" > ${DUSB} ; read -t5 BLA < ${DUSB}
@@ -85,8 +85,8 @@ if [[ "${SWver}" < "${BUILDVER}" ]]; then
     echo "------------------------------------------------------------------------"
     case "${MCUtype}" in
 	HWESP32DE)
-	    wget -q ${REPOSITORY_URL2}/boot_app0.bin ${REPOSITORY_URL2}/bootloader_dio_80m.bin ${REPOSITORY_URL2}/partitions.bin ${REPOSITORY_URL2}/esp32de_${BUILDVER}.bin
-	    ${TMPDIR}/esptool.py --chip esp32 --port ${DUSB} --baud ${DBAUD} ${DSTD} 0xe000 ${TMPDIR}/boot_app0.bin 0x1000 ${TMPDIR}/bootloader_dio_80m.bin 0x10000 ${TMPDIR}/esp32de_${BUILDVER}.bin 0x8000 ${TMPDIR}/partitions.bin
+	    wget -q ${REPOSITORY_URL2}/boot_app0.bin ${REPOSITORY_URL2}/bootloader_qio_80m.bin ${REPOSITORY_URL2}/partitions.bin ${REPOSITORY_URL2}/esp32de_${BUILDVER}.bin
+	    ${TMPDIR}/esptool.py --chip esp32 --port ${DUSB} --baud ${DBAUD} ${DSTD} 0xe000 ${TMPDIR}/boot_app0.bin 0x1000 ${TMPDIR}/bootloader_qio_80m.bin 0x10000 ${TMPDIR}/esp32de_${BUILDVER}.bin 0x8000 ${TMPDIR}/partitions.bin
 	    ;;
 	HWLOLIN32 | HWDTIPCB0 | HWDTIPCB1)
 	    wget -q ${REPOSITORY_URL2}/boot_app0.bin ${REPOSITORY_URL2}/bootloader_dio_80m.bin ${REPOSITORY_URL2}/partitions.bin ${REPOSITORY_URL2}/lolin32_${BUILDVER}.bin
@@ -102,7 +102,7 @@ if [[ "${SWver}" < "${BUILDVER}" ]]; then
     stty -F ${DUSB} ${TTYPARAM} ; sleep 1
     echo "Updating tty2oled software" > /dev/ttyUSB0
     echo -e "${CGRN}Downloading, checking and (maybe) installing and updating ${CYEL}tty2oled${CNON}"
-    wget -q ${REPOSITORY_URL1}/update_tty2oled.sh -O - | bash
+    #wget -q ${REPOSITORY_URL1}/update_tty2oled.sh -O - | bash
     echo "MENU" > /tmp/CORENAME
     echo -e "\n${CGRN}Install/Update completed. Have fun!${CNON}"
 fi

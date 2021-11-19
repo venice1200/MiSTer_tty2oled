@@ -27,7 +27,7 @@ acompcopy() {
 for BLA in HWESP32DE HWLOLIN32 HWESP8266; do
     case "${BLA}" in
 	HWESP32DE)
-	    BOARD="esp32:esp32:esp32"
+	    BOARD="esp32:esp32:esp32:FlashMode=dio"
 	    acompile && acompcopy
 	    ;;
 	HWLOLIN32)

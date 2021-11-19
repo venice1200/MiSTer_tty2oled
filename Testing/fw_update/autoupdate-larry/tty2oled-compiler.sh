@@ -1,5 +1,12 @@
 #!/bin/bash
 
+git -C ~/Arduino/libraries/MIC184_Temperature_Sensor pull --ff-only
+git -C ~/Arduino/libraries/SSD1322_for_Adafruit_GFX pull --ff-only
+arduino-cli core update-index
+arduino-cli core upgrade
+arduino-cli lib update-index
+arduino-cli lib upgrade
+
 SKETCHNAME="${HOME}/Arduino/MiSTer_SSD1322_USB/MiSTer_SSD1322_USB.ino"
 SKETCHPATH="$(dirname "${SKETCHNAME%.*}")"
 BBUILDPATH=$(mktemp -d)

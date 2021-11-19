@@ -45,3 +45,5 @@ echo "${BUILDVER}" > "${WWWPATH}/buildver"
 cp -a ${HOME}/.arduino15/packages/esp32/hardware/esp32/*/tools/partitions/boot_app0.bin "${WWWPATH}/"
 cp -a ${HOME}/.arduino15/packages/esp32/hardware/esp32/*/tools/sdk/esp32/bin/bootloader_dio_80m.bin "${WWWPATH}/"
 cp -a ${HOME}/.arduino15/packages/esp32/hardware/esp32/*/tools/sdk/esp32/bin/bootloader_qio_80m.bin "${WWWPATH}/"
+
+[ -d ${BBUILDPATH} ] && rm -rf ${BBUILDPATH}

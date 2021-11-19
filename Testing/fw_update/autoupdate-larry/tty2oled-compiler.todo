@@ -22,10 +22,22 @@ mkdir -p "${SBUILDPATH}"
 
 cp -a "${2}/"*.ino "${2}/"*.h "${SBUILDPATH}/"
 case "${1}" in
-    HWESP32DE) BOARD="esp32:esp32:esp32:PSRAM=disabled,PartitionScheme=default,CPUFreq=240,FlashMode=qio,FlashFreq=80,FlashSize=4M,UploadSpeed=921600,LoopCore=1,EventsCore=1,DebugLevel=none" ;;
-    HWESP8266) BOARD="esp8266:esp8266:nodemcuv2:xtal=160,vt=flash,exception=disabled,stacksmash=disabled,ssl=all,mmu=3232,non32xfer=fast,eesz=4M2M,led=2,ip=lm2f,dbg=Disabled,lvl=None____,wipe=none,baud=921600" ;;
-    HWLOLIN32 | HWDTIPCB0 | HWDTIPCB1) BOARD="esp32:esp32:lolin32:FlashFreq=80,PartitionScheme=default,CPUFreq=240,UploadSpeed=921600" ;;
+#    HWESP32DE) BOARD="esp32:esp32:esp32:PSRAM=disabled,PartitionScheme=default,CPUFreq=240,FlashMode=qio,FlashFreq=80,FlashSize=4M,UploadSpeed=921600,LoopCore=1,EventsCore=1,DebugLevel=none" ;;
+#    HWESP8266) BOARD="esp8266:esp8266:nodemcuv2:xtal=160,vt=flash,exception=disabled,stacksmash=disabled,ssl=all,mmu=3232,non32xfer=fast,eesz=4M2M,led=2,ip=lm2f,dbg=Disabled,lvl=None____,wipe=none,baud=921600" ;;
+#    HWLOLIN32 | HWDTIPCB0 | HWDTIPCB1) BOARD="esp32:esp32:lolin32:FlashFreq=80,PartitionScheme=default,CPUFreq=240,UploadSpeed=921600" ;;
+
+    HWESP32DE) BOARD="esp32:esp32:esp32"
+    HWLOLIN32 | HWDTIPCB0 | HWDTIPCB1) BOARD="esp32:esp32:lolin32"
+    HWESP8266) BOARD="esp8266:esp8266:nodemcuv2:xtal=160:ssl=basic:baud=921600"
 esac
 
 echo "Compiling...Please wait..."
 arduino-cli compile -b "${BOARD}" --build-path "${BBUILDPATH}" --clean "${SBUILDPATH}" --log-level info
+
+
+# arduino-cli core update-index
+# arduino-cli core upgrade
+
+# git -C ~/Arduino/libraries/SSD1322_for_Adafruit_GFX pull
+# arduino-cli lib update-index
+# arduino-cli lib upgrade

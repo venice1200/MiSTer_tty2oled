@@ -15,9 +15,9 @@ BBUILDPATH=$(mktemp -d)
 
 acompile() {
     BUILDNAM=${BLA,,} ; BUILDNAM=${BUILDNAM:2}
-    BUILDVER=$(grep "#define BuildVersion" ${BBUILDPATH}/sketch/*.ino.cpp | awk '{print $3}' | tr -d "\"")
+    BUILDVER=$(grep "#define BuildVersion" ${SKETCHNAME} | awk '{print $3}' | tr -d "\"")
     echo "-------- Compiling ${BLA} - BUILDVER ${BUILDVER} ...Please wait..."
-    arduino-cli compile -b "${BOARD}" --build-path "${BBUILDPATH}" --clean "${SKETCHPATH}" --log-level warn
+    arduino-cli compile -b "${BOARD}" --build-path "${BBUILDPATH}" --clean "${SKETCHPATH}" --log-level error
     cp -a "${BBUILDPATH}/$(basename ${SKETCHNAME}).bin" "${WWWPATH}/${BUILDNAM}_${BUILDVER}.bin"
 }
 

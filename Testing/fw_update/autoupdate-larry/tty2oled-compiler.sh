@@ -7,10 +7,8 @@ arduino-cli core upgrade
 arduino-cli lib update-index
 arduino-cli lib upgrade
 
-SKETCHNAME="${HOME}/Arduino/MiSTer_SSD1322_USB/MiSTer_SSD1322_USB.ino"
-SKETCHPATH="$(dirname "${SKETCHNAME%.*}")"
-BBUILDPATH=$(mktemp -d)
 WWWPATH="/var/www/tty2tft.de/htdocs/MiSTer_tty2oled-installer"
+BBUILDPATH=$(mktemp -d)
 
 acompile() {
     echo "Compiling ${BLA}...Please wait..."
@@ -24,22 +22,32 @@ acompcopy() {
     cp -a "${BBUILDPATH}/$(basename ${SKETCHNAME}).partitions.bin" "${WWWPATH}/partitions.bin"
 }
 
-for BLA in HWESP32DE HWLOLIN32 HWESP8266; do
-    case "${BLA}" in
-	HWESP32DE)
-	    BOARD="esp32:esp32:esp32:FlashMode=dio"
-	    acompile && acompcopy
-	    ;;
-	HWLOLIN32)
-	    BOARD="esp32:esp32:lolin32"
-	    acompile && acompcopy
-	    ;;
-	HWESP8266)
-	    BOARD="esp8266:esp8266:nodemcuv2:xtal=160,ssl=basic,baud=921600"
-	    acompile
-	    ;;
-    esac
-done
+ahardware() {
+    for BLA in HWESP32DE HWLOLIN32 HWESP8266; do
+	case "${BLA}" in
+	    HWESP32DE)
+		BOARD="esp32:esp32:esp32:FlashMode=dio"
+		acompile && acompcopy
+		;;
+	    HWLOLIN32)
+		BOARD="esp32:esp32:lolin32"
+		acompile && acompcopy
+		;;
+	    HWESP8266)
+		BOARD="esp8266:esp8266:nodemcuv2:xtal=160,ssl=basic,baud=921600"
+		acompile
+		;;
+	esac
+    done
+}
+
+SKETCHNAME="/var/www/tty2tft.de/git/MiSTer_tty2oled/MiSTer_SSD1322_USB/MiSTer_SSD1322_USB.ino"
+SKETCHPATH="$(dirname "${SKETCHNAME%.*}")"
+ahardware
+
+SKETCHNAME="/var/www/tty2tft.de/git/MiSTer_tty2oled/Testing/MiSTer_SSD1322_USB_Testing/MiSTer_SSD1322_USB_Testing.ino"
+SKETCHPATH="$(dirname "${SKETCHNAME%.*}")"
+ahardware
 
 echo "${BUILDVER}" > "${WWWPATH}/buildver"
 cp -a ${HOME}/.arduino15/packages/esp32/hardware/esp32/*/tools/partitions/boot_app0.bin "${WWWPATH}/"

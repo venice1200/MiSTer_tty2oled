@@ -24,7 +24,6 @@ CGRN="\e[1;32m"
 CYEL="\e[1;33m"
 CNON="\e[0m\033[0m"
 CBLNK="\033[5m"
-DUSB="/dev/ttyUSB0"
 DBAUD="921600"
 #DSTD="--before default_reset --after hard_reset write_flash --compress --flash_mode dio --flash_freq 80m --flash_size detect"
 DSTD="--before default_reset --after hard_reset write_flash --compress --flash_size detect"
@@ -43,12 +42,12 @@ if ! [ -f ${TMPDIR}/esptool.py ]; then
 fi
 
 #Check if interface ttyUSB0 is present
-echo -en "${CNON}Checking for device at ${DUSB}${CNON}: "
-if [[ -c ${DUSB} ]]; then
-    stty -F ${DUSB} ${BAUDRATE} ${TTYPARAM}
+echo -en "${CNON}Checking for device at ${TTYDEV}${CNON}: "
+if [[ -c ${TTYDEV} ]]; then
+    stty -F ${TTYDEV} ${BAUDRATE} ${TTYPARAM}
     echo -e "${CGRN}available${CNON}"
     echo -en "${CNON}Trying to identify device... ${CNON}"
-    echo "CMDHWINF" > ${DUSB} ; read -t5 BLA < ${DUSB}
+    echo "CMDHWINF" > ${TTYDEV} ; read -t5 BLA < ${TTYDEV}
     MCUtype=${BLA:0:9}
     SWver=${BLA%;*} && SWver=${SWver:10}
     if [ "${MCUtype:0:2}" = "HW" ]; then
@@ -90,28 +89,28 @@ if [[ "${SWver}" < "${BUILDVER}" ]]; then
     case "${MCUtype}" in
 	HWESP32DE)
 	    wget -q ${REPOSITORY_URL2}/boot_app0.bin ${REPOSITORY_URL2}/bootloader_dio_80m.bin ${REPOSITORY_URL2}/partitions.bin ${REPOSITORY_URL2}/esp32de_${BUILDVER}.bin
-	    ${TMPDIR}/esptool.py --chip esp32 --port ${DUSB} --baud ${DBAUD} ${DSTD} 0xe000 ${TMPDIR}/boot_app0.bin 0x1000 ${TMPDIR}/bootloader_dio_80m.bin 0x10000 ${TMPDIR}/esp32de_${BUILDVER}.bin 0x8000 ${TMPDIR}/partitions.bin
+	    ${TMPDIR}/esptool.py --chip esp32 --port ${TTYDEV} --baud ${DBAUD} ${DSTD} 0xe000 ${TMPDIR}/boot_app0.bin 0x1000 ${TMPDIR}/bootloader_dio_80m.bin 0x10000 ${TMPDIR}/esp32de_${BUILDVER}.bin 0x8000 ${TMPDIR}/partitions.bin
 	    ;;
 	HWLOLIN32 | HWDTIPCB0 | HWDTIPCB1)
 	    wget -q ${REPOSITORY_URL2}/boot_app0.bin ${REPOSITORY_URL2}/bootloader_dio_80m.bin ${REPOSITORY_URL2}/partitions.bin ${REPOSITORY_URL2}/lolin32_${BUILDVER}.bin
-	    ${TMPDIR}/esptool.py --chip esp32 --port ${DUSB} --baud ${DBAUD} ${DSTD} 0xe000 ${TMPDIR}/boot_app0.bin 0x1000 ${TMPDIR}/bootloader_dio_80m.bin 0x10000 ${TMPDIR}/lolin32_${BUILDVER}.bin 0x8000 ${TMPDIR}/partitions.bin
+	    ${TMPDIR}/esptool.py --chip esp32 --port ${TTYDEV} --baud ${DBAUD} ${DSTD} 0xe000 ${TMPDIR}/boot_app0.bin 0x1000 ${TMPDIR}/bootloader_dio_80m.bin 0x10000 ${TMPDIR}/lolin32_${BUILDVER}.bin 0x8000 ${TMPDIR}/partitions.bin
 	    ;;
 	HWESP8266)
 	    wget -q ${REPOSITORY_URL2}/esp8266_${BUILDVER}.bin
-	    ${TMPDIR}/esptool.py --chip esp8266 --port ${DUSB} --baud ${DBAUD} ${DSTD} 0x00000 ${TMPDIR}/esp8266_${BUILDVER}.bin
+	    ${TMPDIR}/esptool.py --chip esp8266 --port ${TTYDEV} --baud ${DBAUD} ${DSTD} 0x00000 ${TMPDIR}/esp8266_${BUILDVER}.bin
 	    ;;
     esac
     echo "------------------------------------------------------------------------"
     echo -en "${CYEL}${CBLNK}...waiting for reboot of device...${CNON}" ; sleep 4 ; echo -e "\033[2K"
-    stty -F ${DUSB} ${BAUDRATE} ${TTYPARAM} ; sleep 1
+    stty -F ${TTYDEV} ${BAUDRATE} ${TTYPARAM} ; sleep 1
     echo "Updating tty2oled software" > /dev/ttyUSB0
     echo -e "${CGRN}Downloading, checking and (maybe) installing and updating ${CYEL}tty2oled${CNON}"
     #wget -q ${REPOSITORY_URL1}/update_tty2oled.sh -O - | bash
     echo "MENU" > /tmp/CORENAME
     echo -e "\n${CGRN}Install/Update completed. Have fun!${CNON}"
-fi
-
-if [[ "${SWver}" = "${BUILDVER}" ]]; then
+elif [[ "${SWver}" > "${BUILDVER}" ]]; then
+    echo -e "${CYEL}Your version ${SWver} is newer than the available stable build ${BUILDVER}!${CNON}"
+elif [[ "${SWver}" = "${BUILDVER}" ]]; then
     echo -e "${CYEL}Good boy, you're hardware is up-to-date!${CNON}"
     [ "${INITSTOPPED}" = "yes" ] && ${INITSCRIPT} start
     sleep 0.5
@@ -120,5 +119,5 @@ fi
 
 cd - ; rm -rf ${TMPDIR}
 exit 0
-# esptool.py --port ${DUSB} --baud 115200 erase_flash
+# esptool.py --port ${TTYDEV} --baud 115200 erase_flash
 # rm /lib/python3.9/site-packages/easy-install.pth /lib/python3.9/site-packages/pyserial-3.5-py3.9.egg

@@ -1,9 +1,12 @@
 #!/bin/bash
 
+echo "-------- gut pull of unofficial libs"
 git -C ~/Arduino/libraries/MIC184_Temperature_Sensor pull --ff-only
 git -C ~/Arduino/libraries/SSD1322_for_Adafruit_GFX pull --ff-only
+echo "-------- update of cores"
 arduino-cli core update-index
 arduino-cli core upgrade
+echo "-------- update of libs"
 arduino-cli lib update-index
 arduino-cli lib upgrade
 
@@ -11,8 +14,8 @@ WWWPATH="/var/www/tty2tft.de/htdocs/MiSTer_tty2oled-installer"
 BBUILDPATH=$(mktemp -d)
 
 acompile() {
-    echo "Compiling ${BLA}...Please wait..."
-    time arduino-cli compile -b "${BOARD}" --build-path "${BBUILDPATH}" --clean "${SKETCHPATH}" --log-level info
+    echo "-------- Compiling ${BLA}...Please wait..."
+    arduino-cli compile -b "${BOARD}" --build-path "${BBUILDPATH}" --clean "${SKETCHPATH}" --log-level warn
     BUILDNAM=${BLA,,} ; BUILDNAM=${BUILDNAM:2}
     BUILDVER=$(grep "#define BuildVersion" ${BBUILDPATH}/sketch/*.ino.cpp | awk '{print $3}' | tr -d "\"")
     cp -a "${BBUILDPATH}/$(basename ${SKETCHNAME}).bin" "${WWWPATH}/${BUILDNAM}_${BUILDVER}.bin"
@@ -44,12 +47,13 @@ ahardware() {
 SKETCHNAME="/var/www/tty2tft.de/git/MiSTer_tty2oled/MiSTer_SSD1322_USB/MiSTer_SSD1322_USB.ino"
 SKETCHPATH="$(dirname "${SKETCHNAME%.*}")"
 ahardware
+echo "${BUILDVER}" > "${WWWPATH}/buildver"
 
 SKETCHNAME="/var/www/tty2tft.de/git/MiSTer_tty2oled/Testing/MiSTer_SSD1322_USB_Testing/MiSTer_SSD1322_USB_Testing.ino"
 SKETCHPATH="$(dirname "${SKETCHNAME%.*}")"
 ahardware
+echo "${BUILDVER}" > "${WWWPATH}/buildverT"
 
-echo "${BUILDVER}" > "${WWWPATH}/buildver"
 cp -a ${HOME}/.arduino15/packages/esp32/hardware/esp32/*/tools/partitions/boot_app0.bin "${WWWPATH}/"
 cp -a ${HOME}/.arduino15/packages/esp32/hardware/esp32/*/tools/sdk/esp32/bin/bootloader_dio_80m.bin "${WWWPATH}/"
 cp -a ${HOME}/.arduino15/packages/esp32/hardware/esp32/*/tools/sdk/esp32/bin/bootloader_qio_80m.bin "${WWWPATH}/"

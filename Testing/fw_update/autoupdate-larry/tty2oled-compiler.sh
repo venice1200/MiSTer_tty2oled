@@ -44,15 +44,19 @@ ahardware() {
     done
 }
 
-SKETCHNAME="/var/www/tty2tft.de/git/MiSTer_tty2oled/MiSTer_SSD1322_USB/MiSTer_SSD1322_USB.ino"
-SKETCHPATH="$(dirname "${SKETCHNAME%.*}")"
-ahardware
-echo "${BUILDVER}" > "${WWWPATH}/buildver"
+if [ "${1}" = "" ] || [ "${1}" = "stable" ]; then
+    SKETCHNAME="/var/www/tty2tft.de/git/MiSTer_tty2oled/MiSTer_SSD1322_USB/MiSTer_SSD1322_USB.ino"
+    SKETCHPATH="$(dirname "${SKETCHNAME%.*}")"
+    ahardware
+    echo "${BUILDVER}" > "${WWWPATH}/buildver"
+fi
 
-SKETCHNAME="/var/www/tty2tft.de/git/MiSTer_tty2oled/Testing/MiSTer_SSD1322_USB_Testing/MiSTer_SSD1322_USB_Testing.ino"
-SKETCHPATH="$(dirname "${SKETCHNAME%.*}")"
-ahardware
-echo "${BUILDVER}" > "${WWWPATH}/buildverT"
+if [ "${1}" = "" ] || [ "${1}" = "testing" ]; then
+    SKETCHNAME="/var/www/tty2tft.de/git/MiSTer_tty2oled/Testing/MiSTer_SSD1322_USB_Testing/MiSTer_SSD1322_USB_Testing.ino"
+    SKETCHPATH="$(dirname "${SKETCHNAME%.*}")"
+    ahardware
+    echo "${BUILDVER}" > "${WWWPATH}/buildverT"
+fi
 
 cp -a ${HOME}/.arduino15/packages/esp32/hardware/esp32/*/tools/partitions/boot_app0.bin "${WWWPATH}/"
 cp -a ${HOME}/.arduino15/packages/esp32/hardware/esp32/*/tools/sdk/esp32/bin/bootloader_dio_80m.bin "${WWWPATH}/"

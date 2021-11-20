@@ -14,10 +14,10 @@ WWWPATH="/var/www/tty2tft.de/htdocs/MiSTer_tty2oled-installer"
 BBUILDPATH=$(mktemp -d)
 
 acompile() {
-    echo "-------- Compiling ${BLA}...Please wait..."
-    arduino-cli compile -b "${BOARD}" --build-path "${BBUILDPATH}" --clean "${SKETCHPATH}" --log-level warn
     BUILDNAM=${BLA,,} ; BUILDNAM=${BUILDNAM:2}
     BUILDVER=$(grep "#define BuildVersion" ${BBUILDPATH}/sketch/*.ino.cpp | awk '{print $3}' | tr -d "\"")
+    echo "-------- Compiling ${BLA} - BUILDVER ${BUILDVER} ...Please wait..."
+    arduino-cli compile -b "${BOARD}" --build-path "${BBUILDPATH}" --clean "${SKETCHPATH}" --log-level warn
     cp -a "${BBUILDPATH}/$(basename ${SKETCHNAME}).bin" "${WWWPATH}/${BUILDNAM}_${BUILDVER}.bin"
 }
 

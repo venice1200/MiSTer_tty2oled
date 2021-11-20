@@ -45,7 +45,7 @@ fi
 #Check if interface ttyUSB0 is present
 echo -en "${CNON}Checking for device at ${DUSB}${CNON}: "
 if [[ -c ${DUSB} ]]; then
-    stty -F ${DUSB} ${TTYPARAM}
+    stty -F ${DUSB} ${BAUDRATE} ${TTYPARAM}
     echo -e "${CGRN}available${CNON}"
     echo -en "${CNON}Trying to identify device... ${CNON}"
     echo "CMDHWINF" > ${DUSB} ; read -t5 BLA < ${DUSB}
@@ -103,7 +103,7 @@ if [[ "${SWver}" < "${BUILDVER}" ]]; then
     esac
     echo "------------------------------------------------------------------------"
     echo -en "${CYEL}${CBLNK}...waiting for reboot of device...${CNON}" ; sleep 4 ; echo -e "\033[2K"
-    stty -F ${DUSB} ${TTYPARAM} ; sleep 1
+    stty -F ${DUSB} ${BAUDRATE} ${TTYPARAM} ; sleep 1
     echo "Updating tty2oled software" > /dev/ttyUSB0
     echo -e "${CGRN}Downloading, checking and (maybe) installing and updating ${CYEL}tty2oled${CNON}"
     #wget -q ${REPOSITORY_URL1}/update_tty2oled.sh -O - | bash

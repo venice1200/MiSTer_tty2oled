@@ -2,7 +2,11 @@
 
 REPOSITORY_URL1="https://raw.githubusercontent.com/venice1200/MiSTer_tty2oled/main"
 REPOSITORY_URL2="https://www.tty2tft.de//MiSTer_tty2oled-installer"
-BUILDVER=$(wget -q ${REPOSITORY_URL2}/buildver -O -)
+if [ "${1}" = "T" ]; then
+    BUILDVER=$(wget -q ${REPOSITORY_URL2}/buildverT -O -)
+else
+    BUILDVER=$(wget -q ${REPOSITORY_URL2}/buildver -O -)
+fi
 TMPDIR=$(mktemp -d)
 cd ${TMPDIR}
 wget -q ${REPOSITORY_URL1}/tty2oled.ini -O ${TMPDIR}/tty2oled.ini

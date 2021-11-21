@@ -2,17 +2,31 @@
 
 REPOSITORY_URL1="https://raw.githubusercontent.com/venice1200/MiSTer_tty2oled/main"
 REPOSITORY_URL2="https://www.tty2tft.de//MiSTer_tty2oled-installer"
+TMPDIR=$(mktemp -d)
+cd ${TMPDIR}
+
+# When started with parameter "T" use testing sketch
 if [ "${1}" = "T" ]; then
     BUILDVER=$(wget -q ${REPOSITORY_URL2}/buildverT -O -)
 else
     BUILDVER=$(wget -q ${REPOSITORY_URL2}/buildver -O -)
 fi
-TMPDIR=$(mktemp -d)
-cd ${TMPDIR}
-wget -q ${REPOSITORY_URL1}/tty2oled.ini -O ${TMPDIR}/tty2oled.ini
-. ${TMPDIR}/tty2oled.ini
 
-mkdir -p ${TTY2OLED_PATH}
+# If there's an existing ini, use it
+if [ -r /media/fat/tty2oled/tty2oled.ini ]; then
+    . /media/fat/tty2oled/tty2oled.ini
+else
+    wget -q ${REPOSITORY_URL1}/tty2oled.ini -O ${TMPDIR}/tty2oled.ini
+    . ${TMPDIR}/tty2oled.ini
+fi
+
+# If there is no existing path of tty2oled, create it
+! [ -d ${TTY2OLED_PATH} ] && mkdir -p ${TTY2OLED_PATH}
+
+# Clear the display by setting this as CORENAME, which keeps the display while updating
+echo "cls" > /tmp/CORENAME
+
+# Stop an already running daemon
 if [ $(pidof ${DAEMONNAME}) ] && [ -f ${INITSCRIPT} ] ; then
     ${INITSCRIPT} stop
     INITSTOPPED="yes"
@@ -25,9 +39,7 @@ CYEL="\e[1;33m"
 CNON="\e[0m\033[0m"
 CBLNK="\033[5m"
 DBAUD="921600"
-#DSTD="--before default_reset --after hard_reset write_flash --compress --flash_mode dio --flash_freq 80m --flash_size detect"
 DSTD="--before default_reset --after hard_reset write_flash --compress --flash_size detect"
-echo "cls" > /tmp/CORENAME
 
 #Install pySerial (if it is missing)
 if ! python -c "import serial" &> /dev/null; then
@@ -83,6 +95,14 @@ case "${MCUtype}" in
 esac
 
 if [[ "${SWver}" < "${BUILDVER}" ]]; then
+    # Called by updater?
+    if [ "${2}" = "UPDATER" ]; then
+	echo -e "${CYEL}Version of your tty2oled device is ${SWver}, but BUILDVER is ${BUILDVER}.${CNON}"
+	echo -en "${CYEL}Do you want to update (y/n)?${CNON} " ; read -t5 -n1 BLA
+	echo
+    fi
+    # Not called by updater - or called by updater and answered YES
+    if ! [ "${2}" = "UPDATER" ] || [ "${BLA}" = "y" ]; then
     echo "Updating tty2oled sketch" > /dev/ttyUSB0
     echo -e "${CYEL}Version of your tty2oled device is ${SWver}, but BUILDVER is ${BUILDVER}. Updating!${CNON}"
     echo "------------------------------------------------------------------------"
@@ -103,11 +123,16 @@ if [[ "${SWver}" < "${BUILDVER}" ]]; then
     echo "------------------------------------------------------------------------"
     echo -en "${CYEL}${CBLNK}...waiting for reboot of device...${CNON}" ; sleep 4 ; echo -e "\033[2K"
     stty -F ${TTYDEV} ${BAUDRATE} ${TTYPARAM} ; sleep 1
-    echo "Updating tty2oled software" > /dev/ttyUSB0
-    echo -e "${CGRN}Downloading, checking and (maybe) installing and updating ${CYEL}tty2oled${CNON}"
-    #wget -q ${REPOSITORY_URL1}/update_tty2oled.sh -O - | bash
-    echo "MENU" > /tmp/CORENAME
+    fi
+
+    # Called by updater?
+    if ! [ "${2}" = "UPDATER" ]; then
+	echo "Updating tty2oled software" > /dev/ttyUSB0
+	echo -e "${CGRN}Downloading, checking and (maybe) installing and updating ${CYEL}tty2oled${CNON}"
+	echo "MENU" > /tmp/CORENAME
+    fi
     echo -e "\n${CGRN}Install/Update completed. Have fun!${CNON}"
+
 elif [[ "${SWver}" > "${BUILDVER}" ]]; then
     echo -e "${CYEL}Your version ${SWver} is newer than the available stable build ${BUILDVER}!${CNON}"
 elif [[ "${SWver}" = "${BUILDVER}" ]]; then

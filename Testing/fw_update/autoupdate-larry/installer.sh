@@ -126,13 +126,14 @@ if [[ "${SWver}" < "${BUILDVER}" ]]; then
     fi
 
     # Called by updater?
-    if ! [ "${2}" = "UPDATER" ]; then
-	echo "Updating tty2oled software" > /dev/ttyUSB0
-	echo -e "${CGRN}Downloading, checking and (maybe) installing and updating ${CYEL}tty2oled${CNON}"
-    fi
+#    if ! [ "${2}" = "UPDATER" ]; then
+#	echo "Updating tty2oled software" > /dev/ttyUSB0
+#	echo -e "${CGRN}Downloading, checking and (maybe) installing and updating ${CYEL}tty2oled${CNON}"
+#    fi
     echo -e "\n${CGRN}Install/Update completed. Have fun!${CNON}"
 elif [[ "${SWver}" > "${BUILDVER}" ]]; then
     echo -e "${CYEL}Your version ${SWver} is newer than the available stable build ${BUILDVER}!${CNON}"
+    [ "${INITSTOPPED}" = "yes" ] && ${INITSCRIPT} start
 elif [[ "${SWver}" = "${BUILDVER}" ]]; then
     echo -e "${CYEL}Good boy, you're hardware is up-to-date!${CNON}"
     [ "${INITSTOPPED}" = "yes" ] && ${INITSCRIPT} start

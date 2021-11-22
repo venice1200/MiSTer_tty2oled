@@ -156,6 +156,7 @@ uint16_t DispWidth, DispHeight, DispLineBytes1bpp, DispLineBytes4bpp;
 unsigned int logoBytes1bpp=0;
 unsigned int logoBytes4bpp=0;
 const int cDelay=25;                          // Command Delay in ms for Handshake
+const int hwDelay=100;                        // Delay for HWINFO Request
 size_t bytesReadCount=0;
 uint8_t *logoBin;                             // <<== For malloc in Setup
 enum picType {NONE, XBM, GSC};                // Enum Picture Type
@@ -369,6 +370,10 @@ void loop(void) {
       oled_drawlogo64h(sorgelig_icon64_width, sorgelig_icon64);
     }
 
+    else if (newCommand=="CMDHWINF") {                                      // Send HW Info
+      oled_sendHardwareInfo();
+    }
+
     else if (newCommand=="CMDTEST") {                                       // Show Test-Picture
       oled_drawlogo64h(TestPicture_width, TestPicture);
     }
@@ -528,6 +533,52 @@ void oled_showStartScreen(void) {
   oled.display();
   startScreenActive=true;
 } // end mistertext
+
+
+// --------------------------------------------------------------
+// ----------- Send Hardware Info Back to the MiSTer ------------
+// --------------------------------------------------------------
+void oled_sendHardwareInfo(void) {
+  int hwinfo=0;
+
+#ifdef  USE_TTGOT8                         // TTGO-T8 & d.ti Board
+  hwinfo=1;
+#endif
+
+#ifdef USE_LOLIN32                         // Wemos LOLIN32, LOLIN32, DevKit_V4 (Wemos Lolin32)
+  hwinfo=2;
+#endif
+
+#ifdef USE_NODEMCU                         // ESP8266 NodeMCU
+  hwinfo=3;
+#endif
+ 
+  delay(hwDelay);                            // Small Delay
+
+  switch (hwinfo) {
+    case 0:
+      Serial.println("HWNONEXXX;" BuildVersion ";");              // No known Hardware in use
+    break;
+    case 1:
+      Serial.println("HWESP32DE;" BuildVersion ";");              // ESP32-DEV, TTGO, DTI-Board without active Options
+    break;
+    case 2:
+      Serial.println("HWLOLIN32;" BuildVersion ";");              // Wemos,Lolin,DevKit_V4
+    break;
+    case 3:
+      Serial.println("HWESP8266;" BuildVersion ";");              // ESP8266
+    break;
+    case 4:
+      Serial.println("HWDTIPCB0;" BuildVersion ";");              // DTI Board v1.0
+    break;
+    case 5:
+      Serial.println("HWDTIPCB1;" BuildVersion ";");              // Currently unused
+    break;
+    default:
+      Serial.println("HWNONEXXX;" BuildVersion ";");              // Default
+    break;
+  }
+}
 
 
 // --------------------------------------------------------------

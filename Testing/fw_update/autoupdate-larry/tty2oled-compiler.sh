@@ -48,6 +48,8 @@ if [ "${1}" = "" ] || [ "${1}" = "stable" ]; then
     SKETCHNAME="/var/www/tty2tft.de/git/MiSTer_tty2oled/MiSTer_SSD1322_USB/MiSTer_SSD1322_USB.ino"
     SKETCHPATH="$(dirname "${SKETCHNAME%.*}")"
     ahardware
+    read OLDBUILDVER < "${WWWPATH}/buildver"
+    rm *-${OLDBUILDVER}.bin
     echo "${BUILDVER}" > "${WWWPATH}/buildver"
 fi
 
@@ -55,6 +57,8 @@ if [ "${1}" = "" ] || [ "${1}" = "testing" ]; then
     SKETCHNAME="/var/www/tty2tft.de/git/MiSTer_tty2oled/Testing/MiSTer_SSD1322_USB_Testing/MiSTer_SSD1322_USB_Testing.ino"
     SKETCHPATH="$(dirname "${SKETCHNAME%.*}")"
     ahardware
+    read OLDBUILDVER < "${WWWPATH}/buildverT"
+    rm *-${OLDBUILDVER}.bin
     echo "${BUILDVER}" > "${WWWPATH}/buildverT"
 fi
 

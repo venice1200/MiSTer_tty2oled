@@ -129,18 +129,17 @@ if [[ "${SWver}" < "${BUILDVER}" ]]; then
     if ! [ "${2}" = "UPDATER" ]; then
 	echo "Updating tty2oled software" > /dev/ttyUSB0
 	echo -e "${CGRN}Downloading, checking and (maybe) installing and updating ${CYEL}tty2oled${CNON}"
-	echo "MENU" > /tmp/CORENAME
     fi
     echo -e "\n${CGRN}Install/Update completed. Have fun!${CNON}"
-
 elif [[ "${SWver}" > "${BUILDVER}" ]]; then
     echo -e "${CYEL}Your version ${SWver} is newer than the available stable build ${BUILDVER}!${CNON}"
 elif [[ "${SWver}" = "${BUILDVER}" ]]; then
     echo -e "${CYEL}Good boy, you're hardware is up-to-date!${CNON}"
     [ "${INITSTOPPED}" = "yes" ] && ${INITSCRIPT} start
-    sleep 0.5
-    echo "MENU" > /tmp/CORENAME
 fi
+echo -e "${CYEL}Waiting 4 seconds for resettlement of device...${CNON}"
+sleep 4
+echo "MENU" > /tmp/CORENAME
 
 cd - ; rm -rf ${TMPDIR}
 exit 0

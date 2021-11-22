@@ -26,26 +26,14 @@
   -New Command "CMDTZONE,z" for d.ti Board only!
    Set the Temperature Zone for the MIC184. z=0 Internal Zone, z=1 Remote Zone.
 
-  2021-11-14
-  -New Command "CMDHWINF"
-   Send HW Info back to the MiSTer/CMD-Sender. Useful for ESP Firmware Updates.
-   Currently: "TTGO"=TTGO-T8 ESP32, "LOLI"=Lolin&DevKit ESP32, "8266"=ESP8266, "DTI0"=d.ti Board ESP32
-
-  2021-11-15
-  -Changed Option USE_TTGOT8=USE_ESP32DEV
-
-  2021-11-16
-  -Removed Options for XTILT and XDTI and used software mechanism for this
-  -MIC184 only available for ARDUINO_ESP32_DEV/USE_ESP32DEV Hardware and if MIC is detected via i2c
-  -Tilt available for all Hardware Platforms, ESP8266 Tilt Pin = Pin16
-
+  
   ToDo
   -Everything I forgot
    
 */
 
 // Set Version
-#define BuildVersion "211116T"                    // "T" for Testing
+#define BuildVersion "211122T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -507,10 +495,10 @@ void loop(void) {
       u8g2.print("\xb0");
       u8g2.print("C");
     }
-    else {
-      u8g2.setCursor(120,63);
-      u8g2.print("NA");
-    }
+    //else {
+    //  u8g2.setCursor(120,63);
+    //  u8g2.print("NA");
+    //}
     oled.display();
   }
   // ..or CMDSTEMP was called
@@ -563,10 +551,10 @@ void oled_showStartScreen(void) {
     u8g2.print("\xb0");
     u8g2.print("C");
   }
-  else {
-    u8g2.setCursor(120,63);
-    u8g2.print("NN");
-  }
+  //else {
+  //  u8g2.setCursor(120,63);
+  //  u8g2.print("NN");
+  //}
 #endif
 
   oled.display();

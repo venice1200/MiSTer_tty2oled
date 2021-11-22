@@ -266,7 +266,7 @@
   2021-10-03
   -Modify Text Output
    -Font 1.. = Write Text
-   -Font 1.. +100 = 101.. Clear Text without Output
+   -Font 1.. +100 = 101.. Write Text without Output
 
   2021-10-08
   -Adding Library "U8G2 for Adafruit GFX" for better Text Support
@@ -277,7 +277,7 @@
    Write Text with given Font Color (c) and Background Color (b)
   -Adding Command "CMDDUPD"
    Update Display content (write buffer to Display)
-   
+
   2021-10-11
   -Adding Command "CMDSTEMP" for the d.ti Board (Option XDTI)
    If you send this command the Display shows and refreshs the Temperature as long as no other Commands are sent.
@@ -301,6 +301,21 @@
   2021-11-04/07
   -New Picture Slide-In Effects (11..14) and some effect speed adjustments
 
-   
+ 2021-11-14
+  -New Command "CMDHWINF"
+   Send HW Info back to the MiSTer/CMD-Sender. Useful for ESP Firmware Updates.
+   Currently: "HWESP32DE"=TTGO-T8 ESP32, "HWLOLIN32"=Lolin&DevKit ESP32, "HWESP8266"=ESP8266, "HWDTIPCB0"=d.ti Board ESP32
+
+  2021-11-15
+  -Changed Option USE_TTGOT8=USE_ESP32DEV
+
+  2021-11-16
+  -Removed Options for XTILT and XDTI. We use now software mechanism for determination of Hardware
+  -MIC184 only available for ARDUINO_ESP32_DEV/USE_ESP32DEV Hardware and only if MIC is detected via i2c
+  -Tilt available for all Hardware Platforms, ESP8266 Tilt Pin = Pin16
+
+  2021-11-22
+  -Cleanup not needed "NA/NN" Texts
+
 ToDo
 -Everything I forgot

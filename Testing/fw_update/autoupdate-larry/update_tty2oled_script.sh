@@ -84,7 +84,7 @@ echo -e "${fgreen}Checking for available tty2oled updates...${freset}"
 
 
 # init script
-####### wget ${NODEBUG} "${REPOSITORY_URL}/S60tty2oled" -O /tmp/S60tty2oled
+wget ${NODEBUG} "${REPOSITORY_URL}/S60tty2oled" -O /tmp/S60tty2oled
 if  ! [ -f ${INITSCRIPT} ]; then
   if  [ -f ${INITDISABLED} ]; then
     echo -e "${fyellow}Found disabled init script, skipping Install${freset}"

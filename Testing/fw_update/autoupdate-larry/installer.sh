@@ -138,16 +138,15 @@ if [[ "${SWver}" < "${BUILDVER}" ]]; then
 #    fi
 elif [[ "${SWver}" > "${BUILDVER}" ]]; then
     echo -e "${fyellow}Your version ${SWver} is newer than the available stable build ${BUILDVER}!${freset}"
-    [ "${INITSTOPPED}" = "yes" ] && ${INITSCRIPT} start
+    [ "${INITSTOPPED}" = "yes" ] && cd /tmp && ${INITSCRIPT} start
 elif [[ "${SWver}" = "${BUILDVER}" ]]; then
     echo -e "${fyellow}Good boy, you're hardware is up-to-date!${freset}"
-    [ "${INITSTOPPED}" = "yes" ] && ${INITSCRIPT} start
+    [ "${INITSTOPPED}" = "yes" ] && cd /tmp && ${INITSCRIPT} start
 fi
 #echo -e "${fyellow}Waiting 4 seconds for resettlement of device...${freset}"
 #sleep 4
 echo "MENU" > /tmp/CORENAME
 
-#cd - ; rm -rf ${TMPDIR}
 rm -rf ${TMPDIR}
 exit 0
 # esptool.py --port ${TTYDEV} --baud 115200 erase_flash

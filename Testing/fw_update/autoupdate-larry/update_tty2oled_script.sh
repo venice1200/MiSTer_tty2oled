@@ -84,7 +84,7 @@ echo -e "${fgreen}Checking for available tty2oled updates...${freset}"
 
 
 # init script
-wget ${NODEBUG} "${REPOSITORY_URL}/S60tty2oled" -O /tmp/S60tty2oled
+####### wget ${NODEBUG} "${REPOSITORY_URL}/S60tty2oled" -O /tmp/S60tty2oled
 if  ! [ -f ${INITSCRIPT} ]; then
   if  [ -f ${INITDISABLED} ]; then
     echo -e "${fyellow}Found disabled init script, skipping Install${freset}"
@@ -143,11 +143,11 @@ fi
 
 # Download the installer to check esp firmware
 cd /tmp
-echo "######## DEBUG: Wechsel zu /tmp und starte Installer"
+echo -e "${fmagenta}######## DEBUG: Wechsel zu /tmp und starte Installer${freset}"
 [ "${TTY2OLED_FW_TESTING}" = "yes" ] && FWTESTING="T" || FWTESTING="-"
 #bash <(wget -qO- ${REPOSITORY_URL}/installer.sh) ${FWTESTING} UPDATER
 bash <(wget -qO- ${REPOSITORY_URL}/Testing/fw_update/autoupdate-larry/installer.sh) ${FWTESTING} UPDATER
-echo "######## DEBUG: Rücksprung vom Installer, wir sind jetzt im Verzeuichnis $(pwd)"
+echo -e "${fmagenta}######## DEBUG: Rücksprung vom Installer, wir sind jetzt im Verzeuichnis $(pwd)${freset}"
 
 # Check and remount root non-writable if neccessary
 [ "${MOUNTRO}" = "true" ] && /bin/mount -o remount,ro /

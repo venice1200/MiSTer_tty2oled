@@ -77,29 +77,29 @@ if [ -d /media/fat/tty2oledpics ]; then
   rm -rf /media/fat/tty2oledpics/
 fi
 
-echo -e "\e[1;32mtty2oled update script"
-echo -e "----------------------\e[0m"
+echo -e "${fgreen}tty2oled update script"
+echo -e "----------------------${freset}"
 
-echo -e "\e[1;32mChecking for available tty2oled updates...\e[0m"
+echo -e "${fgreen}Checking for available tty2oled updates...${freset}"
 
 
 # init script
 wget ${NODEBUG} "${REPOSITORY_URL}/S60tty2oled" -O /tmp/S60tty2oled
 if  ! [ -f ${INITSCRIPT} ]; then
   if  [ -f ${INITDISABLED} ]; then
-    echo -e "\e[1;33mFound disabled init script, skipping Install\e[0m"
+    echo -e "${fyellow}Found disabled init script, skipping Install${freset}"
   else
-    echo -e "\e[1;33mInstalling init script \e[1;35mS60tty2oled\e[0m"
+    echo -e "${fyellow}Installing init script ${fmagenta}S60tty2oled${freset}"
     mv -f /tmp/S60tty2oled ${INITSCRIPT}
     chmod +x ${INITSCRIPT}
   fi
 elif ! cmp -s /tmp/S60tty2oled ${INITSCRIPT}; then
   if [ "${SCRIPT_UPDATE}" = "yes" ]; then
-    echo -e "\e[1;33mUpdating init script \e[1;35mS60tty2oled\e[0m"
+    echo -e "${fyellow}Updating init script ${fmagenta}S60tty2oled${freset}"
     mv -f /tmp/S60tty2oled ${INITSCRIPT}
     chmod +x ${INITSCRIPT}
   else
-    echo -e "\e[5;31mSkipping\e[25;1;33m available init script update because of the \e[1;36mSCRIPT_UPDATE\e[1;33m INI-Option\e[0m"
+    echo -e "${fblink}Skipping${fyellow} available init script update because of the ${fcyan}SCRIPT_UPDATE${fyellow} INI-Option${freset}"
   fi
 fi
 [[ -f /tmp/S60tty2oled ]] && rm /tmp/S60tty2oled
@@ -108,16 +108,16 @@ fi
 # daemon
 wget ${NODEBUG} "${REPOSITORY_URL}/${DAEMONNAME}" -O /tmp/${DAEMONNAME}
 if  ! [ -f ${DAEMONSCRIPT} ]; then
-  echo -e "\e[1;33mInstalling daemon script \e[1;35mtty2oled\e[0m"
+  echo -e "${fyellow}Installing daemon script ${fmagenta}tty2oled${freset}"
   mv -f /tmp/${DAEMONNAME} ${DAEMONSCRIPT}
   chmod +x ${DAEMONSCRIPT}
 elif ! cmp -s /tmp/${DAEMONNAME} ${DAEMONSCRIPT}; then
   if [ "${SCRIPT_UPDATE}" = "yes" ]; then
-    echo -e "\e[1;33mUpdating daemon script \e[1;35mtty2oled\e[0m"
+    echo -e "${fyellow}Updating daemon script ${fmagenta}tty2oled${freset}"
     mv -f /tmp/${DAEMONNAME} ${DAEMONSCRIPT}
     chmod +x ${DAEMONSCRIPT}
   else
-    echo -e "\e[5;31mSkipping\e[25;1;33m available daemon script update because of the \e[1;36mSCRIPT_UPDATE\e[1;33m INI-Option\e[0m"
+    echo -e "${fblink}Skipping${fyellow} available daemon script update because of the ${fcyan}SCRIPT_UPDATE${fyellow} INI-Option${freset}"
   fi
 fi
 [[ -f /tmp/${DAEMONNAME} ]] && rm /tmp/${DAEMONNAME}
@@ -130,31 +130,34 @@ if ! [ -d ${picturefolder}/GSC ];then
     sync
   fi
   ! [ -d ${picturefolder} ] && mkdir -p ${picturefolder}
-  echo -e "\e[1;33mDownloading Picture Archive (initial)...\e[0m"
+  echo -e "${fyellow}Downloading Picture Archive (initial)...${freset}"
   wget -qN --show-progress --ca-certificate=/etc/ssl/certs/cacert.pem ${PICTURE_REPOSITORY_URL} -O /tmp/MiSTer_tty2oled_pictures.7z
-  echo -e "\e[1;33mDecompressing Pictures Archive...\e[0m"
+  echo -e "${fyellow}Decompressing Pictures Archive...${freset}"
   7zr x -bsp0 -bso0 /tmp/MiSTer_tty2oled_pictures.7z -o${picturefolder}
   rm /tmp/MiSTer_tty2oled_pictures.7z
 else
-  echo -e "\e[1;33mDownloading Pictures...\e[0m"
+  echo -e "${fyellow}Downloading Pictures...${freset}"
   [ "${OVERWRITE_PICTURE}" = "no" ] && RSYNCOPTS="--ignore-existing" || RSYNCOPTS="--delete"
   rsync -crlzzP --modify-window=1 ${RSYNCOPTS} rsync://tty2oled-update-daemon@tty2tft.de/tty2oled-pictures/ ${picturefolder}/
 fi
 
 # Download the installer to check esp firmware
+cd /tmp
+echo "######## DEBUG: Wechsel zu /tmp und starte Installer"
 [ "${TTY2OLED_FW_TESTING}" = "yes" ] && FWTESTING="T" || FWTESTING="-"
 #bash <(wget -qO- ${REPOSITORY_URL}/installer.sh) ${FWTESTING} UPDATER
 bash <(wget -qO- ${REPOSITORY_URL}/Testing/fw_update/autoupdate-larry/installer.sh) ${FWTESTING} UPDATER
+echo "######## DEBUG: Rücksprung vom Installer, wir sind jetzt im Verzeuichnis $(pwd)"
 
 # Check and remount root non-writable if neccessary
 [ "${MOUNTRO}" = "true" ] && /bin/mount -o remount,ro /
 
 if [ $(pidof ${DAEMONNAME}) ]; then
-  echo -e "\e[1;32mRestarting init script\n\e[0m"
+  echo -e "${fgreen}Restarting init script\n${freset}"
   ${INITSCRIPT} restart
 elif [ -c "${TTYDEV}" ]; then
-  echo -e "\e[1;32mStarting init script\n\e[0m"
+  echo -e "${fgreen}Starting init script\n${freset}"
   ${INITSCRIPT} start
 fi
 
-[ -z "${SSH_TTY}" ] && echo -e "\e[1;32mPress any key to continue\n\e[0m"
+[ -z "${SSH_TTY}" ] && echo -e "${fgreen}Press any key to continue\n${freset}"

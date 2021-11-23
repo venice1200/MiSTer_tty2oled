@@ -20,8 +20,8 @@ else
     . ${TMPDIR}/tty2oled.ini
 fi
 
-# If there is no existing path of tty2oled, create it
-! [ -d ${TTY2OLED_PATH} ] && mkdir -p ${TTY2OLED_PATH}
+# Check for and create tty2oled script folder
+#[[ -d ${TTY2OLED_PATH} ]] || mkdir ${TTY2OLED_PATH}
 
 # Clear the display by setting this as CORENAME, which keeps the display while updating
 echo "cls" > /tmp/CORENAME
@@ -33,11 +33,6 @@ if [ $(pidof ${DAEMONNAME}) ] && [ -f ${INITSCRIPT} ] ; then
     sleep 0.5
 fi
 
-CRED="\e[1;31m"
-CGRN="\e[1;32m"
-CYEL="\e[1;33m"
-CNON="\e[0m\033[0m"
-CBLNK="\033[5m"
 DBAUD="921600"
 DSTD="--before default_reset --after hard_reset write_flash --compress --flash_size detect"
 
@@ -54,18 +49,18 @@ if ! [ -f ${TMPDIR}/esptool.py ]; then
 fi
 
 #Check if interface ttyUSB0 is present
-echo -en "${CNON}Checking for device at ${TTYDEV}${CNON}: "
+echo -en "${freset}Checking for device at ${TTYDEV}${freset}: "
 if [[ -c ${TTYDEV} ]]; then
     stty -F ${TTYDEV} ${BAUDRATE} ${TTYPARAM}
-    echo -e "${CGRN}available${CNON}"
-    echo -en "${CNON}Trying to identify device... ${CNON}"
+    echo -e "${fgreen}available${freset}"
+    echo -en "${freset}Trying to identify device... ${freset}"
     echo "CMDHWINF" > ${TTYDEV} ; read -t5 BLA < ${TTYDEV}
     MCUtype=${BLA:0:9}
     SWver=${BLA%;*} && SWver=${SWver:10}
     if [ "${MCUtype:0:2}" = "HW" ]; then
-	echo -e "${CGRN}${MCUtype} with sketch version ${SWver}${CNON}"
+	echo -e "${fgreen}${MCUtype} with sketch version ${SWver}${freset}"
     else
-	echo -e "${CRED}Unknown MCU and/or not a tty2oled sketch. Please select.${CNON}" ; sleep 3
+	echo -e "${fred}Unknown MCU and/or not a tty2oled sketch. Please select.${freset}" ; sleep 3
 	exec 3>&1
 	MCUtype=$(dialog --clear --no-cancel --ascii-lines --no-tags \
 	--backtitle "tty2oled" --title "[ Flash tool for ESP devices ]" \
@@ -79,70 +74,81 @@ if [[ -c ${TTYDEV} ]]; then
 	SWver="0"
     fi
 else
-    echo -e "${CRED}Could not connect to interface. Please check USB connection and run script again.${CNON}"
+    echo -e "${fred}Could not connect to interface. Please check USB connection and run script again.${freset}"
     exit 1
 fi
 
 #Check for MCU
 case "${MCUtype}" in
     Exit)	exit 0 ;;
-    HWNONEXXX)	echo -e "${CRED}Unknown hardware, can't continue.${CNON}" ; exit 1 ;;
-    HWESP32DE)	echo -e "${CYEL}ESP32 selected/detected (TTGO/DTI).${CNON}" ;;
-    HWLOLIN32)	echo -e "${CYEL}ESP32 selected/detected (Wemos/Lolin/DevKit_V4).${CNON}" ;;
-    HWDTIPCB0)	echo -e "${CYEL}ESP32 selected/detected (DTI v1.0).${CNON}" ;;
-    HWDTIPCB1)	echo -e "${CYEL}ESP32 selected/detected (DTI n/a).${CNON}" ;;
-    HWESP8266)	echo -e "${CYEL}ESP8266 selected/detected.${CNON}" ;;
+    HWNONEXXX)	echo -e "${fred}Unknown hardware, can't continue.${freset}" ; exit 1 ;;
+    HWESP32DE)	echo -e "${fyellow}ESP32 selected/detected (TTGO/DTI).${freset}" ;;
+    HWLOLIN32)	echo -e "${fyellow}ESP32 selected/detected (Wemos/Lolin/DevKit_V4).${freset}" ;;
+    HWDTIPCB0)	echo -e "${fyellow}ESP32 selected/detected (DTI v1.0).${freset}" ;;
+    HWDTIPCB1)	echo -e "${fyellow}ESP32 selected/detected (DTI n/a).${freset}" ;;
+    HWESP8266)	echo -e "${fyellow}ESP8266 selected/detected.${freset}" ;;
 esac
 
 if [[ "${SWver}" < "${BUILDVER}" ]]; then
+
     # Called by updater?
     if [ "${2}" = "UPDATER" ]; then
-	echo -e "${CYEL}Version of your tty2oled device is ${SWver}, but BUILDVER is ${BUILDVER}.${CNON}"
-	echo -en "${CYEL}Do you want to update (y/n)?${CNON} " ; read -t5 -n1 BLA
+	echo -e "${fyellow}Version of your tty2oled device is ${SWver}, but BUILDVER is ${BUILDVER}.${freset}"
+	echo -en "${fyellow}Do you want to Update? Use Cursor or Joystick for YES=UP / NO=DOWN. Countdown: 9${freset}"
+	echo -en "${chide}"
+	for i in {9..0}; do
+	    echo -en "\e[1D${fred}${i}${freset}"
+	    read -r -s -t1 -N1 KEY
+	    [ "${KEY}" == "A" ] && KEY="y" && break
+	    [ "${KEY}" == "B" ] && KEY="n" && break
+	done
+	echo -en "${cshow}"
 	echo
     fi
+
     # Not called by updater - or called by updater and answered YES
-    if ! [ "${2}" = "UPDATER" ] || [ "${BLA}" = "y" ]; then
-    echo "Updating tty2oled sketch" > /dev/ttyUSB0
-    echo -e "${CYEL}Version of your tty2oled device is ${SWver}, but BUILDVER is ${BUILDVER}. Updating!${CNON}"
-    echo "------------------------------------------------------------------------"
-    case "${MCUtype}" in
-	HWESP32DE)
+    if ! [ "${2}" = "UPDATER" ] || [ "${KEY}" = "y" ]; then
+	echo "Updating tty2oled sketch" > /dev/ttyUSB0
+	! [ "${KEY}" = "y" ] && echo -e "${fyellow}Version of your tty2oled device is ${SWver}, but BUILDVER is ${BUILDVER}. Updating!${freset}"
+	echo "------------------------------------------------------------------------"
+	case "${MCUtype}" in
+	    HWESP32DE)
 	    wget -q ${REPOSITORY_URL2}/boot_app0.bin ${REPOSITORY_URL2}/bootloader_dio_80m.bin ${REPOSITORY_URL2}/partitions.bin ${REPOSITORY_URL2}/esp32de_${BUILDVER}.bin
-	    ${TMPDIR}/esptool.py --chip esp32 --port ${TTYDEV} --baud ${DBAUD} ${DSTD} 0xe000 ${TMPDIR}/boot_app0.bin 0x1000 ${TMPDIR}/bootloader_dio_80m.bin 0x10000 ${TMPDIR}/esp32de_${BUILDVER}.bin 0x8000 ${TMPDIR}/partitions.bin
-	    ;;
-	HWLOLIN32 | HWDTIPCB0 | HWDTIPCB1)
-	    wget -q ${REPOSITORY_URL2}/boot_app0.bin ${REPOSITORY_URL2}/bootloader_dio_80m.bin ${REPOSITORY_URL2}/partitions.bin ${REPOSITORY_URL2}/lolin32_${BUILDVER}.bin
-	    ${TMPDIR}/esptool.py --chip esp32 --port ${TTYDEV} --baud ${DBAUD} ${DSTD} 0xe000 ${TMPDIR}/boot_app0.bin 0x1000 ${TMPDIR}/bootloader_dio_80m.bin 0x10000 ${TMPDIR}/lolin32_${BUILDVER}.bin 0x8000 ${TMPDIR}/partitions.bin
-	    ;;
-	HWESP8266)
-	    wget -q ${REPOSITORY_URL2}/esp8266_${BUILDVER}.bin
-	    ${TMPDIR}/esptool.py --chip esp8266 --port ${TTYDEV} --baud ${DBAUD} ${DSTD} 0x00000 ${TMPDIR}/esp8266_${BUILDVER}.bin
-	    ;;
-    esac
-    echo "------------------------------------------------------------------------"
-    echo -en "${CYEL}${CBLNK}...waiting for reboot of device...${CNON}" ; sleep 4 ; echo -e "\033[2K"
-    stty -F ${TTYDEV} ${BAUDRATE} ${TTYPARAM} ; sleep 1
+		${TMPDIR}/esptool.py --chip esp32 --port ${TTYDEV} --baud ${DBAUD} ${DSTD} 0xe000 ${TMPDIR}/boot_app0.bin 0x1000 ${TMPDIR}/bootloader_dio_80m.bin 0x10000 ${TMPDIR}/esp32de_${BUILDVER}.bin 0x8000 ${TMPDIR}/partitions.bin
+		;;
+	    HWLOLIN32 | HWDTIPCB0 | HWDTIPCB1)
+		wget -q ${REPOSITORY_URL2}/boot_app0.bin ${REPOSITORY_URL2}/bootloader_dio_80m.bin ${REPOSITORY_URL2}/partitions.bin ${REPOSITORY_URL2}/lolin32_${BUILDVER}.bin
+		${TMPDIR}/esptool.py --chip esp32 --port ${TTYDEV} --baud ${DBAUD} ${DSTD} 0xe000 ${TMPDIR}/boot_app0.bin 0x1000 ${TMPDIR}/bootloader_dio_80m.bin 0x10000 ${TMPDIR}/lolin32_${BUILDVER}.bin 0x8000 ${TMPDIR}/partitions.bin
+		;;
+	    HWESP8266)
+		wget -q ${REPOSITORY_URL2}/esp8266_${BUILDVER}.bin
+		${TMPDIR}/esptool.py --chip esp8266 --port ${TTYDEV} --baud ${DBAUD} ${DSTD} 0x00000 ${TMPDIR}/esp8266_${BUILDVER}.bin
+		;;
+	esac
+	echo "------------------------------------------------------------------------"
+	echo -en "${fyellow}${fblink}...waiting for reboot of device...${freset}" ; sleep 4 ; echo -e "\033[2K"
+	stty -F ${TTYDEV} ${BAUDRATE} ${TTYPARAM} ; sleep 1
+	echo -e "\n${fgreen}Install/Update completed. Have fun!${freset}"
     fi
 
     # Called by updater?
 #    if ! [ "${2}" = "UPDATER" ]; then
 #	echo "Updating tty2oled software" > /dev/ttyUSB0
-#	echo -e "${CGRN}Downloading, checking and (maybe) installing and updating ${CYEL}tty2oled${CNON}"
+#	echo -e "${fgreen}Downloading, checking and (maybe) installing and updating ${fyellow}tty2oled${freset}"
 #    fi
-    echo -e "\n${CGRN}Install/Update completed. Have fun!${CNON}"
 elif [[ "${SWver}" > "${BUILDVER}" ]]; then
-    echo -e "${CYEL}Your version ${SWver} is newer than the available stable build ${BUILDVER}!${CNON}"
+    echo -e "${fyellow}Your version ${SWver} is newer than the available stable build ${BUILDVER}!${freset}"
     [ "${INITSTOPPED}" = "yes" ] && ${INITSCRIPT} start
 elif [[ "${SWver}" = "${BUILDVER}" ]]; then
-    echo -e "${CYEL}Good boy, you're hardware is up-to-date!${CNON}"
+    echo -e "${fyellow}Good boy, you're hardware is up-to-date!${freset}"
     [ "${INITSTOPPED}" = "yes" ] && ${INITSCRIPT} start
 fi
-echo -e "${CYEL}Waiting 4 seconds for resettlement of device...${CNON}"
-sleep 4
+#echo -e "${fyellow}Waiting 4 seconds for resettlement of device...${freset}"
+#sleep 4
 echo "MENU" > /tmp/CORENAME
 
-cd - ; rm -rf ${TMPDIR}
+#cd - ; rm -rf ${TMPDIR}
+rm -rf ${TMPDIR}
 exit 0
 # esptool.py --port ${TTYDEV} --baud 115200 erase_flash
 # rm /lib/python3.9/site-packages/easy-install.pth /lib/python3.9/site-packages/pyserial-3.5-py3.9.egg

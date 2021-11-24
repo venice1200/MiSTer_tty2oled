@@ -23,3 +23,6 @@ https://stackoverflow.com/questions/66623980/error-no-matching-distribution-foun
 
 https://files.pythonhosted.org/packages/1e/7d/ae3f0a63f41e4d2f6cb66a5b57197850f919f59e558159a4dd3a818f5082/pyserial-3.5.tar.gz
 https://github.com/espressif/esptool/archive/v3.2.tar.gz
+
+# esptool.py --port ${TTYDEV} --baud 115200 erase_flash
+# rm /lib/python3.9/site-packages/easy-install.pth /lib/python3.9/site-packages/pyserial-3.5-py3.9.egg

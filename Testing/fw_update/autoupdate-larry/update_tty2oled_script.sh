@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# v1.7 - Copyright (c) 2021 ojaksch, venice
+# v1.8 - Copyright (c) 2021 ojaksch, venice
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 
 
 # Changelog:
+# v1.8 Beautyfication and Installer
 # v1.7 Grayscale pictures and new download technics
 # v1.6 Move from Init based Startup to /media/fat/linux/user-startup.sh
 # v1.5 Splitted script download into install and update using new Option "SCRIPT_UPDATE"
@@ -143,11 +144,9 @@ fi
 
 # Download the installer to check esp firmware
 cd /tmp
-##echo -e "${fmagenta}######## DEBUG: Wechsel zu /tmp und starte Installer${freset}"
 [ "${TTY2OLED_FW_TESTING}" = "yes" ] && FWTESTING="T" || FWTESTING="-"
-#bash <(wget -qO- ${REPOSITORY_URL}/installer.sh) ${FWTESTING} UPDATER
+##bash <(wget -qO- ${REPOSITORY_URL}/installer.sh) ${FWTESTING} UPDATER
 bash <(wget -qO- ${REPOSITORY_URL}/Testing/fw_update/autoupdate-larry/installer.sh) ${FWTESTING} UPDATER
-##echo -e "${fmagenta}######## DEBUG: Rücksprung vom Installer, wir sind jetzt im Verzeuichnis $(pwd)${freset}"
 
 # Check and remount root non-writable if neccessary
 [ "${MOUNTRO}" = "true" ] && /bin/mount -o remount,ro /

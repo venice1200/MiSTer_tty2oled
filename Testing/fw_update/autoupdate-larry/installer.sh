@@ -2,15 +2,13 @@
 
 REPOSITORY_URL1="https://raw.githubusercontent.com/venice1200/MiSTer_tty2oled/main"
 REPOSITORY_URL2="https://www.tty2tft.de//MiSTer_tty2oled-installer"
+DBAUD="921600"
+DSTD="--before default_reset --after hard_reset write_flash --compress --flash_size detect"
 TMPDIR=$(mktemp -d)
 cd ${TMPDIR}
 
 # When started with parameter "T" use testing sketch
-if [ "${1}" = "T" ]; then
-    BUILDVER=$(wget -q ${REPOSITORY_URL2}/buildverT -O -)
-else
-    BUILDVER=$(wget -q ${REPOSITORY_URL2}/buildver -O -)
-fi
+[ "${1}" = "T" ] && BUILDVER=$(wget -q ${REPOSITORY_URL2}/buildverT -O -) || BUILDVER=$(wget -q ${REPOSITORY_URL2}/buildver -O -)
 
 # If there's an existing ini, use it
 if [ -r /media/fat/tty2oled/tty2oled.ini ]; then
@@ -19,9 +17,6 @@ else
     wget -q ${REPOSITORY_URL1}/tty2oled.ini -O ${TMPDIR}/tty2oled.ini
     . ${TMPDIR}/tty2oled.ini
 fi
-
-# Check for and create tty2oled script folder
-#[[ -d ${TTY2OLED_PATH} ]] || mkdir ${TTY2OLED_PATH}
 
 # Clear the display by setting this as CORENAME, which keeps the display while updating
 echo "cls" > /tmp/CORENAME
@@ -32,9 +27,6 @@ if [ $(pidof ${DAEMONNAME}) ] && [ -f ${INITSCRIPT} ] ; then
     INITSTOPPED="yes"
     sleep 0.5
 fi
-
-DBAUD="921600"
-DSTD="--before default_reset --after hard_reset write_flash --compress --flash_size detect"
 
 #Install pySerial (if it is missing)
 if ! python -c "import serial" &> /dev/null; then
@@ -90,7 +82,6 @@ case "${MCUtype}" in
 esac
 
 if [[ "${SWver}" < "${BUILDVER}" ]]; then
-
     # Called by updater?
     if [ "${2}" = "UPDATER" ]; then
 	echo -e "${fyellow}Version of your tty2oled device is ${SWver}, but BUILDVER is ${BUILDVER}.${freset}"
@@ -131,23 +122,14 @@ if [[ "${SWver}" < "${BUILDVER}" ]]; then
 	echo -e "\n${fgreen}Install/Update completed. Have fun!${freset}"
     fi
 
-    # Called by updater?
-#    if ! [ "${2}" = "UPDATER" ]; then
-#	echo "Updating tty2oled software" > /dev/ttyUSB0
-#	echo -e "${fgreen}Downloading, checking and (maybe) installing and updating ${fyellow}tty2oled${freset}"
-#    fi
 elif [[ "${SWver}" > "${BUILDVER}" ]]; then
     echo -e "${fyellow}Your version ${SWver} is newer than the available stable build ${BUILDVER}!${freset}"
-    [ "${INITSTOPPED}" = "yes" ] && cd /tmp && ${INITSCRIPT} start
+    [ "${INITSTOPPED}" = "yes" ] && ${INITSCRIPT} start
 elif [[ "${SWver}" = "${BUILDVER}" ]]; then
     echo -e "${fyellow}Good boy, you're hardware is up-to-date!${freset}"
-    [ "${INITSTOPPED}" = "yes" ] && cd /tmp && ${INITSCRIPT} start
+    [ "${INITSTOPPED}" = "yes" ] && ${INITSCRIPT} start
 fi
-#echo -e "${fyellow}Waiting 4 seconds for resettlement of device...${freset}"
-#sleep 4
 echo "MENU" > /tmp/CORENAME
 
 rm -rf ${TMPDIR}
 exit 0
-# esptool.py --port ${TTYDEV} --baud 115200 erase_flash
-# rm /lib/python3.9/site-packages/easy-install.pth /lib/python3.9/site-packages/pyserial-3.5-py3.9.egg

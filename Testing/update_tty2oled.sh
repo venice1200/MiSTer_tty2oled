@@ -28,6 +28,8 @@
 # v1.1 Use of an INI file (tty2oled.ini)
 # v1.0 Base updater script. Downloads and executes a second script (Main updater), which in turn completes all tasks.
 
+freset="\e[0m\033[0m"
+fblue="\e[1;34m"
 
 #REPOSITORY_URL="https://raw.githubusercontent.com/venice1200/MiSTer_tty2oled/main"
 REPOSITORY_URL="https://raw.githubusercontent.com/venice1200/MiSTer_tty2oled/main/Testing"    # Testing branch

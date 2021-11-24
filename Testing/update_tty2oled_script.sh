@@ -145,8 +145,8 @@ fi
 # Download the installer to check esp firmware
 cd /tmp
 [ "${TTY2OLED_FW_TESTING}" = "yes" ] && FWTESTING="T" || FWTESTING="-"
-##bash <(wget -qO- ${REPOSITORY_URL}/installer.sh) ${FWTESTING} UPDATER
-bash <(wget -qO- ${REPOSITORY_URL}/Testing/installer.sh) ${FWTESTING} UPDATER
+bash <(wget -qO- ${REPOSITORY_URL}/installer.sh) ${FWTESTING} UPDATER
+##bash <(wget -qO- ${REPOSITORY_URL}/Testing/installer.sh) ${FWTESTING} UPDATER
 
 # Check and remount root non-writable if neccessary
 [ "${MOUNTRO}" = "true" ] && /bin/mount -o remount,ro /

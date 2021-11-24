@@ -84,8 +84,8 @@ esac
 if [[ "${SWver}" < "${BUILDVER}" ]]; then
     # Called by updater?
     if [ "${2}" = "UPDATER" ]; then
-	echo -e "${fyellow}Version of your tty2oled device is ${SWver}, but BUILDVER is ${BUILDVER}.${freset}"
-	echo -en "${fyellow}Do you want to Update? Use Cursor or Joystick for YES=UP / NO=DOWN. Countdown: 9${freset}"
+	echo -e "${fyellow}Version of your tty2oled device is ${fblue}${SWver}${fyellow}, but BUILDVER is ${fgreen}${BUILDVER}${fyellow}.${freset}"
+	echo -en "${fyellow}Do you want to Update? Use Cursor or Joystick for ${fgreen}YES=UP${freset} / ${fred}NO=DOWN${fyellow}. Countdown: 9${freset}"
 	echo -en "${chide}"
 	for i in {9..0}; do
 	    echo -en "\e[1D${fred}${i}${freset}"

@@ -35,9 +35,9 @@ REPOSITORY_URL="https://raw.githubusercontent.com/venice1200/MiSTer_tty2oled/mai
 SCRIPTNAME="/tmp/update_tty2oled_script.sh"
 NODEBUG="-q -o /dev/null"
 
-echo -e '\n +----------+';
-echo -e ' | ${fblue}tty2oled${freset} |---[]';
-echo -e ' +----------+\n';
+echo -e "\n +----------+";
+echo -e " | ${fblue}tty2oled${freset} |---[]";
+echo -e " +----------+\n";
 
 check4error() {
   case "${1}" in

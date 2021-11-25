@@ -142,13 +142,22 @@ else
   rsync -crlzzP --modify-window=1 ${RSYNCOPTS} rsync://tty2oled-update-daemon@tty2tft.de/tty2oled-pictures/ ${picturefolder}/
 fi
 
+# Download tty2oled Utilities
+wget ${NODEBUG} "${REPOSITORY_URL}/tty2oled_cc.sh" -O /tmp/tty2oled_cc.sh
+if ! cmp -s /tmp/tty2oled_cc.sh ${CCSCRIPT}; then
+  if [ "${SCRIPT_UPDATE}" = "yes" ]; then
+    echo -e "${fyellow}Updating tools script ${fmagenta}S60tty2oled${freset}"
+    mv -f /tmp/tty2oled_cc.sh ${CCSCRIPT}
+    chmod +x ${CCSCRIPT}
+  else
+    echo -e "${fblink}Skipping${fyellow} available tools script update because of the ${fcyan}SCRIPT_UPDATE${fyellow} INI-Option${freset}"
+  fi
+fi
+
 # Download the installer to check esp firmware
 cd /tmp
 [ "${TTY2OLED_FW_TESTING}" = "yes" ] && FWTESTING="T" || FWTESTING="-"
 bash <(wget -qO- ${REPOSITORY_URL}/installer.sh) ${FWTESTING} UPDATER
-
-# Download tty2oled Utilities
-! [ -f "${TTY2OLED_PATH}/tty2oled_cc.sh" ] && wget ${NODEBUG} "${REPOSITORY_URL}/tty2oled_cc.sh" -O "${TTY2OLED_PATH}/tty2oled_cc.sh"
 
 # Check and remount root non-writable if neccessary
 [ "${MOUNTRO}" = "true" ] && /bin/mount -o remount,ro /

@@ -116,18 +116,11 @@ case "${MCUtype}" in
 esac
 
 if [[ "${SWver}" < "${BUILDVER}" ]]; then
-##    # Called by updater?
-##    if [ "${2}" = "UPDATER" ]; then
 	echo -e "${fyellow}Version of your tty2oled device is ${fblue}${SWver}${fyellow}, but BUILDVER is ${fgreen}${BUILDVER}${fyellow}.${freset}"
 	echo -en "${fyellow}Do you want to Update? Use Cursor or Joystick for ${fgreen}YES=UP${freset} / ${fred}NO=DOWN${fyellow}. Countdown: 9${freset}"
 	yesno
-##    fi
-
-##    # Not called by updater - or called by updater and answered YES
-##    if ! [ "${2}" = "UPDATER" ] || [ "${KEY}" = "y" ]; then
     if [ "${KEY}" = "y" ]; then
 	echo "Updating tty2oled" > /dev/ttyUSB0
-##	! [ "${KEY}" = "y" ] && echo -e "${fyellow}Version of your tty2oled device is ${SWver}, but BUILDVER is ${BUILDVER}. Updating!${freset}"
 	flash
     fi
 elif [[ "${SWver}" > "${BUILDVER}" ]]; then

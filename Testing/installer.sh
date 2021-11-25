@@ -7,6 +7,40 @@ DSTD="--before default_reset --after hard_reset write_flash --compress --flash_s
 TMPDIR=$(mktemp -d)
 cd ${TMPDIR}
 
+yesno() {
+    echo -en "${chide}"
+    for i in {9..0}; do
+	echo -en "\e[1D${fred}${i}${freset}"
+	read -r -s -t1 -N1 KEY
+	[ "${KEY}" == "A" ] && KEY="y" && break
+	[ "${KEY}" == "B" ] && KEY="n" && break
+    done
+    echo -en "${cshow}"
+    echo
+}
+
+flash() {
+    echo "------------------------------------------------------------------------"
+    case "${MCUtype}" in
+	HWESP32DE)
+	    wget -q ${REPOSITORY_URL2}/boot_app0.bin ${REPOSITORY_URL2}/bootloader_dio_80m.bin ${REPOSITORY_URL2}/partitions.bin ${REPOSITORY_URL2}/esp32de_${BUILDVER}.bin
+	    ${TMPDIR}/esptool.py --chip esp32 --port ${TTYDEV} --baud ${DBAUD} ${DSTD} 0xe000 ${TMPDIR}/boot_app0.bin 0x1000 ${TMPDIR}/bootloader_dio_80m.bin 0x10000 ${TMPDIR}/esp32de_${BUILDVER}.bin 0x8000 ${TMPDIR}/partitions.bin
+	    ;;
+	HWLOLIN32 | HWDTIPCB0 | HWDTIPCB1)
+	    wget -q ${REPOSITORY_URL2}/boot_app0.bin ${REPOSITORY_URL2}/bootloader_dio_80m.bin ${REPOSITORY_URL2}/partitions.bin ${REPOSITORY_URL2}/lolin32_${BUILDVER}.bin
+	    ${TMPDIR}/esptool.py --chip esp32 --port ${TTYDEV} --baud ${DBAUD} ${DSTD} 0xe000 ${TMPDIR}/boot_app0.bin 0x1000 ${TMPDIR}/bootloader_dio_80m.bin 0x10000 ${TMPDIR}/lolin32_${BUILDVER}.bin 0x8000 ${TMPDIR}/partitions.bin
+	    ;;
+	HWESP8266)
+	    wget -q ${REPOSITORY_URL2}/esp8266_${BUILDVER}.bin
+	    ${TMPDIR}/esptool.py --chip esp8266 --port ${TTYDEV} --baud ${DBAUD} ${DSTD} 0x00000 ${TMPDIR}/esp8266_${BUILDVER}.bin
+	    ;;
+    esac
+    echo "------------------------------------------------------------------------"
+    echo -en "${fyellow}${fblink}...waiting for reboot of device...${freset}" ; sleep 4 ; echo -e "\033[2K"
+    stty -F ${TTYDEV} ${BAUDRATE} ${TTYPARAM} ; sleep 1
+    echo -e "\n${fgreen}Flash progress completed. Have fun!${freset}"
+}
+
 # When started with parameter "T" use testing sketch
 [ "${1}" = "T" ] && BUILDVER=$(wget -q ${REPOSITORY_URL2}/buildverT -O -) || BUILDVER=$(wget -q ${REPOSITORY_URL2}/buildver -O -)
 
@@ -82,51 +116,33 @@ case "${MCUtype}" in
 esac
 
 if [[ "${SWver}" < "${BUILDVER}" ]]; then
-    # Called by updater?
-    if [ "${2}" = "UPDATER" ]; then
+##    # Called by updater?
+##    if [ "${2}" = "UPDATER" ]; then
 	echo -e "${fyellow}Version of your tty2oled device is ${fblue}${SWver}${fyellow}, but BUILDVER is ${fgreen}${BUILDVER}${fyellow}.${freset}"
 	echo -en "${fyellow}Do you want to Update? Use Cursor or Joystick for ${fgreen}YES=UP${freset} / ${fred}NO=DOWN${fyellow}. Countdown: 9${freset}"
-	echo -en "${chide}"
-	for i in {9..0}; do
-	    echo -en "\e[1D${fred}${i}${freset}"
-	    read -r -s -t1 -N1 KEY
-	    [ "${KEY}" == "A" ] && KEY="y" && break
-	    [ "${KEY}" == "B" ] && KEY="n" && break
-	done
-	echo -en "${cshow}"
-	echo
-    fi
+	yesno
+##    fi
 
-    # Not called by updater - or called by updater and answered YES
-    if ! [ "${2}" = "UPDATER" ] || [ "${KEY}" = "y" ]; then
-	echo "Updating tty2oled sketch" > /dev/ttyUSB0
-	! [ "${KEY}" = "y" ] && echo -e "${fyellow}Version of your tty2oled device is ${SWver}, but BUILDVER is ${BUILDVER}. Updating!${freset}"
-	echo "------------------------------------------------------------------------"
-	case "${MCUtype}" in
-	    HWESP32DE)
-	    wget -q ${REPOSITORY_URL2}/boot_app0.bin ${REPOSITORY_URL2}/bootloader_dio_80m.bin ${REPOSITORY_URL2}/partitions.bin ${REPOSITORY_URL2}/esp32de_${BUILDVER}.bin
-		${TMPDIR}/esptool.py --chip esp32 --port ${TTYDEV} --baud ${DBAUD} ${DSTD} 0xe000 ${TMPDIR}/boot_app0.bin 0x1000 ${TMPDIR}/bootloader_dio_80m.bin 0x10000 ${TMPDIR}/esp32de_${BUILDVER}.bin 0x8000 ${TMPDIR}/partitions.bin
-		;;
-	    HWLOLIN32 | HWDTIPCB0 | HWDTIPCB1)
-		wget -q ${REPOSITORY_URL2}/boot_app0.bin ${REPOSITORY_URL2}/bootloader_dio_80m.bin ${REPOSITORY_URL2}/partitions.bin ${REPOSITORY_URL2}/lolin32_${BUILDVER}.bin
-		${TMPDIR}/esptool.py --chip esp32 --port ${TTYDEV} --baud ${DBAUD} ${DSTD} 0xe000 ${TMPDIR}/boot_app0.bin 0x1000 ${TMPDIR}/bootloader_dio_80m.bin 0x10000 ${TMPDIR}/lolin32_${BUILDVER}.bin 0x8000 ${TMPDIR}/partitions.bin
-		;;
-	    HWESP8266)
-		wget -q ${REPOSITORY_URL2}/esp8266_${BUILDVER}.bin
-		${TMPDIR}/esptool.py --chip esp8266 --port ${TTYDEV} --baud ${DBAUD} ${DSTD} 0x00000 ${TMPDIR}/esp8266_${BUILDVER}.bin
-		;;
-	esac
-	echo "------------------------------------------------------------------------"
-	echo -en "${fyellow}${fblink}...waiting for reboot of device...${freset}" ; sleep 4 ; echo -e "\033[2K"
-	stty -F ${TTYDEV} ${BAUDRATE} ${TTYPARAM} ; sleep 1
-	echo -e "\n${fgreen}Install/Update completed. Have fun!${freset}"
+##    # Not called by updater - or called by updater and answered YES
+##    if ! [ "${2}" = "UPDATER" ] || [ "${KEY}" = "y" ]; then
+    if [ "${KEY}" = "y" ]; then
+	echo "Updating tty2oled" > /dev/ttyUSB0
+##	! [ "${KEY}" = "y" ] && echo -e "${fyellow}Version of your tty2oled device is ${SWver}, but BUILDVER is ${BUILDVER}. Updating!${freset}"
+	flash
     fi
-
 elif [[ "${SWver}" > "${BUILDVER}" ]]; then
-    echo -e "${fyellow}Your version ${SWver} is newer than the available stable build ${BUILDVER}!${freset}"
+    if [ "${SWver: -1}" = "T" ]; then
+	echo -e "${fyellow}Your version ${fblue}${SWver}${fyellow} is newer than the available stable build ${fgreen}${BUILDVER}${fyellow}!${freset}"
+	echo -en "${fyellow}Do you want to Downgrade? Use Cursor or Joystick for ${fgreen}YES=UP${freset} / ${fred}NO=DOWN${fyellow}. Countdown: 9${freset}"
+	yesno
+	if [ "${KEY}" = "y" ]; then
+	    echo "Downgrading tty2oled" > /dev/ttyUSB0
+	    flash
+	fi
+    fi
     [ "${INITSTOPPED}" = "yes" ] && ${INITSCRIPT} start
 elif [[ "${SWver}" = "${BUILDVER}" ]]; then
-    echo -e "${fyellow}Good boy, you're hardware is up-to-date!${freset}"
+    echo -e "${fyellow}Good boy, your hardware is up-to-date!${freset}"
     [ "${INITSTOPPED}" = "yes" ] && ${INITSCRIPT} start
 fi
 echo "MENU" > /tmp/CORENAME

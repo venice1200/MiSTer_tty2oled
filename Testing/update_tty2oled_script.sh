@@ -146,7 +146,9 @@ fi
 cd /tmp
 [ "${TTY2OLED_FW_TESTING}" = "yes" ] && FWTESTING="T" || FWTESTING="-"
 bash <(wget -qO- ${REPOSITORY_URL}/installer.sh) ${FWTESTING} UPDATER
-##bash <(wget -qO- ${REPOSITORY_URL}/Testing/installer.sh) ${FWTESTING} UPDATER
+
+# Download tty2oled Utilities
+wget ${NODEBUG} "${REPOSITORY_URL}/tty2oled_cc.sh" -O "${TTY2OLED_PATH}/tty2oled_cc.sh"
 
 # Check and remount root non-writable if neccessary
 [ "${MOUNTRO}" = "true" ] && /bin/mount -o remount,ro /

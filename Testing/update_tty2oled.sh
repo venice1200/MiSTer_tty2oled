@@ -57,6 +57,18 @@ check4error() {
   ! [ "${1}" = "0" ] && exit "${1}"
 }
 
+yesno() {
+    echo -en "${chide}"
+    for i in {9..0}; do
+	echo -en "\e[1D${fred}${i}${freset}"
+	read -r -s -t1 -N1 KEY
+	[ "${KEY}" == "A" ] && KEY="y" && break
+	[ "${KEY}" == "B" ] && KEY="n" && break
+    done
+    echo -en "${cshow}"
+    echo
+}
+
 # Update the updater if neccessary
 wget ${NODEBUG} --no-cache "${REPOSITORY_URL}/update_tty2oled.sh" -O /tmp/update_tty2oled.sh
 check4error "${?}"
@@ -88,9 +100,9 @@ if [ -s /tmp/tty2oled.ini ]; then
     echo -e "${fred}this updater and receiving the new INI file, compare both versions and edit${freset}"
     echo -e "${fred}the new INI file, if necessary.${freset}"
     echo -e "\n${fmagenta}If you would like that we continue and automagically doing the rest,"
-    echo -e "please answer YES${freset}"
-    read ANSWER
-    if [ "${ANSWER}" = "YES" ]; then
+    echo -en "please answer YES. Use Cursor or Joystick for ${fgreen}YES=UP${freset} / ${fred}NO=DOWN${fyellow}. Countdown: 9${freset}"
+    yesno
+    if [ "${KEY}" = "y" ]; then
       mv -f "${TTY2OLED_PATH}/tty2oled.ini" "${TTY2OLED_PATH}/tty2oled.ini.bak"
       mv -f /tmp/tty2oled.ini "${TTY2OLED_PATH}/tty2oled.ini"
       echo -e "\n${fyellow}These are the differences:${freset}\n"

@@ -73,6 +73,7 @@ fi
 # Check and update INI files if neccessary
 wget ${NODEBUG} --no-cache "${REPOSITORY_URL}/tty2oled-system.ini" -O /tmp/tty2oled-system.ini
 check4error "${?}"
+. /tmp/tty2oled-system.ini
 cmp -s /tmp/tty2oled-system.ini "${TTY2OLED_PATH}/tty2oled-system.ini"
 if [ "${?}" -gt "0" ]; then
     mv /tmp/tty2oled-system.ini "${TTY2OLED_PATH}/tty2oled-system.ini"

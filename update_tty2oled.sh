@@ -71,9 +71,6 @@ else
 fi
 
 # Check and update INI files if neccessary
-[ -f "${TTY2OLED_PATH}/tty2oled.ini" ] && mv "${TTY2OLED_PATH}/tty2oled.ini" "${TTY2OLED_PATH}/tty2oled.ini.bak"
-[ -f "/media/fat/Scripts/tty2oled.ini" ] && mv "/media/fat/Scripts/tty2oled.ini" "${TTY2OLED_PATH}/tty2oled-user.ini.bak"
-
 wget ${NODEBUG} --no-cache "${REPOSITORY_URL}/tty2oled-system.ini" -O /tmp/tty2oled-system.ini
 check4error "${?}"
 . /tmp/tty2oled-system.ini
@@ -114,6 +111,8 @@ if [ -s /tmp/tty2oled-user.ini ]; then
     exit 1
   fi
 fi
+[ -f "${TTY2OLED_PATH}/tty2oled.ini" ] && mv "${TTY2OLED_PATH}/tty2oled.ini" "${TTY2OLED_PATH}/tty2oled.ini.bak"
+[ -f "/media/fat/Scripts/tty2oled.ini" ] && mv "/media/fat/Scripts/tty2oled.ini" "${TTY2OLED_PATH}/tty2oled-user.ini.bak"
 
 wget ${NODEBUG} --no-cache "${REPOSITORY_URL}/update_tty2oled_script.sh" -O "${SCRIPTNAME}"
 check4error "${?}"

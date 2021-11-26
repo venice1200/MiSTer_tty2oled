@@ -22,6 +22,7 @@ start() {
     if [[ -x ${DAEMONSCRIPT} ]]; then
       echo "Starting ${DAEMONNAME}..."
       ${DAEMONSCRIPT} &
+      sleep 2
     else
       echo "${DAEMONSCRIPT} not found!"
     fi
@@ -52,5 +53,3 @@ case "$1" in
         echo "Usage: $0 {start|stop|restart}"
         exit 1
 esac
-
-sleep 1

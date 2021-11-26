@@ -74,6 +74,7 @@ fi
 wget ${NODEBUG} --no-cache "${REPOSITORY_URL}/tty2oled-system.ini" -O /tmp/tty2oled-system.ini
 check4error "${?}"
 . /tmp/tty2oled-system.ini
+[[ -d "${TTY2OLED_PATH}" ]] || mkdir "${TTY2OLED_PATH}"
 cmp -s /tmp/tty2oled-system.ini "${TTY2OLED_PATH}/tty2oled-system.ini"
 if [ "${?}" -gt "0" ]; then
     mv /tmp/tty2oled-system.ini "${TTY2OLED_PATH}/tty2oled-system.ini"
@@ -84,7 +85,6 @@ wget ${NODEBUG} --no-cache "${REPOSITORY_URL}/tty2oled-user.ini" -O /tmp/tty2ole
 check4error "${?}"
 if [ -s /tmp/tty2oled-user.ini ]; then
   . /tmp/tty2oled-user.ini
-  [[ -d "${TTY2OLED_PATH}" ]] || mkdir "${TTY2OLED_PATH}"
   [[ -f /media/fat/Scripts/tty2oled.ini ]] && mv /media/fat/Scripts/tty2oled.ini "${TTY2OLED_PATH}/tty2oled-user.ini"
   if ! [ -f "${TTY2OLED_PATH}/tty2oled-user.ini" ]; then
     echo -e "${fyellow}Creating tty2oled-user.ini File ${fmagenta}${PICNAME}${freset}"

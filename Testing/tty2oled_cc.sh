@@ -8,8 +8,8 @@
 # 
 # Slide "Start Slideshow" \
 
-. /media/fat/tty2oled/tty2oled.ini
-
+. /media/fat/tty2oled/tty2oled-system.ini
+. /media/fat/tty2oled/tty2oled-user.ini
 
 slidewait=2
 menuwait=2

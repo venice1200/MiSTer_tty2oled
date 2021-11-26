@@ -57,18 +57,6 @@ check4error() {
   ! [ "${1}" = "0" ] && exit "${1}"
 }
 
-yesno() {
-    echo -en "${chide}"
-    for i in {9..0}; do
-	echo -en "\e[1D${fred}${i}${freset}"
-	read -r -s -t1 -N1 KEY
-	[ "${KEY}" == "A" ] && KEY="y" && break
-	[ "${KEY}" == "B" ] && KEY="n" && break
-    done
-    echo -en "${cshow}"
-    echo
-}
-
 # Update the updater if neccessary
 wget ${NODEBUG} --no-cache "${REPOSITORY_URL}/update_tty2oled.sh" -O /tmp/update_tty2oled.sh
 check4error "${?}"
@@ -82,31 +70,39 @@ else
     rm /tmp/update_tty2oled.sh
 fi
 
-# Check and update INI file if neccessary
-wget ${NODEBUG} --no-cache "${REPOSITORY_URL}/tty2oled.ini" -O /tmp/tty2oled.ini
+# Check and update INI files if neccessary
+wget ${NODEBUG} --no-cache "${REPOSITORY_URL}/tty2oled-system.ini" -O /tmp/tty2oled-system.ini
 check4error "${?}"
-if [ -s /tmp/tty2oled.ini ]; then
-  . /tmp/tty2oled.ini
+cmp -s /tmp/tty2oled-system.ini "${TTY2OLED_PATH}/tty2oled-system.ini"
+if [ "${?}" -gt "0" ]; then
+    mv /tmp/tty2oled-system.ini "${TTY2OLED_PATH}/tty2oled-system.ini"
+    . "${TTY2OLED_PATH}/tty2oled-system.ini"
+fi
+
+wget ${NODEBUG} --no-cache "${REPOSITORY_URL}/tty2oled-user.ini" -O /tmp/tty2oled-user.ini
+check4error "${?}"
+if [ -s /tmp/tty2oled-user.ini ]; then
+  . /tmp/tty2oled-user.ini
   [[ -d "${TTY2OLED_PATH}" ]] || mkdir "${TTY2OLED_PATH}"
-  [[ -f /media/fat/Scripts/tty2oled.ini ]] && mv /media/fat/Scripts/tty2oled.ini "${TTY2OLED_PATH}/tty2oled.ini"
-  if ! [ -f "${TTY2OLED_PATH}/tty2oled.ini" ]; then
-    echo -e "${fyellow}Creating tty2oled.ini File ${fmagenta}${PICNAME}${freset}"
-    cp /tmp/tty2oled.ini "${TTY2OLED_PATH}/tty2oled.ini"
+  [[ -f /media/fat/Scripts/tty2oled.ini ]] && mv /media/fat/Scripts/tty2oled.ini "${TTY2OLED_PATH}/tty2oled-user.ini"
+  if ! [ -f "${TTY2OLED_PATH}/tty2oled-user.ini" ]; then
+    echo -e "${fyellow}Creating tty2oled-user.ini File ${fmagenta}${PICNAME}${freset}"
+    cp /tmp/tty2oled-user.ini "${TTY2OLED_PATH}/tty2oled-user.ini"
   fi
-  if ! [[ "$(head -n1 /tmp/tty2oled.ini)" = "$(head -n1 ${TTY2OLED_PATH}/tty2oled.ini)" ]]; then
-    echo -e "${fred}There is a newer version of ${fyellow}${TTY2OLED_PATH}/tty2oled.ini${fred} availble.${freset}"
+  if ! [[ "$(head -n1 /tmp/tty2oled-user.ini)" = "$(head -n1 ${TTY2OLED_PATH}/tty2oled-user.ini)" ]]; then
+    echo -e "${fred}There is a newer version of ${fyellow}${TTY2OLED_PATH}/tty2oled-user.ini${fred} availble.${freset}"
     echo -e "${fred}It is very likely that something will break if we continue. You should backup${freset}"
     echo -e "${fred}your INI file and move or delete the original afterwards. After re-running${freset}"
     echo -e "${fred}this updater and receiving the new INI file, compare both versions and edit${freset}"
     echo -e "${fred}the new INI file, if necessary.${freset}"
     echo -e "\n${fmagenta}If you would like that we continue and automagically doing the rest,"
     echo -en "please answer YES. Use Cursor or Joystick for ${fgreen}YES=UP${freset} / ${fred}NO=DOWN${fyellow}. Countdown: 9${freset}"
-    yesno
+    yesno 9
     if [ "${KEY}" = "y" ]; then
-      mv -f "${TTY2OLED_PATH}/tty2oled.ini" "${TTY2OLED_PATH}/tty2oled.ini.bak"
-      mv -f /tmp/tty2oled.ini "${TTY2OLED_PATH}/tty2oled.ini"
+      mv -f "${TTY2OLED_PATH}/tty2oled-user.ini" "${TTY2OLED_PATH}/tty2oled-user.ini.bak"
+      mv -f /tmp/tty2oled-user.ini "${TTY2OLED_PATH}/tty2oled-user.ini"
       echo -e "\n${fyellow}These are the differences:${freset}\n"
-      diff -u "${TTY2OLED_PATH}/tty2oled.ini.bak" "${TTY2OLED_PATH}/tty2oled.ini"
+      diff -u "${TTY2OLED_PATH}/tty2oled-user.ini.bak" "${TTY2OLED_PATH}/tty2oled-user.ini"
       echo -e "\n${fyellow}Please edit the new INI file and make necessary changes,"
       echo -e "then re-run this updater.${freset}\n"
     else

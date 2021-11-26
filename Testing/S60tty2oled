@@ -7,7 +7,8 @@
 # 2021-04-12 Added an INI file
 #
 
-. /media/fat/tty2oled/tty2oled.ini
+. /media/fat/tty2oled/tty2oled-system.ini
+. /media/fat/tty2oled/tty2oled-user.ini
 cd /tmp
 
 # Start

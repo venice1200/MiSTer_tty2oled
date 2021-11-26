@@ -7,18 +7,6 @@ DSTD="--before default_reset --after hard_reset write_flash --compress --flash_s
 TMPDIR=$(mktemp -d)
 cd ${TMPDIR}
 
-yesno() {
-    echo -en "${chide}"
-    for i in {9..0}; do
-	echo -en "\e[1D${fred}${i}${freset}"
-	read -r -s -t1 -N1 KEY
-	[ "${KEY}" == "A" ] && KEY="y" && break
-	[ "${KEY}" == "B" ] && KEY="n" && break
-    done
-    echo -en "${cshow}"
-    echo
-}
-
 flash() {
     echo "------------------------------------------------------------------------"
     case "${MCUtype}" in
@@ -45,11 +33,17 @@ flash() {
 [ "${1}" = "T" ] && BUILDVER=$(wget -q ${REPOSITORY_URL2}/buildverT -O -) || BUILDVER=$(wget -q ${REPOSITORY_URL2}/buildver -O -)
 
 # If there's an existing ini, use it
-if [ -r /media/fat/tty2oled/tty2oled.ini ]; then
-    . /media/fat/tty2oled/tty2oled.ini
+if [ -r /media/fat/tty2oled/tty2oled-system.ini ]; then
+    . /media/fat/tty2oled/tty2oled-system.ini
 else
-    wget -q ${REPOSITORY_URL1}/tty2oled.ini -O ${TMPDIR}/tty2oled.ini
-    . ${TMPDIR}/tty2oled.ini
+    wget -q ${REPOSITORY_URL1}/tty2oled-system.ini -O ${TMPDIR}/tty2oled-system.ini
+    . ${TMPDIR}/tty2oled-system.ini
+fi
+if [ -r /media/fat/tty2oled/tty2oled-user.ini ]; then
+    . /media/fat/tty2oled/tty2oled-user.ini
+else
+    wget -q ${REPOSITORY_URL1}/tty2oled-user.ini -O ${TMPDIR}/tty2oled-user.ini
+    . ${TMPDIR}/tty2oled-user.ini
 fi
 
 # Clear the display by setting this as CORENAME, which keeps the display while updating
@@ -118,7 +112,7 @@ esac
 if [[ "${SWver}" < "${BUILDVER}" ]]; then
 	echo -e "${fyellow}Version of your tty2oled device is ${fblue}${SWver}${fyellow}, but BUILDVER is ${fgreen}${BUILDVER}${fyellow}.${freset}"
 	echo -en "${fyellow}Do you want to Update? Use Cursor or Joystick for ${fgreen}YES=UP${freset} / ${fred}NO=DOWN${fyellow}. Countdown: 9${freset}"
-	yesno
+	yesno 9
     if [ "${KEY}" = "y" ]; then
 	echo "Updating tty2oled" > /dev/ttyUSB0
 	flash
@@ -127,7 +121,7 @@ elif [[ "${SWver}" > "${BUILDVER}" ]]; then
     if [ "${SWver: -1}" = "T" ]; then
 	echo -e "${fyellow}Your version ${fblue}${SWver}${fyellow} is newer than the available stable build ${fgreen}${BUILDVER}${fyellow}!${freset}"
 	echo -en "${fyellow}Do you want to Downgrade? Use Cursor or Joystick for ${fgreen}YES=UP${freset} / ${fred}NO=DOWN${fyellow}. Countdown: 9${freset}"
-	yesno
+	yesno 9
 	if [ "${KEY}" = "y" ]; then
 	    echo "Downgrading tty2oled" > /dev/ttyUSB0
 	    flash

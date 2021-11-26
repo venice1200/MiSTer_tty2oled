@@ -33,7 +33,8 @@
 # v1.0 Main updater script which completes all tasks.
 
 
-. /media/fat/tty2oled/tty2oled.ini
+. /media/fat/tty2oled/tty2oled-system.ini
+. /media/fat/tty2oled/tty2oled-user.ini
 
 # Check and remount root writable if neccessary
 if [ $(/bin/mount | head -n1 | grep -c "(ro,") = 1 ]; then

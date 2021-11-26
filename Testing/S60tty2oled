@@ -21,8 +21,7 @@ start() {
 
     if [[ -x ${DAEMONSCRIPT} ]]; then
       echo "Starting ${DAEMONNAME}..."
-      ${DAEMONSCRIPT} &
-      sleep 2
+      nohup ${DAEMONSCRIPT} &
     else
       echo "${DAEMONSCRIPT} not found!"
     fi

@@ -71,6 +71,9 @@ else
 fi
 
 # Check and update INI files if neccessary
+[ -f "${TTY2OLED_PATH}/tty2oled.ini" ] && mv "${TTY2OLED_PATH}/tty2oled.ini" "${TTY2OLED_PATH}/tty2oled.ini.bak"
+[ -f "/media/fat/Scripts/tty2oled.ini" ] && mv "/media/fat/Scripts/tty2oled.ini" "${TTY2OLED_PATH}/tty2oled-user.ini.bak"
+
 wget ${NODEBUG} --no-cache "${REPOSITORY_URL}/tty2oled-system.ini" -O /tmp/tty2oled-system.ini
 check4error "${?}"
 . /tmp/tty2oled-system.ini
@@ -85,7 +88,6 @@ wget ${NODEBUG} --no-cache "${REPOSITORY_URL}/tty2oled-user.ini" -O /tmp/tty2ole
 check4error "${?}"
 if [ -s /tmp/tty2oled-user.ini ]; then
   . /tmp/tty2oled-user.ini
-  [[ -f /media/fat/Scripts/tty2oled.ini ]] && mv /media/fat/Scripts/tty2oled.ini "${TTY2OLED_PATH}/tty2oled-user.ini"
   if ! [ -f "${TTY2OLED_PATH}/tty2oled-user.ini" ]; then
     echo -e "${fyellow}Creating tty2oled-user.ini File ${fmagenta}${PICNAME}${freset}"
     cp /tmp/tty2oled-user.ini "${TTY2OLED_PATH}/tty2oled-user.ini"

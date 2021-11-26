@@ -165,7 +165,7 @@ fi										# end if command line Parameter
 
 # Let's go
 if [ -c "${TTYDEV}" ]; then							# check for tty device
-  echo -e "\n${TTYDEV} detected, setting Parameter: ${BAUDRATE} ${TTYPARAM}."
+  [ "${debug}" = "true" ] && echo -e "\n${TTYDEV} detected, setting Parameter: ${BAUDRATE} ${TTYPARAM}."
   dbug "${TTYDEV} detected, setting Parameter: ${BAUDRATE} ${TTYPARAM}."
   stty -F ${TTYDEV} ${BAUDRATE} ${TTYPARAM}					# set tty parameter
   sleep ${WAITSECS}

@@ -147,7 +147,7 @@ fi
 wget ${NODEBUG} "${REPOSITORY_URL}/tty2oled_cc.sh" -O /tmp/tty2oled_cc.sh
 if ! cmp -s /tmp/tty2oled_cc.sh ${CCSCRIPT}; then
   if [ "${SCRIPT_UPDATE}" = "yes" ]; then
-    echo -e "${fyellow}Updating tools script ${fmagenta}S60tty2oled${freset}"
+    echo -e "${fyellow}Updating tools script ${fmagenta}tty2oled_cc.sh${freset}"
     mv -f /tmp/tty2oled_cc.sh ${CCSCRIPT}
     chmod +x ${CCSCRIPT}
   else

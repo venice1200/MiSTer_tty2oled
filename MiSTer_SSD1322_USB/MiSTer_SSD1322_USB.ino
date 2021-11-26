@@ -20,32 +20,21 @@
   -NodeMCU 1.0
   
   See changelog.md in Sketch folder for more details
-
-
+   
   ToDo
   -Everything I forgot
-  -Add u8g2_font_7Segments_26x42_mn
    
 */
 
 // Set Version
-#define BuildVersion "211107"                    // "T" for Testing
+#define BuildVersion "211122"                     // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
 #include <SSD1322_for_Adafruit_GFX.h>             // SSD1322 Controller Display Library https://github.com/venice1200/SSD1322_for_Adafruit_GFX
 #include <U8g2_for_Adafruit_GFX.h>                // U8G2 Font Engine for Adafruit GFX  https://github.com/olikraus/U8g2_for_Adafruit_GFX
-#include "logo.h"                                 // The Pics in XMB Format
+#include "logo.h"                                 // Some needed Pictures
 
-// OTA and Reset only for ESP32
-#ifdef ESP32
-  #include "cred.h"                               // Load your WLAN Credentials for OTA
-  #include <WiFi.h>
-  #include <ESPmDNS.h>
-  #include <WiFiUdp.h>
-  #include <ArduinoOTA.h>
-  bool OTAEN=false;                               // Will be set to "true" by Command "CMDENOTA"
-#endif
 
 // ---------------------------------------------------------------------------------------------------------------------
 // ----------------------------------------------- System Config -------------------------------------------------------
@@ -65,33 +54,13 @@
 // Uncomment for "Send Acknowledge" from tty2oled to MiSTer, need "waitfortty"
 #define XSENDACK
 
-// Uncomment for Tilt-Sensor based Display-Auto-Rotation. 
-// The Sensor is connected to Pin 32 (with software activated Pullup) and GND.
-//#define XTILT
-#ifdef XTILT
-  #include <Bounce2.h>                     // << Extra Library, via Arduino Library Manager
-  #define TILT_PIN 32                      // Tilt-Sensor Pin
-  #define DEBOUNCE_TIME 25                 // Debounce Time
-  Bounce RotationDebouncer = Bounce();     // Create Bounce class
-#endif
-
-// Uncomment for Temperatur Sensor Support MIC184 on d.ti's PCB
-//#define XDTI
-#ifdef XDTI
-  #include <eHaJo_LM75.h>          // << Extra Library, via Arduino Library Manager
-  #define I2C1_SDA 17              // I2C_1-SDA
-  #define I2C1_SCL 16              // I2C_1-SCL
-  EHAJO_LM75 tSensor;              // Create Sensor Class
-  #define USER_LED 19              // USER_LED
-#endif
-
 // ---------------------------------------------------------------------------------------------------------------------
-// ---------------------------- Auto-Board-Config via Arduino IDE Board Selection --------------------------------------
-// -------------------------------- Make sure the Manual-Config is not active ------------------------------------------
+// ---------------------------------- Auto-Board-Config via Arduino IDE Board Selection --------------------------------
+// ------------------------------------ Make sure the Auto-Board-Config is not active ----------------------------------
 // ---------------------------------------------------------------------------------------------------------------------
 
 #ifdef ARDUINO_ESP32_DEV
-  #define USE_TTGOT8             // TTGO-T8, tty2oled Board by d.ti. Set Arduino Board to "ESP32 Dev Module", chose your xx MB Flash
+  #define USE_ESP32DEV            // TTGO-T8, tty2oled Board by d.ti. Set Arduino Board to "ESP32 Dev Module"
 #endif
 
 #ifdef ARDUINO_LOLIN32
@@ -107,13 +76,13 @@
 // ------------------------------------ Make sure the Auto-Board-Config is not active ----------------------------------
 // ---------------------------------------------------------------------------------------------------------------------
 
-//#define USE_TTGOT8             // TTGO-T8. Set Arduino Board to ESP32 Dev Module, xx MB Flash, def. Part. Schema
+//#define USE_ESP32DEV             // TTGO-T8. Set Arduino Board to ESP32 Dev Module, xx MB Flash, def. Part. Schema
 //#define USE_LOLIN32            // Wemos LOLIN32, LOLIN32, DevKit_V4. Set Arduino Board to "WEMOS LOLIN32"
 //#define USE_NODEMCU            // ESP8266 NodeMCU v3. Set Arduino Board to NodeMCU 1.0 (ESP-12E Module)
 
-// ------------ Display Objects -----------------
+// Display Objects
 // TTGO-T8 using VSPI SCLK = 18, MISO = 19, MOSI = 23 and...
-#ifdef USE_TTGOT8
+#ifdef USE_ESP32DEV
   #define OLED_CS 26
   #define OLED_DC 25
   #define OLED_RESET 27
@@ -133,9 +102,39 @@
   #define OLED_RESET 5
 #endif
 
-// Hardware Constructor OLED Display
+// Hardware Constructor OLED Display and U8G2 Support
 Adafruit_SSD1322 oled(256, 64, &SPI, OLED_DC, OLED_RESET, OLED_CS);
 U8G2_FOR_ADAFRUIT_GFX u8g2;
+
+// Tilt Sensor
+#include <Bounce2.h>                     // << Extra Library, via Arduino Library Manager
+#define DEBOUNCE_TIME 25                 // Debounce Time
+Bounce RotationDebouncer = Bounce();     // Create Bounce class
+#ifdef ESP32
+  #define TILT_PIN 32                    // Tilt-Sensor Pin 32 for ESP32
+#endif
+#ifdef USE_NODEMCU
+  #define TILT_PIN 16                    // Tilt-Sensor Pin 16 for ESP8266
+#endif
+
+// ESP32_DEV T-Sensor MIC184 & User LED
+#ifdef USE_ESP32DEV
+  #include <MIC184.h>              // << Extra Library
+  MIC184 tSensor;                  // Create Sensor Class
+  #define I2C1_SDA 17              // I2C_1-SDA
+  #define I2C1_SCL 16              // I2C_1-SCL
+  #define USER_LED 19              // USER_LED
+#endif
+
+// OTA and Reset only for ESP32
+#ifdef ESP32
+  #include "cred.h"                               // Load your WLAN Credentials for OTA
+  #include <WiFi.h>
+  #include <ESPmDNS.h>
+  #include <WiFiUdp.h>
+  #include <ArduinoOTA.h>
+  bool OTAEN=false;                               // Will be set to "true" by Command "CMDENOTA"
+#endif
 
 // -------------------------------------------------------------
 // ------------------------- Variables -------------------------
@@ -173,9 +172,13 @@ bool prevblink = false;
 bool blinkpos = false;  // Pos Flanc
 bool blinkneg = false;  // Neg Flanc
 unsigned long previousMillis = 0;
-const int minInterval = 60;                   // Interval for Timer
+const int minInterval = 30;                   // Interval for Timer
+//const int minInterval = 60;                   // Interval for Timer
 int timer=0;                                  // Counter for Timer
 bool timerpos;                                // Positive Timer Signal
+
+// Is the MIC184 Sensor available?
+bool micAvail=false;
 
 // =============================================================================================================
 // ====================================== NEEDED FUNCTION PROTOTYPES ===========================================
@@ -219,46 +222,51 @@ void setup(void) {
   DispHeight = oled.height();
   DispLineBytes1bpp = DispWidth / 8;                       // How many Bytes uses each Display Line at 1bpp (32 byte for width 256 Pixel)
   DispLineBytes4bpp = DispWidth / 2;                       // How many Bytes uses each Display Line at 4bpp (128 byte for width 256 Pixel)
-  logoBytes1bpp = DispWidth * DispHeight / 8;              // 2048 Bytes
-  logoBytes4bpp = DispWidth * DispHeight / 2;              // 8192 Bytes
+  logoBytes1bpp = DispWidth * DispHeight / 8;              // SSD1322 = 2048 Bytes
+  logoBytes4bpp = DispWidth * DispHeight / 2;              // SSD1322 = 8192 Bytes
   logoBin = (uint8_t *) malloc(logoBytes4bpp);             // Create Picture Buffer, better than permanent create (malloc) and destroy (free)
 
 // Activate Options
 
-// 180° Rotation
-#ifdef XROTATE
-  oled.setRotation(2);
-#endif
-
-// Setup d.to Board (Temp.Sensor/USER_LED)
-#ifdef XDTI
-  pinMode(USER_LED, OUTPUT);
-  Wire.begin(I2C1_SDA, I2C1_SCL, 100000);                  // Setup I2C-1 Port
+  // Setup d.ti Board (Temp.Sensor/USER_LED)
+#ifdef USE_ESP32DEV                                             // Only for ESP-DEV (TTGO-T8/d.ti)
+  pinMode(USER_LED, OUTPUT);                                    // Setup User LED
+  Wire.begin(int(I2C1_SDA), int(I2C1_SCL), uint32_t(100000));   // Setup I2C-1 Port
+  Wire.beginTransmission (MIC184_BASE_ADDRESS);                 // Check for MIC184 Sensor...
+  if (Wire.endTransmission () == 0) {                           // ..and wait for Answer
+    micAvail=true;                                              // If Answer OK Sensor available
+  }
+  //tSensor.setZone(MIC184_ZONE_REMOTE);                        // Remote = use External Sensor using LM3906/MMBT3906
 #ifdef XDEBUG
-  //tSensor.setZone(LM75_ZONE_INTERNAL);                   // Internal = Standard/Default
-  //tSensor.setZone(LM75_ZONE_REMOTE);                     // Remote = External using MMBT3906
-  Serial.print("Temperature = ");
-  Serial.print(tSensor.getTemp());
-  Serial.print("°C");
-#endif
-#endif
-
-// Tilt Sensor
-#ifdef XTILT
-  // Setup Tilt-Sensor Input Pin
-  RotationDebouncer.attach(TILT_PIN,INPUT_PULLUP);     // Attach the debouncer to a pin with INPUT mode
-  RotationDebouncer.interval(DEBOUNCE_TIME);               // Use a debounce interval of 25 milliseconds
-  // Set Startup Rotation
-  if (digitalRead(TILT_PIN)) {
-    oled.setRotation(0);
+  if (micAvail) {
+    Serial.print("Temperature: ");
+    Serial.print(tSensor.getTemp());
+    Serial.println("°C");
   }
   else {
+    Serial.println("No MIC184 Sensor available.");
+  }
+#endif
+#endif
+
+  // Tilt Sensor Rotation via Tilt-Sensor Pin
+  RotationDebouncer.attach(TILT_PIN,INPUT_PULLUP);         // Attach the debouncer to a pin with INPUT mode
+  RotationDebouncer.interval(DEBOUNCE_TIME);               // Use a debounce interval of 25 milliseconds
+  // Set Startup Rotation
+  if (digitalRead(TILT_PIN)) {                             // If Signal = 1 no Rotation
+    oled.setRotation(0);
+  }
+  else {                                                   // If Signal = 0 180° Rotation
     oled.setRotation(2);
   }
+
+// XROTATE Option Rotation
+#ifdef XROTATE
+  oled.setRotation(2);                                     // 180° Rotation
 #endif
 
 // Go...
-  oled_showStartScreen();                                       // OLED Startup with Some Text
+  oled_showStartScreen();                                  // OLED Startup
 }
 
 // =============================================================================================================
@@ -273,7 +281,6 @@ void loop(void) {
 #endif
 
   // Tilt Sensor/Auto-Rotation
-#ifdef XTILT
   RotationDebouncer.update();                                     // Update the Bounce instance
   if (RotationDebouncer.rose()) {
 #ifdef XDEBUG
@@ -299,7 +306,6 @@ void loop(void) {
       usb2oled_drawlogo(0);
     }
   }
-#endif
 
   // Blinker  low--pos--high--neg--low..
   if (currentMillis - previousMillis >= interval) {         // Interval check
@@ -378,12 +384,6 @@ void loop(void) {
       oled_drawlogo64h(TestPicture_width, TestPicture);
     }
 
-#ifdef XDTI
-    else if (newCommand=="CMDSTEMP") {                                      // Show Temperature
-    usb2oled_showtemperature();
-    }
-#endif
-
     else if (newCommand=="CMDSNAM") {                                       // Show actual loaded Corename
       usb2oled_showcorename();
     }
@@ -432,15 +432,24 @@ void loop(void) {
       usb2oled_readnsetcontrast();                                          // Read and Set contrast                                   
     }
 
-#ifdef XDTI
-    else if (newCommand.startsWith("CMDULED,")) {                            // Command from Serial to receive Contrast-Level Data from the MiSTer
-      usb2oled_readnsetuserled();                                            // Set LED                                   
-    }
-#endif
-
     else if (newCommand.startsWith("CMDROT,")) {                            // Command from Serial to set Rotation
       usb2oled_readnsetrotation();                                          // Set Rotation
     }
+
+    // The following Commands are only for the d.ti Board
+#ifdef USE_ESP32DEV
+    else if (newCommand.startsWith("CMDULED,")) {                            // Command from Serial to receive Contrast-Level Data from the MiSTer
+      usb2oled_readnsetuserled();                                            // Set LED                                   
+    }
+
+    else if (newCommand=="CMDSTEMP") {                                      // Show Temperature
+    usb2oled_showtemperature();
+    }
+
+    else if (newCommand.startsWith("CMDTZONE")) {                           // Set Temperature Zone
+    usb2oled_settempzone();
+    }
+#endif
 
     // The following Commands are only for ESP32
 #ifdef ESP32  // OTA and Reset only for ESP32
@@ -470,14 +479,20 @@ void loop(void) {
   } // end updateDisplay
 
 
-#ifdef XDTI
+#ifdef USE_ESP32DEV
   // Update Temp each Timer Interval
   // ..if just the plain Boot Screen is shown..
   if (startScreenActive && timerpos) {
-    u8g2.setCursor(111,63);
-    u8g2.print(tSensor.getTemp());                  // Show Temperature if Sensor available
-    u8g2.print("\xb0");
-    u8g2.print("C");
+    if (micAvail) {
+      u8g2.setCursor(111,63);
+      u8g2.print(tSensor.getTemp());                  // Show Temperature if Sensor available
+      u8g2.print("\xb0");
+      u8g2.print("C");
+    }
+    //else {
+    //  u8g2.setCursor(120,63);
+    //  u8g2.print("NA");
+    //}
     oled.display();
   }
   // ..or CMDSTEMP was called
@@ -523,11 +538,17 @@ void oled_showStartScreen(void) {
   u8g2.print(BuildVersion);   
   oled.drawXBitmap(DispWidth-usb_icon_width, DispHeight-usb_icon_height, usb_icon, usb_icon_width, usb_icon_height, SSD1322_WHITE);
 
-#ifdef XDTI
-  u8g2.setCursor(111,63);
-  u8g2.print(tSensor.getTemp());    // Show Temperature if Sensor available
-  u8g2.print("\xb0");
-  u8g2.print("C");
+#ifdef USE_ESP32DEV
+  if (micAvail) {
+    u8g2.setCursor(111,63);
+    u8g2.print(tSensor.getTemp());    // Show Temperature if Sensor available
+    u8g2.print("\xb0");
+    u8g2.print("C");
+  }
+  //else {
+  //  u8g2.setCursor(120,63);
+  //  u8g2.print("NN");
+  //}
 #endif
 
   oled.display();
@@ -541,7 +562,7 @@ void oled_showStartScreen(void) {
 void oled_sendHardwareInfo(void) {
   int hwinfo=0;
 
-#ifdef  USE_TTGOT8                         // TTGO-T8 & d.ti Board
+#ifdef USE_ESP32DEV                        // TTGO-T8 & d.ti Board
   hwinfo=1;
 #endif
 
@@ -552,6 +573,7 @@ void oled_sendHardwareInfo(void) {
 #ifdef USE_NODEMCU                         // ESP8266 NodeMCU
   hwinfo=3;
 #endif
+
  
   delay(hwDelay);                            // Small Delay
 
@@ -590,24 +612,6 @@ void oled_drawlogo64h(uint16_t w, const uint8_t *bitmap) {
   oled.display();
 } // end oled_drawlogo64h
 
-#ifdef XDTI
-// --------------------------------------------------------------
-// ---------------- Just show the Temperature -------------------
-// --------------------------------------------------------------
-void usb2oled_showtemperature() {
-  String myTemp="";
-#ifdef XDEBUG
-  Serial.println("Called Command CMDSTEMP");
-#endif
-  myTemp=String(tSensor.getTemp())+"\xb0"+"C";
-  oled.clearDisplay();
-  oled.drawRoundRect(0,0,256,64,4,10);
-  u8g2.setFont(u8g2_font_luBS24_tf);
-  u8g2.setCursor(DispWidth/2-(u8g2.getUTF8Width(myTemp.c_str())/2), DispHeight/2 + (u8g2.getFontAscent()/2));
-  u8g2.print(myTemp);
-  oled.display();
-}
-#endif
 
 // --------------------------------------------------------------
 // ----------------- Just show the Corename ---------------------
@@ -623,6 +627,7 @@ void usb2oled_showcorename() {
   oled.display();
 }
 
+
 // --------------------------------------------------------------
 // ------------------ Switch Display off ------------------------
 // --------------------------------------------------------------
@@ -633,6 +638,7 @@ void usb2oled_displayoff(void) {
   
   oled.displayOff();                 // Switch Display off
 }
+
 
 // --------------------------------------------------------------
 // ------------------- Switch Display on ------------------------
@@ -645,6 +651,7 @@ void usb2oled_displayon(void) {
   oled.displayOn();                 // Switch Display on
 }
 
+
 // --------------------------------------------------------------
 // -------------- Update Display Content ------------------------
 // --------------------------------------------------------------
@@ -655,6 +662,7 @@ void usb2oled_updatedisplay(void) {
   
   oled.display();                 // Update Display Content
 }
+
 
 // --------------------------------------------------------------
 // ----------------- Read an Set Contrast -----------------------
@@ -674,27 +682,6 @@ void usb2oled_readnsetcontrast(void) {
   oled.setContrast(cT.toInt());            // Read and Set contrast  
 }
 
-#ifdef XDTI
-// --------------------------------------------------------------
-// ----------------- Read an Set User LED -----------------------
-// --------------------------------------------------------------
-void usb2oled_readnsetuserled(void) {
-  String xT="";
-#ifdef XDEBUG
-  Serial.println("Called Command CMDULED");
-#endif
-  
-  xT=newCommand.substring(8);
-
-#ifdef XDEBUG
-  Serial.printf("Received Text: %s\n", (char*)xT.c_str());
-#endif
-
-  //digitalWrite(USER_LED, lT.toInt());
-  if (xT.toInt()==0) digitalWrite(USER_LED, LOW);
-  if (xT.toInt()==1) digitalWrite(USER_LED, HIGH);
-}
-#endif
 
 // --------------------------------------------------------------
 // ----------- Command Read and Set Rotation --------------------
@@ -777,6 +764,7 @@ int usb2oled_readlogo() {
     return 1;
   }
 }  //end usb2oled_readlogo
+
 
 // --------------------------------------------------------------
 // ----------------------- Draw Logo ----------------------------
@@ -1026,40 +1014,6 @@ void usb2oled_drawlogo(uint8_t e) {
   } // end switch (e)
 }  // end sd2oled_drawlogo
 
-/*
-// --------------- Draw 8 Pixel to Display Buffer ----------------
-// x,y: Data Coordinates of the Pixels in the Array
-// 8 Pixels are written, Data Byte(s) are taken from Array
-// Display Positions are calculated from x,y and Type of Pic
-// --------------------------------------------------------------- 
-void drawEightPixel(int x, int y) {
-  unsigned char b;
-  int i;
-  switch (actPicType) {
-    case XBM:
-      b=logoBin[x+y*DispLineBytes1bpp];            // Get Data Byte for 8 Pixels
-      for (i=0; i<8; i++){
-        if (bitRead(b, i)) {
-          oled.drawPixel(x*8+i,y,SSD1322_WHITE);   // Draw Pixel if "1"
-        }
-        else {
-          oled.drawPixel(x*8+i,y,SSD1322_BLACK);   // Clear Pixel if "0"
-        }
-      }
-    break;
-    case GSC:
-      for (i=0; i<4; i++) {
-        b=logoBin[(x*4)+i+y*DispLineBytes4bpp];          // Get Data Byte for 2 Pixels
-        oled.drawPixel(x*8+i*2+0, y, (0xF0 & b) >> 4);   // Draw Pixel 1, Left Nibble
-        oled.drawPixel(x*8+i*2+1, y, 0x0F & b);          // Draw Pixel 2, Right Nibble
-      }
-    break;
-  }
-#ifdef USE_NODEMCU
-  yield();
-#endif
-}
-*/
 
 // --------------- Draw 8 Pixel to Display Buffer ----------------------
 // x,y: Data Coordinates of the Pixels on the Display
@@ -1095,6 +1049,7 @@ void drawEightPixelXY(int x, int y, int dx, int dy) {
   yield();
 #endif
 }
+
 
 // ----------------------------------------------------------------------
 // ----------------------- Read and Write Text --------------------------
@@ -1156,10 +1111,14 @@ void usb2oled_readnwritetext(void) {
     f=f-100;
   }
 
-#ifdef XDTI
+#ifdef USE_ESP32DEV
   if (TextOut=="TEP184") {      // If Text is "TEP184" replace Text with Temperature Value
-    //TextOut=String(tSensor.getTemp());
-    TextOut=String(tSensor.getTemp())+"\xb0"+"C";
+    if (micAvail) {
+      TextOut=String(tSensor.getTemp())+"\xb0"+"C";
+    }
+    else {
+      TextOut="NA";
+    }
   }
 #endif
   
@@ -1321,10 +1280,80 @@ void usb2oled_readndrawgeo(void) {
 }
 
 
+// ------------------ D.TI Board Funtions -----------------------
+#ifdef USE_ESP32DEV
+// --------------------------------------------------------------
+// ---------------- Just show the Temperature -------------------
+// --------------------------------------------------------------
+void usb2oled_showtemperature() {
+  String myTemp="";
+#ifdef XDEBUG
+  Serial.println("Called Command CMDSTEMP");
+#endif
+  if (micAvail) {
+    myTemp=String(tSensor.getTemp())+"\xb0"+"C";
+  }
+  else {
+    myTemp="NA";
+  }
+  oled.clearDisplay();
+  oled.drawRoundRect(0,0,256,64,4,10);
+  u8g2.setFont(u8g2_font_luBS24_tf);
+  u8g2.setCursor(DispWidth/2-(u8g2.getUTF8Width(myTemp.c_str())/2), DispHeight/2 + (u8g2.getFontAscent()/2));
+  u8g2.print(myTemp);
+  oled.display();
+}
+
+
+// --------------------------------------------------------------
+// ----------------------- Set User LED -------------------------
+// --------------------------------------------------------------
+void usb2oled_readnsetuserled(void) {
+  String xT="";
+#ifdef XDEBUG
+  Serial.println("Called Command CMDULED");
+#endif
+  
+  xT=newCommand.substring(8);
+
+#ifdef XDEBUG
+  Serial.printf("Received Text: %s\n", (char*)xT.c_str());
+#endif
+
+  //digitalWrite(USER_LED, lT.toInt());
+  if (xT.toInt()==0) digitalWrite(USER_LED, LOW);
+  if (xT.toInt()==1) digitalWrite(USER_LED, HIGH);
+}
+
+
+// --------------------------------------------------------------
+// ------------- Set MIC184 Temperature Zone --------------------
+// --------------------------------------------------------------
+void usb2oled_settempzone(void) {
+  String xZ="";
+#ifdef XDEBUG
+  Serial.println("Called Command CMDTZONE");
+#endif
+  
+  xZ=newCommand.substring(9);
+
+#ifdef XDEBUG
+  Serial.printf("Received Text: %s\n", (char*)xZ.c_str());
+#endif
+  if (micAvail) {
+    if (xZ.toInt()==0) tSensor.setZONE(MIC184_ZONE_INTERNAL);
+    if (xZ.toInt()==1) tSensor.setZONE(MIC184_ZONE_REMOTE);
+    //delay(1000);
+  }
+}
+#endif  // ----------- d.ti functions---------------
+
+
+// -------------- ESP32 Funtions -------------------- 
+#ifdef ESP32  // OTA and Reset only for ESP32
 // --------------------------------------------------
 // ---------------- Enable OTA ---------------------- 
 // --------------------------------------------------
-#ifdef ESP32  // OTA and Reset only for ESP32
 void enableOTA (void) {
   Serial.println("Connecting to Wireless...");
   oled.setTextSize(1);

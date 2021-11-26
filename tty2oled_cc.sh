@@ -8,8 +8,8 @@
 # 
 # Slide "Start Slideshow" \
 
-. /media/fat/tty2oled/tty2oled.ini
-
+. /media/fat/tty2oled/tty2oled-system.ini
+. /media/fat/tty2oled/tty2oled-user.ini
 
 slidewait=2
 menuwait=2
@@ -33,7 +33,7 @@ function parse_cmd() {
           ;;
         ota)
           clear
-          echo "Enable ${fblue}${blink}OTA${freset} on ESP32"
+          echo -e "Enable ${fblue}${blink}OTA${freset} on ESP32"
           echo "CMDENOTA" > ${TTYDEV}
           sleep ${menuwait}
           tty_menu
@@ -41,7 +41,7 @@ function parse_cmd() {
           ;;
         reset)
           clear
-          echo "${fred}Reset${freset} ESP32"
+          echo -e "${fred}Reset${freset} ESP32"
           echo "CMDRESET" > ${TTYDEV}
           sleep ${menuwait}
           tty_menu
@@ -49,7 +49,7 @@ function parse_cmd() {
           ;;
         stop)
           clear
-          echo "${fred}Stop${freset} ${DAEMONNAME}"
+          echo -e "${fred}Stop${freset} ${DAEMONNAME}"
           ${INITSCRIPT} stop
           sleep ${menuwait}
           tty_menu
@@ -57,7 +57,7 @@ function parse_cmd() {
           ;;
         start)
           clear
-          echo "${fgreen}Start${freset} ${DAEMONNAME}"
+          echo -e "${fgreen}Start${freset} ${DAEMONNAME}"
           ${INITSCRIPT} start
           sleep ${menuwait}
           tty_menu
@@ -65,9 +65,9 @@ function parse_cmd() {
           ;;
         restart)
           clear
-          echo "${fred}Stop${freset} ${DAEMONNAME}"
+          echo -e "${fred}Stop${freset} ${DAEMONNAME}"
           ${INITSCRIPT} stop
-          echo "${fgreen}Start${freset} ${DAEMONNAME}"
+          echo -e "${fgreen}Start${freset} ${DAEMONNAME}"
           ${INITSCRIPT} start
           sleep ${menuwait}
           tty_menu
@@ -75,12 +75,12 @@ function parse_cmd() {
           ;;
         disable)
           clear
-          echo "${fred}Disable${freset} tty2oled at boot time"
+          echo -e "${fred}Disable${freset} tty2oled at boot time"
           [[ -e ${INITSCRIPT} ]] && mv ${INITSCRIPT} ${INITDISABLED}
           if [ $? -eq 0 ]; then
-            echo "...${fgreen}done.${freset}"
+            echo -e "...${fgreen}done.${freset}"
           else
-            echo "...${fred}error!${freset}"
+            echo -e "...${fred}error!${freset}"
           fi      
           sleep ${menuwait}
           tty_menu
@@ -88,12 +88,12 @@ function parse_cmd() {
           ;;
         enable)
           clear
-          echo "${fgreen}Enable${freset} tty2oled at boot time"
+          echo -e "${fgreen}Enable${freset} tty2oled at boot time"
           [[ -e ${INITDISABLED} ]] && mv ${INITDISABLED} ${INITSCRIPT}
           if [ $? -eq 0 ]; then
-            echo "...${fgreen}done.${freset}"
+            echo -e "...${fgreen}done.${freset}"
           else
-            echo "...${fred}error!${freset}"
+            echo -e "...${fred}error!${freset}"
           fi
           sleep ${menuwait}
           tty_menu
@@ -127,7 +127,7 @@ function parse_cmd() {
 function tty_main() {
   clear
   echo -e ' +----------+';
-  echo -e ' | \e[1;34mtty2oled\e[0m |---[]';
+  echo -e ' | ${fblue}tty2oled${freset} |---[]';
   echo -e ' +----------+';
   echo ""
   echo " Press UP for Utility Menu"
@@ -182,7 +182,7 @@ function tty_slideshow() {
         echo -e "\n${fred}No *.${ppri} Pictures found${freset} in folder ${pfolder}\n"
       else
         counter=$((counter+1))
-        echo "Showing ${ppri}-Picture ${counter}: ${fblue}${slidepic}${freset} (Folder ${pfolder})"
+        echo -e "Showing ${ppri}-Picture ${counter}: ${fblue}${slidepic}${freset} (Folder ${pfolder})"
         echo "CMDAPD,${slidepic}" > ${TTYDEV}
         tail -n +4 "${slidepic}" | xxd -r -p > ${TTYDEV}
         waitforttyack
@@ -201,13 +201,13 @@ function tty_slideshow() {
 
 function tty_showpic() {
   basepic="`basename ${1}`"
-  echo "${fgreen}Showing Picture ${basepic}${freset}"
+  echo -e "${fgreen}Showing Picture ${basepic}${freset}"
   if [ -f "${1}" ]; then
     echo "CMDCOR,${basepic}" > ${TTYDEV}
     tail -n +4 ${1} | xxd -r -p > ${TTYDEV}
     waitforttyack
   else
-    echo "${fred}No Picture ${basepic} found${freset}"
+    echo -e "${fred}No Picture ${basepic} found${freset}"
   fi
   exit 0
 }
@@ -225,7 +225,7 @@ function waitforttyack() {
   while [ "${ttyresponse}" != "ttyack" ]; do
     read -d ";" ttyresponse < ${TTYDEV}              # Read Serial Line until delimiter ";"
   done
-  echo "${fgreen}${ttyresponse}${freset}"
+  echo -e "${fgreen}${ttyresponse}${freset}"
   ttyresponse=""
 }
 

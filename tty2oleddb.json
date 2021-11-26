@@ -6,14 +6,14 @@
     "default_options": {},
     "files": {
 	"Scripts/update_tty2oled.sh": {
-	    "hash": "9962716a2d380541ed867a11c031affc",
-	    "size": 4942,
+	    "hash": "df30afd1571917d3160d5aeed949dc8c",
+	    "size": 5557,
 	    "url": "https://raw.githubusercontent.com/venice1200/MiSTer_tty2oled/main/update_tty2oled.sh"
 	}
     },
     "folders": {
 	"Scripts": {}
     },
-    "timestamp": 1636227177,
+    "timestamp": 1637932571,
     "zips": {}
 }

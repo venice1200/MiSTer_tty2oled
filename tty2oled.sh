@@ -51,7 +51,9 @@
 #
 #
 
-. /media/fat/tty2oled/tty2oled.ini
+. /media/fat/tty2oled/tty2oled-system.ini
+. /media/fat/tty2oled/tty2oled-user.ini
+cd /tmp
 
 # Debug function
 dbug() {
@@ -95,7 +97,8 @@ sendrotation() {
 
 # USB Send-Picture-Data function
 senddata() {
-  . /media/fat/tty2oled/tty2oled.ini						# ReRead INI for changes
+  . /media/fat/tty2oled/tty2oled-system.ini					# ReRead INI for changes
+  . /media/fat/tty2oled/tty2oled-user.ini					# ReRead INI for changes
   newcore="${1}"
   unset picfnam
   if [ "${USBMODE}" = "yes" ]; then						# Check the tty2xxx mode
@@ -162,7 +165,7 @@ fi										# end if command line Parameter
 
 # Let's go
 if [ -c "${TTYDEV}" ]; then							# check for tty device
-  echo -e "\n${TTYDEV} detected, setting Parameter: ${BAUDRATE} ${TTYPARAM}."
+  [ "${debug}" = "true" ] && echo -e "\n${TTYDEV} detected, setting Parameter: ${BAUDRATE} ${TTYPARAM}."
   dbug "${TTYDEV} detected, setting Parameter: ${BAUDRATE} ${TTYPARAM}."
   stty -F ${TTYDEV} ${BAUDRATE} ${TTYPARAM}					# set tty parameter
   sleep ${WAITSECS}

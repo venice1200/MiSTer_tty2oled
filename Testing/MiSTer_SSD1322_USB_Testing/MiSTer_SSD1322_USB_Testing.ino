@@ -20,20 +20,17 @@
   -NodeMCU 1.0
   
   See changelog.md in Sketch folder for more details
-  
-  2021-11-11
-  -MIC184 uses now the Library MIC184 (modified LM75 Library)
-  -New Command "CMDTZONE,z" for d.ti Board only!
-   Set the Temperature Zone for the MIC184. z=0 Internal Zone, z=1 Remote Zone.
 
-  
+  2021-11-29/30
+  -New Effects 15-19 (Fade in from center to...)
+   
   ToDo
   -Everything I forgot
    
 */
 
 // Set Version
-#define BuildVersion "211122T"                    // "T" for Testing
+#define BuildVersion "211130T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -168,23 +165,24 @@ enum picType {NONE, XBM, GSC};                // Enum Picture Type
 int actPicType=0;
 int16_t xs, ys;
 uint16_t ws, hs;
-const uint8_t minEffect=1, maxEffect=14;      // Min/Max Effects for Random
-//const uint8_t minEffect=11, maxEffect=14;      // Min/Max Effects for Random
+const uint8_t minEffect=1, maxEffect=19;      // Min/Max Effects for Random
+//const uint8_t minEffect=19, maxEffect=19;      // Min/Max Effects for TESTING
 
 // Blinker 500ms Interval
-const long interval = 500;                   // Interval for Blink (milliseconds)
+const long interval = 500;                    // Interval for Blink (milliseconds)
 bool blink = false;
 bool prevblink = false;
-bool blinkpos = false;  // Pos Flanc
-bool blinkneg = false;  // Neg Flanc
+bool blinkpos = false;                        // Pos Flanc
+bool blinkneg = false;                        // Neg Flanc
 unsigned long previousMillis = 0;
 const int minInterval = 30;                   // Interval for Timer
 //const int minInterval = 60;                   // Interval for Timer
 int timer=0;                                  // Counter for Timer
 bool timerpos;                                // Positive Timer Signal
 
-// Is the MIC184 Sensor available?
-bool micAvail=false;
+// I2C Hardware available ?
+bool micAvail=false;                          // Is the MIC184 Sensor available?
+bool pcfAvail=false;                          // Is the PCA9536 Port-Extender Chip available?
 
 // =============================================================================================================
 // ====================================== NEEDED FUNCTION PROTOTYPES ===========================================
@@ -990,6 +988,57 @@ void usb2oled_drawlogo(uint8_t e) {
         if (y%2==0) oled.display();
       }
     break;  // 14
+
+    case 15:                                  // Top and Bottom to Middle
+      for (y=0; y<DispHeight/2; y++) {
+        for (x=0; x<DispLineBytes1bpp; x++) {
+          drawEightPixelXY(x, y);
+          drawEightPixelXY(x, DispHeight-y-1);
+        }
+      oled.display();
+      }
+    break;  // 15
+
+    case 16:                                  // Left and Right to Middle
+      for (x=0; x<DispLineBytes1bpp/2; x++) {
+        for (y=0; y<DispHeight; y++) {
+          drawEightPixelXY(x, y);
+          drawEightPixelXY(DispLineBytes1bpp-x-1, y);
+        }
+        oled.display();
+      }
+    break;  // 16
+
+    case 17:                                  // Middle to Top and Bottom
+      for (y=0; y<DispHeight/2; y++) {
+        for (x=0; x<DispLineBytes1bpp; x++) {
+          drawEightPixelXY(x, DispHeight/2-1-y);
+          drawEightPixelXY(x, DispHeight/2+y);
+        }
+      oled.display();
+      }
+    break;  // 17
+
+    case 18:                                  // Middle to Left and Right
+      for (x=0; x<DispLineBytes1bpp/2; x++) {
+        for (y=0; y<DispHeight; y++) {
+          drawEightPixelXY(DispLineBytes1bpp/2-1-x, y);
+          drawEightPixelXY(DispLineBytes1bpp/2+x, y);
+        }
+        oled.display();
+      }
+    break;  // 18
+    
+    case 19:                                  // Middle to Left, Right, Top and Bottom
+      for (w=0; w<DispLineBytes1bpp/2; w++) {
+        for (y=DispHeight/2-2-(w*2); y<=DispHeight/2+(w*2)+1; y++) {
+          for (x=DispLineBytes1bpp/2-1-w; x<=DispLineBytes1bpp/2+w; x++) {
+            drawEightPixelXY(x, y);
+          }
+        }
+      oled.display();
+      }
+    break;  // 19
 
     default:
       if (actPicType == XBM) {

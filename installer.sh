@@ -127,10 +127,10 @@ elif [[ "${SWver}" > "${BUILDVER}" ]]; then
 	    flash
 	fi
     fi
-    [ "${INITSTOPPED}" = "yes" ] && ${INITSCRIPT} start
+    [ "${INITSTOPPED}" = "yes" ] && ! [ "${2}" = "UPDATER" ] && ${INITSCRIPT} start
 elif [[ "${SWver}" = "${BUILDVER}" ]]; then
     echo -e "${fyellow}Good boy, your hardware is up-to-date!${freset}"
-    [ "${INITSTOPPED}" = "yes" ] && ${INITSCRIPT} start
+    [ "${INITSTOPPED}" = "yes" ] && ! [ "${2}" = "UPDATER" ] && ${INITSCRIPT} start
 fi
 echo "MENU" > /tmp/CORENAME
 

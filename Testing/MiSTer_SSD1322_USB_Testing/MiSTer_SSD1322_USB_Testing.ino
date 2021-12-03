@@ -23,6 +23,7 @@
 
   2021-11-29/30
   -New Effects 15-19 (Fade in from center to...)
+  -New Effect 20 (Slightly Clockwise)
    
   ToDo
   -Everything I forgot
@@ -30,7 +31,7 @@
 */
 
 // Set Version
-#define BuildVersion "211130T"                    // "T" for Testing
+#define BuildVersion "211203T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -165,8 +166,8 @@ enum picType {NONE, XBM, GSC};                // Enum Picture Type
 int actPicType=0;
 int16_t xs, ys;
 uint16_t ws, hs;
-const uint8_t minEffect=1, maxEffect=19;      // Min/Max Effects for Random
-//const uint8_t minEffect=19, maxEffect=19;      // Min/Max Effects for TESTING
+const uint8_t minEffect=1, maxEffect=20;      // Min/Max Effects for Random
+//const uint8_t minEffect=20, maxEffect=20;      // Min/Max Effects for TESTING
 
 // Blinker 500ms Interval
 const long interval = 500;                    // Interval for Blink (milliseconds)
@@ -1039,6 +1040,35 @@ void usb2oled_drawlogo(uint8_t e) {
       oled.display();
       }
     break;  // 19
+
+    case 20:                                  // Slightly Clockwise
+      for (y=0; y<DispHeight/2;y++) {
+        for (x=DispLineBytes1bpp-DispHeight/16;x<DispLineBytes1bpp;x++) {
+          drawEightPixelXY(x, y);
+        }
+      //oled.display();  
+      if (y%2==1) oled.display();             // Update only each uneven (second) round = faster 
+      }
+      for (x=DispLineBytes1bpp-1;x>=DispHeight/16;x--) {
+        for (y=DispHeight/2; y<DispHeight;y++) {
+          drawEightPixelXY(x, y);
+        }
+      oled.display();  
+      }
+      for (y=DispHeight-1; y>=DispHeight/2;y--) {
+        for (x=0;x<DispHeight/16;x++) {
+          drawEightPixelXY(x, y);
+        }
+      //oled.display();  
+      if (y%2==0) oled.display();             // Update only each even (second) round = faster 
+      }
+      for (x=0;x<DispLineBytes1bpp-DispHeight/16;x++) {
+        for (y=0; y<DispHeight/2;y++) {
+          drawEightPixelXY(x, y);
+        }
+      oled.display();  
+      }
+    break;  // 20
 
     default:
       if (actPicType == XBM) {

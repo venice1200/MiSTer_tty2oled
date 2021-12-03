@@ -99,14 +99,20 @@ function parse_cmd() {
           tty_menu
           break
           ;;
+        slide_menu)
+          slide_menu
+          #sleep ${menuwait}
+          tty_menu
+          break
+          ;;
         slide)
-          tty_slideshow ${2}
+          slideshow ${2}
           sleep ${menuwait}
           #tty_menu
           break
           ;;
         showpic)
-          tty_showpic ${2}
+          showpic ${2}
           break
           ;;
         exit)
@@ -150,7 +156,7 @@ function tty_main() {
 }
 
 function tty_menu() {
-  echo "Calling Utility Menu"
+  #echo "Calling Utility Menu..."
   dialog --clear --no-cancel --ascii-lines --no-tags \
   --backtitle "tty2oled" --title "[ Utilities ]" \
   --menu "Use the arrow keys and enter \nor the d-pad and A button" 0 0 0 \
@@ -161,6 +167,7 @@ function tty_menu() {
   Restart "Restart tty2oled Daemon" \
   Disable "Disable tty2oled at boot" \
   Enable "Enable tty2oled at boot" \
+  Slide_Menu "Picture Slideshow" \
   Update "Update tty2oled" \
   Exit "Exit now" 2>"/tmp/.TTYmenu"
   menuresponse=$(<"/tmp/.TTYmenu")
@@ -168,13 +175,30 @@ function tty_menu() {
   parse_cmd ${menuresponse}
 }
 
-function tty_slideshow() {
+function slide_menu() {
+  #echo "Calling Sildeshow Menu..."
+  dialog --clear --no-cancel --ascii-lines --no-tags \
+  --backtitle "tty2oled" --title "[ Slideshow ]" \
+  --menu "Use the arrow keys and enter \nor the d-pad and A button" 0 0 0 \
+  GSC "GSC Picture Slideshow" \
+  XBM "XBM Picture Slideshow" \
+  Exit "Exit now" 2>"/tmp/.TTYmenu"
+  menuresponse=$(<"/tmp/.TTYmenu")
+  #echo "Menuresponse: ${menuresponse}"
+  #sleep 2
+  if ! [ ${menuresponse} = "Exit" ]; then
+    slideshow ${menuresponse}
+  fi
+}
+
+
+function slideshow() {
   counter=0
   clear
   ${INITSCRIPT} stop
   echo -e "\nShow each ${fgreen}${slidewait}${freset} second(s) a new Picture\n"
-  #pfolder=${picturefolder}/${1}
-  pfolder=${1}
+  pfolder=${picturefolder}/${1}
+  #pfolder=${1}
   cd ${pfolder}
   for ppri in xbm gsc; do
     for slidepic in *.${ppri}; do
@@ -195,11 +219,10 @@ function tty_slideshow() {
       fi
     done
   done
-
   ${INITSCRIPT} start
 }
 
-function tty_showpic() {
+function showpic() {
   basepic="`basename ${1}`"
   echo -e "${fgreen}Showing Picture ${basepic}${freset}"
   if [ -f "${1}" ]; then

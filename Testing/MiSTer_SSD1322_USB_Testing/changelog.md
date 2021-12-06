@@ -301,7 +301,12 @@
   2021-11-04/07
   -New Picture Slide-In Effects (11..14) and some effect speed adjustments
 
- 2021-11-14
+  2021-11-11
+  -MIC184 uses now the Library MIC184 (modified LM75 Library)
+  -New Command "CMDTZONE,z" for d.ti Board only!
+   Set the Temperature Zone for the MIC184. z=0 Internal Zone, z=1 Remote Zone.
+
+  2021-11-14
   -New Command "CMDHWINF"
    Send HW Info back to the MiSTer/CMD-Sender. Useful for ESP Firmware Updates.
    Currently: "HWESP32DE"=TTGO-T8 ESP32, "HWLOLIN32"=Lolin&DevKit ESP32, "HWESP8266"=ESP8266, "HWDTIPCB0"=d.ti Board ESP32
@@ -315,7 +320,12 @@
   -Tilt available for all Hardware Platforms, ESP8266 Tilt Pin = Pin16
 
   2021-11-22
-  -Cleanup not needed "NA/NN" Texts
+  -Cleanup not needed "NA/NN" Text
+  
+  2021-11-29..12-06
+  -New Effects 15-19 (Fade in from center to...)
+  -New Effects 20 (Slightly Clockwise), 21 (Shaft), 22 (Waterfall), 23 (Chess Squares)
+
 
 ToDo
 -Everything I forgot

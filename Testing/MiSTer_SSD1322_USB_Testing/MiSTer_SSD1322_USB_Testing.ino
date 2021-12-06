@@ -21,9 +21,6 @@
   
   See changelog.md in Sketch folder for more details
 
-  2021-11-29/30
-  -New Effects 15-19 (Fade in from center to...)
-  -New Effect 20 (Slightly Clockwise)
    
   ToDo
   -Everything I forgot
@@ -31,7 +28,7 @@
 */
 
 // Set Version
-#define BuildVersion "211203T"                    // "T" for Testing
+#define BuildVersion "211206T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -166,8 +163,8 @@ enum picType {NONE, XBM, GSC};                // Enum Picture Type
 int actPicType=0;
 int16_t xs, ys;
 uint16_t ws, hs;
-const uint8_t minEffect=1, maxEffect=20;      // Min/Max Effects for Random
-//const uint8_t minEffect=20, maxEffect=20;      // Min/Max Effects for TESTING
+const uint8_t minEffect=1, maxEffect=23;      // Min/Max Effects for Random
+//const uint8_t minEffect=22, maxEffect=23;      // Min/Max Effects for TESTING
 
 // Blinker 500ms Interval
 const long interval = 500;                    // Interval for Blink (milliseconds)
@@ -778,6 +775,7 @@ void usb2oled_drawlogo(uint8_t e) {
   int w,x,y,x2,y2;
   unsigned char logoByteValue;
   int logoByte;
+  uint8_t vArray[DispLineBytes1bpp]={0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31};
 
 #ifdef XDEBUG
   Serial.println("Called Command CMDLOGO");
@@ -897,8 +895,9 @@ void usb2oled_drawlogo(uint8_t e) {
         oled.display();
       }  // end for x
     break; // 8
-
-    case 9:                                      // Particle Effect
+    
+/*
+    case 9:                                      // Particle Effect OLD
       for (w=0; w<7500; w++) {
         x = random(DispWidth);
         y = random(DispHeight);
@@ -917,6 +916,32 @@ void usb2oled_drawlogo(uint8_t e) {
         }
         if (w>4000) { 
           if ((w % 200)==0) oled.display();
+        }
+      }
+      // Finally overwrite the Screen with fill Size Picture
+      oled.clearDisplay();
+      if (actPicType==XBM) oled.drawXBitmap(0, 0, logoBin, DispWidth, DispHeight, SSD1322_WHITE);
+      if (actPicType==GSC) oled.draw4bppBitmap(logoBin);
+      oled.display();
+    break;  // 9
+*/
+
+    case 9:                                      // Particle Effect NEW and faster
+      for (w=0; w<1000; w++) {
+        x = random(DispLineBytes1bpp);
+        y = random(DispHeight/8);
+        for (int offset=0; offset<8; offset++) {
+          drawEightPixelXY(x, y*8+offset);
+        }
+        // Different speed
+        if (w<=250) {
+          if ((w % 5)==0) oled.display();
+        }
+        if (w>250 && w<=500) {
+          if ((w % 10)==0) oled.display();
+        }
+        if (w>500) {
+          if ((w % 20)==0) oled.display();
         }
       }
       // Finally overwrite the Screen with fill Size Picture
@@ -1069,6 +1094,78 @@ void usb2oled_drawlogo(uint8_t e) {
       oled.display();  
       }
     break;  // 20
+
+    case 21:                                  // Shaft
+      for (y=0; y<DispHeight; y++) {
+        for (x=0; x<DispLineBytes1bpp; x++) {
+          if ((x>=0 && x<DispLineBytes1bpp/4*1) || (x>=DispLineBytes1bpp/2 && x<DispLineBytes1bpp/4*3)) drawEightPixelXY(x, y);
+          if ((x>=DispLineBytes1bpp/4*1 && x<DispLineBytes1bpp/2) || (x>=DispLineBytes1bpp/4*3 && x<DispLineBytes1bpp)) drawEightPixelXY(x, DispHeight-y-1);
+        }
+        //oled.display();
+        if (y%2==1) oled.display();
+      }
+    break;
+    
+    case 22:                                  // Waterfall
+      for (w=0; w<DispLineBytes1bpp; w++) {   // Shuffle the Array
+        x2=random(DispLineBytes1bpp);
+        x=vArray[w];
+        vArray[w]=vArray[x2];
+        vArray[x2]=x;
+      }
+      for (x=0; x<DispLineBytes1bpp/2;x++) {
+        for (y=0; y<DispHeight; y++) {
+          drawEightPixelXY(vArray[x*2], y);
+          drawEightPixelXY(vArray[x*2+1], y);
+          //if (y%8==7) oled.display();       // Waterfall Speed
+          if (y%16==15) oled.display();       // Waterfall Speed
+        }
+      }
+    break;  // 22
+
+    case 23:                                  // Chess Field with 8 squares
+      for (w=0; w<DispLineBytes1bpp/4; w++) { // Shuffle the Array
+        x2=random(DispLineBytes1bpp/4);
+        x=vArray[w];
+        vArray[w]=vArray[x2];
+        vArray[x2]=x;
+      }
+      for (w=0; w<DispLineBytes1bpp/4; w++) { // Set x,y for the fieled
+        switch(vArray[w]) {
+          case 0:
+            x2=0; y2=0;
+          break;
+          case 1:
+            x2=8; y2=0;
+          break;
+          case 2:
+            x2=16; y2=0;
+          break;
+          case 3:
+            x2=24; y2=0;
+          break;
+          case 4:
+            x2=0; y2=32;
+          break;
+          case 5:
+            x2=8; y2=32;
+          break;
+          case 6:
+            x2=16; y2=32;
+          break;
+          case 7:
+            x2=24; y2=32;
+          break;
+        }
+        for (x=x2;x<x2+DispLineBytes1bpp/4;x++) {
+          for (y=y2;y<y2+DispHeight/2;y++) {
+            drawEightPixelXY(x, y);
+          }
+        }
+        oled.display();
+        delay(100);                           // Delay
+      }
+    break;  // 23
 
     default:
       if (actPicType == XBM) {

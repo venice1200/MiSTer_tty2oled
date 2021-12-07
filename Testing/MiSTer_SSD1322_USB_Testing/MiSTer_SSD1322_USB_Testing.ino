@@ -184,7 +184,7 @@ bool micAvail=false;                          // Is the MIC184 Sensor available?
 const byte PCA9536_ADDR = 0x41;               // PCA9536 Base Address
 const byte PCA9536_IREG = 0x00;               // PCA9536 Input Register
 bool pcaAvail=false;                          // Is the PCA9536 Port-Extender Chip available?
-byte PCA_IVAL=255;                            // PCA9536 Inpute State as Byte Value
+byte pcaInputValue=255;                       // PCA9536 Input Pin State as Byte Value
 
 // =============================================================================================================
 // ====================================== NEEDED FUNCTION PROTOTYPES ===========================================
@@ -245,7 +245,7 @@ void setup(void) {
   //tSensor.setZone(MIC184_ZONE_REMOTE);                        // Remote = use External Sensor using LM3906/MMBT3906
 #ifdef XDEBUG
   if (micAvail) {
-    Serial.println("MIC184 available.");
+    Serial.println("MIC184 Sensor available.");
     Serial.print("Temperature: ");
     Serial.print(tSensor.getTemp());
     Serial.println("°C");
@@ -273,19 +273,19 @@ void setup(void) {
   if (pcaAvail) {                                               // If PCA9536 available..
     Wire.beginTransmission(PCA9536_ADDR);                       // start transmission and.. 
     Wire.write(PCA9536_IREG);                                   // read Register 0 (Input Register).
-    if (Wire.endTransmission() == 0) {  
-      Wire.requestFrom(PCA9536_ADDR, byte(1));                  // Request one byte from PCA
-      if (Wire.available() == 1) {                              // If one byte is available
-        PCA_IVAL = Wire.read();                                 // read it
+    if (Wire.endTransmission() == 0) {                          // If OK...
+      Wire.requestFrom(PCA9536_ADDR, byte(1));                  // request one byte from PCA
+      if (Wire.available() == 1) {                              // If just one byte is available
+        pcaInputValue = Wire.read();                            // read it
 #ifdef XDEBUG
-        Serial.print("PCA9536 Status: ");
-        Serial.println(PCA_IVAL);
+        Serial.print("PCA9536 Input Register Value: ");
+        Serial.println(pcaInputValue);
 #endif
       }
       else {
-        while (Wire.available()) Wire.read();
+        while (Wire.available()) Wire.read();                   // If more byte are available = something wrong ;-)
 #ifdef XDEBUG
-        Serial.println("PCA9536 Status: got too much bytes");
+        Serial.println("PCA9536: too much bytes available!");
 #endif
       }
     }

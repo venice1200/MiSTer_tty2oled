@@ -21,6 +21,8 @@
   
   See changelog.md in Sketch folder for more details
 
+  2021-12-07
+  -ESP32DEV only: Adding PCA9536 availabilty check
    
   ToDo
   -Everything I forgot
@@ -28,14 +30,13 @@
 */
 
 // Set Version
-#define BuildVersion "211206T"                    // "T" for Testing
+#define BuildVersion "211207T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
 #include <SSD1322_for_Adafruit_GFX.h>             // SSD1322 Controller Display Library https://github.com/venice1200/SSD1322_for_Adafruit_GFX
 #include <U8g2_for_Adafruit_GFX.h>                // U8G2 Font Engine for Adafruit GFX  https://github.com/olikraus/U8g2_for_Adafruit_GFX
 #include "logo.h"                                 // Some needed Pictures
-
 
 // ---------------------------------------------------------------------------------------------------------------------
 // ----------------------------------------------- System Config -------------------------------------------------------
@@ -52,7 +53,7 @@
 // Uncomment for 180° StartUp Rotation (Display Connector up)
 //#define XROTATE
 
-// Uncomment for "Send Acknowledge" from tty2oled to MiSTer, need "waitfortty"
+// Uncomment for "Send Acknowledge" from tty2oled to MiSTer
 #define XSENDACK
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -65,11 +66,11 @@
 #endif
 
 #ifdef ARDUINO_LOLIN32
-  #define USE_LOLIN32            // Wemos LOLIN32, LOLIN32, DevKit_V4. Set Arduino Board to "WEMOS LOLIN32"
+  #define USE_LOLIN32             // Wemos LOLIN32, LOLIN32, DevKit_V4. Set Arduino Board to "WEMOS LOLIN32"
 #endif
 
 #if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
-  #define USE_NODEMCU            // ESP8266 NodeMCU v3. Set Arduino Board to "NodeMCU 1.0 (ESP-12E Module)"
+  #define USE_NODEMCU             // ESP8266 NodeMCU v3. Set Arduino Board to "NodeMCU 1.0 (ESP-12E Module)"
 #endif
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -178,9 +179,12 @@ const int minInterval = 30;                   // Interval for Timer
 int timer=0;                                  // Counter for Timer
 bool timerpos;                                // Positive Timer Signal
 
-// I2C Hardware available ?
+// I2C Hardware
 bool micAvail=false;                          // Is the MIC184 Sensor available?
-bool pcfAvail=false;                          // Is the PCA9536 Port-Extender Chip available?
+const byte PCA9536_ADDR = 0x41;               // PCA9536 Base Address
+const byte PCA9536_IREG = 0x00;               // PCA9536 Input Register
+bool pcaAvail=false;                          // Is the PCA9536 Port-Extender Chip available?
+byte PCA_IVAL=255;                            // PCA9536 Inpute State as Byte Value
 
 // =============================================================================================================
 // ====================================== NEEDED FUNCTION PROTOTYPES ===========================================
@@ -230,26 +234,62 @@ void setup(void) {
 
 // Activate Options
 
-  // Setup d.ti Board (Temp.Sensor/USER_LED)
+  // Setup d.ti Board (Temp.Sensor/USER_LED/PCA9536)
 #ifdef USE_ESP32DEV                                             // Only for ESP-DEV (TTGO-T8/d.ti)
   pinMode(USER_LED, OUTPUT);                                    // Setup User LED
   Wire.begin(int(I2C1_SDA), int(I2C1_SCL), uint32_t(100000));   // Setup I2C-1 Port
   Wire.beginTransmission (MIC184_BASE_ADDRESS);                 // Check for MIC184 Sensor...
-  if (Wire.endTransmission () == 0) {                           // ..and wait for Answer
+  if (Wire.endTransmission() == 0) {                           // ..and wait for Answer
     micAvail=true;                                              // If Answer OK Sensor available
   }
   //tSensor.setZone(MIC184_ZONE_REMOTE);                        // Remote = use External Sensor using LM3906/MMBT3906
 #ifdef XDEBUG
   if (micAvail) {
+    Serial.println("MIC184 available.");
     Serial.print("Temperature: ");
     Serial.print(tSensor.getTemp());
     Serial.println("°C");
   }
   else {
-    Serial.println("No MIC184 Sensor available.");
+    Serial.println("MIC184 Sensor not available.");
   }
 #endif
+
+  Wire.beginTransmission(PCA9536_ADDR);                        // Check for PCA9536
+  if (Wire.endTransmission() == 0) {                           // ..and wait for Answer
+    pcaAvail=true;                                             // If Answer OK PCA available
+  }
+
+#ifdef XDEBUG
+  if (pcaAvail) {
+    Serial.println("PCA9536 available.");
+  }
+  else {
+    Serial.println("PCA9536 not available.");
+  }
 #endif
+#endif  // End USE_ESP32DEV
+
+  if (pcaAvail) {                                               // If PCA9536 available..
+    Wire.beginTransmission(PCA9536_ADDR);                       // start transmission and.. 
+    Wire.write(PCA9536_IREG);                                   // read Register 0 (Input Register).
+    if (Wire.endTransmission() == 0) {  
+      Wire.requestFrom(PCA9536_ADDR, byte(1));                  // Request one byte from PCA
+      if (Wire.available() == 1) {                              // If one byte is available
+        PCA_IVAL = Wire.read();                                 // read it
+#ifdef XDEBUG
+        Serial.print("PCA9536 Status: ");
+        Serial.println(PCA_IVAL);
+#endif
+      }
+      else {
+        while (Wire.available()) Wire.read();
+#ifdef XDEBUG
+        Serial.println("PCA9536 Status: got too much bytes");
+#endif
+      }
+    }
+  }
 
   // Tilt Sensor Rotation via Tilt-Sensor Pin
   RotationDebouncer.attach(TILT_PIN,INPUT_PULLUP);         // Attach the debouncer to a pin with INPUT mode
@@ -1209,13 +1249,13 @@ void drawEightPixelXY(int x, int y, int dx, int dy) {
   int i;
   switch (actPicType) {
     case XBM:
-      b=logoBin[dx+dy*DispLineBytes1bpp];            // Get Data Byte for 8 Pixels
+      b=logoBin[dx+dy*DispLineBytes1bpp];                // Get Data Byte for 8 Pixels
       for (i=0; i<8; i++){
         if (bitRead(b, i)) {
-          oled.drawPixel(x*8+i,y,SSD1322_WHITE);   // Draw Pixel if "1"
+          oled.drawPixel(x*8+i,y,SSD1322_WHITE);         // Draw Pixel if "1"
         }
         else {
-          oled.drawPixel(x*8+i,y,SSD1322_BLACK);   // Clear Pixel if "0"
+          oled.drawPixel(x*8+i,y,SSD1322_BLACK);         // Clear Pixel if "0"
         }
       }
     break;

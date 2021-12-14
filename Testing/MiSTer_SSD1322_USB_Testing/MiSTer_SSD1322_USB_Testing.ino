@@ -23,6 +23,36 @@
 
   2021-12-07
   -ESP32DEV only: Adding PCA9536 availabilty check
+
+  2021-12-14
+  -New Command "CMDCLST,t,c" (t=transition, c=color (0..15))
+   Clear the Display Screen with transition and given color
+
+  Effects
+   01 Fade IN Left to Right
+   02 Fade IN Top to Bottom
+   03 Fade IN Right to left
+   04 Fade IN Bottom to Top 
+   05 Fade IN Even Line Left to Right / Odd Line Right to Left
+   06 Fade IN Top Part Left to Right / Bottom Part Right to Left
+   07 Fade IN Four Parts Left to Right to Left to Right...
+   08 Fade IN 4 Parts, Top-Left => Bottom-Right => Top-Right => Bottom-Left
+   09 Fade IN Particle Effect
+   10 Fade IN Left to Right Diagonally
+   11 Slide in left to right
+   12 Slide in Top to Bottom
+   13 Slide in Right to left
+   14 Slide in Bottom to Top
+   15 Fade In Top and Bottom to Middle
+   16 Fade In Left and Right to Middle
+   17 Fade In Middle to Top and Bottom
+   18 Fade In Middle to Left and Right
+   19 Fade In Warp, Middle to Left, Right, Top and Bottom
+   20 Fade In Slightly Clockwise
+   21 Fade In Shaft
+   22 Fade In Waterfall
+   23 Fade In Chess
+   24 WIP
    
   ToDo
   -Everything I forgot
@@ -30,7 +60,7 @@
 */
 
 // Set Version
-#define BuildVersion "211207T"                    // "T" for Testing
+#define BuildVersion "211214T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -275,8 +305,8 @@ void setup(void) {
     Wire.write(PCA9536_IREG);                                   // read Register 0 (Input Register).
     if (Wire.endTransmission() == 0) {                          // If OK...
       Wire.requestFrom(PCA9536_ADDR, byte(1));                  // request one byte from PCA
-      if (Wire.available() == 1) {                              // If just one byte is available
-        pcaInputValue = Wire.read();                            // read it
+      if (Wire.available() == 1) {                              // If just one byte is available,
+        pcaInputValue = Wire.read() & 0x0F;                     // read it and mask the high bits out.
 #ifdef XDEBUG
         Serial.print("PCA9536 Input Register Value: ");
         Serial.println(pcaInputValue);
@@ -408,6 +438,10 @@ void loop(void) {
     else if (newCommand=="CMDCLS") {                                        // Clear Screen
       oled.clearDisplay();
       oled.display();
+    }
+    
+    else if (newCommand.startsWith("CMDCLST,")) {                           // Clear/Fill Screen with Transition and Color
+      usb2oled_clswithtransition();
     }
     
     else if (newCommand=="CMDSORG") {                                       // Show Startscreen
@@ -567,12 +601,12 @@ void oled_showStartScreen(void) {
     oled.fillRect(i,55,16,8,color);
     color++;
     oled.display();
-    delay(25);
+    delay(20);
   }
   for (int i=0; i<DispWidth; i+=16) {
     oled.fillRect(i,55,16,8,SSD1322_BLACK);
     oled.display();
-    delay(25);
+    delay(20);
   }
   delay(500);
   u8g2.setFont(u8g2_font_5x7_mf);            // 6 Pixel Font
@@ -587,10 +621,6 @@ void oled_showStartScreen(void) {
     u8g2.print("\xb0");
     u8g2.print("C");
   }
-  //else {
-  //  u8g2.setCursor(120,63);
-  //  u8g2.print("NN");
-  //}
 #endif
 
   oled.display();
@@ -755,6 +785,54 @@ void usb2oled_readnsetrotation(void) {
       oled.setRotation(0);
     break;
   }
+}
+
+
+// --------------------------------------------------------------
+// --------------- Clear Display with Transition ----------------
+// --------------------------------------------------------------
+void usb2oled_clswithtransition() {
+  String TextIn,tT="",cT="";
+  int w,t=0,c=0,d1=0,d2=0;
+
+#ifdef XDEBUG
+  Serial.println("Called Command CMDCLST");
+#endif
+
+  TextIn = newCommand.substring(8);         // Get Command Text from "newCommand"
+
+  //Searching for the "," delimiter
+  d1 = TextIn.indexOf(',');                 // Find location of first ","
+  d2 = TextIn.indexOf(',', d1+1 );          // Find location of second ","
+
+  //Create Substrings
+  tT = TextIn.substring(0, d1);             // Get String for Transition
+  cT = TextIn.substring(d1+1, d2);          // Get String for Draw Colour
+  
+#ifdef XDEBUG
+  Serial.printf("Created Strings: T:%s C%s\n", (char*)tT.c_str(), (char*)cT.c_str());
+#endif
+
+  // Convert Strings to Integer
+  t = tT.toInt();
+  c = cT.toInt();
+
+  // Parameter check
+  if (t>maxEffect) t=maxEffect;
+  if (c>15) c=15;
+  
+  if (t==0) {
+    t=random(minEffect,maxEffect+1);
+  }
+
+  actPicType=GSC;                        // Set Picture Type to GSC to enable Color Mode
+  actCorename="No Core";
+  for (w=0; w<logoBytes4bpp; w++) {
+    logoBin[w]=(c << 4) | c;             // Fill Picture with given Color..
+  }
+
+  usb2oled_drawlogo(t);                  // ..and draw Picture to Display with Effect
+  
 }
 
 
@@ -1095,14 +1173,14 @@ void usb2oled_drawlogo(uint8_t e) {
       }
     break;  // 18
     
-    case 19:                                  // Middle to Left, Right, Top and Bottom
+    case 19:                                  // Warp, Middle to Left, Right, Top and Bottom
       for (w=0; w<DispLineBytes1bpp/2; w++) {
         for (y=DispHeight/2-2-(w*2); y<=DispHeight/2+(w*2)+1; y++) {
           for (x=DispLineBytes1bpp/2-1-w; x<=DispLineBytes1bpp/2+w; x++) {
             drawEightPixelXY(x, y);
           }
         }
-      oled.display();
+        oled.display();
       }
     break;  // 19
 
@@ -1206,6 +1284,20 @@ void usb2oled_drawlogo(uint8_t e) {
         delay(100);                           // Delay
       }
     break;  // 23
+
+/* 
+    // WIP  
+    case 24:                                  // Warp, Left, Right, Top and Bottom to Middle
+      for (w=0; w<4; w++) {
+        for (x=0+w;x<DispLineBytes1bpp-w;x++) {
+          for (y=0+w*8; y<=0+(w+1)*8; y++) {
+            drawEightPixelXY(x, y);
+          }
+        }
+        oled.display();
+      }
+    break;  // 24
+ */
 
     default:
       if (actPicType == XBM) {

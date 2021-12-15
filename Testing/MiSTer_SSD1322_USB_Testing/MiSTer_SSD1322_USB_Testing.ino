@@ -60,7 +60,7 @@
 */
 
 // Set Version
-#define BuildVersion "211214T"                    // "T" for Testing
+#define BuildVersion "211215T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -793,7 +793,8 @@ void usb2oled_readnsetrotation(void) {
 // --------------------------------------------------------------
 void usb2oled_clswithtransition() {
   String TextIn,tT="",cT="";
-  int w,t=0,c=0,d1=0,d2=0;
+  int w,t=0,c=0,d1=0;
+  bool pError=false;
 
 #ifdef XDEBUG
   Serial.println("Called Command CMDCLST");
@@ -803,22 +804,28 @@ void usb2oled_clswithtransition() {
 
   //Searching for the "," delimiter
   d1 = TextIn.indexOf(',');                 // Find location of first ","
-  d2 = TextIn.indexOf(',', d1+1 );          // Find location of second ","
 
   //Create Substrings
   tT = TextIn.substring(0, d1);             // Get String for Transition
-  cT = TextIn.substring(d1+1, d2);          // Get String for Draw Colour
+  cT = TextIn.substring(d1+1);              // Get String for Draw Colour
   
 #ifdef XDEBUG
   Serial.printf("Created Strings: T:%s C%s\n", (char*)tT.c_str(), (char*)cT.c_str());
 #endif
+
+  // Enough Parameter given / Parameter Check
+  if (d1==-1) {
+    pError=true;
+  }
 
   // Convert Strings to Integer
   t = tT.toInt();
   c = cT.toInt();
 
   // Parameter check
+  if (t<0) t=0;
   if (t>maxEffect) t=maxEffect;
+  if (c<0) c=0;
   if (c>15) c=15;
   
   if (t==0) {
@@ -831,9 +838,15 @@ void usb2oled_clswithtransition() {
     logoBin[w]=(c << 4) | c;             // Fill Picture with given Color..
   }
 
-  usb2oled_drawlogo(t);                  // ..and draw Picture to Display with Effect
-  
-}
+  if (!pError) {
+    usb2oled_drawlogo(t);                // ..and draw Picture to Display with Effect
+  }
+  else {
+    oled.setCursor(5, 40);
+    oled.print("CMDCLST Parameter Error");
+    oled.display();
+  }
+}  // end usb2oled_clswithtransition
 
 
 // --------------------------------------------------------------

@@ -177,7 +177,7 @@ String newCommand = "";                // Received Text, from MiSTer without "\n
 String prevCommand = "";
 String actCorename = "No Core loaded"; // Actual Received Corename
 uint8_t contrast = 5;                  // Contrast (brightness) of display, range: 0 (no contrast) to 255 (maximum)
-uint8_t tEffect =0;                    // Run this Effect
+int tEffect = 0;                       // Run this Effect
 //char *newCommandChar;
 
 bool updateDisplay = false;
@@ -495,10 +495,13 @@ void loop(void) {
 
     else if (newCommand.startsWith("CMDCOR,")) {                            // Command from Serial to receive Picture Data via USB Serial from the MiSTer
       if (usb2oled_readlogo()==1) {                                         // ESP32 Receive Picture Data... 
-        if (tEffect==0) {                                                   // Send without Effect "CMDCOR,llander"
+        if (tEffect==-1) {                                                  // Send without Effect "CMDCOR,llander"
           usb2oled_drawlogo(random(minEffect,maxEffect+1));                 // ...and show them on the OLED with Transition Effect 1..MaxEffect
         } 
-        else {                                                              // Send without Effect "CMDCOR,llander,15"
+        else if (tEffect==0) {                                              // Send with Effect 0 "CMDCOR,llander,0"
+          usb2oled_drawlogo(0);                                             // ...and show them on the OLED with Transition Effect 1..MaxEffect
+        } 
+        else {                                                              // Send with Effect "CMDCOR,llander,15"
           usb2oled_drawlogo(tEffect);
         }
       }
@@ -868,21 +871,21 @@ int usb2oled_readlogo() {
   Serial.println("Called Command CMDCOR");
 #endif
 
-  TextIn=newCommand.substring(7);
-  d1 = TextIn.indexOf(',');
-  if (d1==-1) {
-    actCorename=TextIn;
-    tEffect=0;
+  TextIn=newCommand.substring(7);                    // Get Command String
+  d1 = TextIn.indexOf(',');                          // Search for ","
+  if (d1==-1) {                                      // No "," found = no Effect Parameter given
+    actCorename=TextIn;                              // Get Corename
+    tEffect=-1;                                      // Set Effect to -1 (Random)
   }
-  else {
-    actCorename=TextIn.substring(0, d1);
-    tEffect=TextIn.substring(d1+1).toInt();
-    if (tEffect<0) tEffect=0;
-    if (tEffect>maxEffect) tEffect=maxEffect;
+  else {                                             // "," found = Effect Parameter given
+    actCorename=TextIn.substring(0, d1);             // Extract Corename from Command String
+    tEffect=TextIn.substring(d1+1).toInt();          // Get Effect from Command String (set to 0 if not convertable)
+    if (tEffect<-1) tEffect=-1;                      // Check Effect minimum
+    if (tEffect>maxEffect) tEffect=maxEffect;        // Check Effect maximum
   }
   
 #ifdef XDEBUG
-  Serial.printf("Received Text: %s\n", (char*)actCorename.c_str());
+  Serial.printf("Received Text: %s \n", (char*)actCorename.c_str());
 #endif
   
 #ifdef USE_NODEMCU

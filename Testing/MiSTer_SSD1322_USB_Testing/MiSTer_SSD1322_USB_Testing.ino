@@ -29,20 +29,20 @@
    Clear the Display Screen with transition and given color
 
   Effects
-   01 Fade IN Left to Right
-   02 Fade IN Top to Bottom
-   03 Fade IN Right to left
-   04 Fade IN Bottom to Top 
-   05 Fade IN Even Line Left to Right / Odd Line Right to Left
-   06 Fade IN Top Part Left to Right / Bottom Part Right to Left
-   07 Fade IN Four Parts Left to Right to Left to Right...
-   08 Fade IN 4 Parts, Top-Left => Bottom-Right => Top-Right => Bottom-Left
-   09 Fade IN Particle Effect
-   10 Fade IN Left to Right Diagonally
-   11 Slide in left to right
-   12 Slide in Top to Bottom
-   13 Slide in Right to left
-   14 Slide in Bottom to Top
+   01 Fade In Left to Right
+   02 Fade In Top to Bottom
+   03 Fade In Right to left
+   04 Fade In Bottom to Top 
+   05 Fade In Even Line Left to Right / Odd Line Right to Left
+   06 Fade In Top Part Left to Right / Bottom Part Right to Left
+   07 Fade In Four Parts Left to Right to Left to Right...
+   08 Fade In 4 Parts, Top-Left => Bottom-Right => Top-Right => Bottom-Left
+   09 Fade In Particle Effect
+   10 Fade In Left to Right Diagonally
+   11 Slide In left to right
+   12 Slide In Top to Bottom
+   13 Slide In Right to left
+   14 Slide In Bottom to Top
    15 Fade In Top and Bottom to Middle
    16 Fade In Left and Right to Middle
    17 Fade In Middle to Top and Bottom
@@ -177,6 +177,7 @@ String newCommand = "";                // Received Text, from MiSTer without "\n
 String prevCommand = "";
 String actCorename = "No Core loaded"; // Actual Received Corename
 uint8_t contrast = 5;                  // Contrast (brightness) of display, range: 0 (no contrast) to 255 (maximum)
+uint8_t tEffect =0;                    // Run this Effect
 //char *newCommandChar;
 
 bool updateDisplay = false;
@@ -196,7 +197,6 @@ int16_t xs, ys;
 uint16_t ws, hs;
 const uint8_t minEffect=1, maxEffect=23;      // Min/Max Effects for Random
 //const uint8_t minEffect=22, maxEffect=23;      // Min/Max Effects for TESTING
-const uint8_t userEffect=0;                       //
 
 // Blinker 500ms Interval
 const long interval = 500;                    // Interval for Blink (milliseconds)
@@ -495,22 +495,22 @@ void loop(void) {
 
     else if (newCommand.startsWith("CMDCOR,")) {                            // Command from Serial to receive Picture Data via USB Serial from the MiSTer
       if (usb2oled_readlogo()==1) {                                         // ESP32 Receive Picture Data... 
-        usb2oled_drawlogo(random(minEffect,maxEffect+1));                   // ...and show them on the OLED with Transition Effect 1..10
+        if (tEffect==0) {                                                   // Send without Effect "CMDCOR,llander"
+          usb2oled_drawlogo(random(minEffect,maxEffect+1));                 // ...and show them on the OLED with Transition Effect 1..MaxEffect
+        } 
+        else {                                                              // Send without Effect "CMDCOR,llander,15"
+          usb2oled_drawlogo(tEffect);
+        }
       }
     }
 
-    else if (newCommand.startsWith("CMDCOR0,")) {                           // Command from Serial to receive Picture Data via USB Serial from the MiSTer
+/*    
+   else if (newCommand.startsWith("CMDCOR0,")) {                           // Command from Serial to receive Picture Data via USB Serial from the MiSTer
       if (usb2oled_readlogo()==1) {                                         // ESP32 Receive Picture Data....
         usb2oled_drawlogo(0);                                               // ...and show them on the OLED with Transition Effect 0
       }
     }
-
-    else if (newCommand.startsWith("CMDCORX,")) {                           // Command from Serial to receive Picture Data via USB Serial from the MiSTer
-      if (usb2oled_readlogo()==1) {                                         // ESP32 Receive Picture Data....
-        uint8_t userEffect = atoi (newCommand.substring(9).c_str ());
-        usb2oled_drawlogo(userEffect);                                      // ...and show them on the OLED with Transition Effect X
-      }
-    }
+*/
 
     else if (newCommand.startsWith("CMDCON,")) {                            // Command from Serial to receive Contrast-Level Data from the MiSTer
       usb2oled_readnsetcontrast();                                          // Read and Set contrast                                   
@@ -861,13 +861,26 @@ void usb2oled_clswithtransition() {
 // ----------------------- Read Logo ----------------------------
 // --------------------------------------------------------------
 int usb2oled_readlogo() {
-  //const int logoBytes = DispWidth * DispHeight / 8; // Make it more universal, here 2048
-  //String cN="";
-
+  String TextIn="",tT="";
+  int d1=0;
+  
 #ifdef XDEBUG
   Serial.println("Called Command CMDCOR");
 #endif
-  actCorename=newCommand.substring(7);               // Cre
+
+  TextIn=newCommand.substring(7);
+  d1 = TextIn.indexOf(',');
+  if (d1==-1) {
+    actCorename=TextIn;
+    tEffect=0;
+  }
+  else {
+    actCorename=TextIn.substring(0, d1);
+    tEffect=TextIn.substring(d1+1).toInt();
+    if (tEffect<0) tEffect=0;
+    if (tEffect>maxEffect) tEffect=maxEffect;
+  }
+  
 #ifdef XDEBUG
   Serial.printf("Received Text: %s\n", (char*)actCorename.c_str());
 #endif

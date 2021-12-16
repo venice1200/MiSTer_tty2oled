@@ -60,7 +60,7 @@
 */
 
 // Set Version
-#define BuildVersion "211215T"                    // "T" for Testing
+#define BuildVersion "211216T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -196,6 +196,7 @@ int16_t xs, ys;
 uint16_t ws, hs;
 const uint8_t minEffect=1, maxEffect=23;      // Min/Max Effects for Random
 //const uint8_t minEffect=22, maxEffect=23;      // Min/Max Effects for TESTING
+const uint8_t userEffect=0;                       //
 
 // Blinker 500ms Interval
 const long interval = 500;                    // Interval for Blink (milliseconds)
@@ -503,7 +504,14 @@ void loop(void) {
         usb2oled_drawlogo(0);                                               // ...and show them on the OLED with Transition Effect 0
       }
     }
-    
+
+    else if (newCommand.startsWith("CMDCORX,")) {                           // Command from Serial to receive Picture Data via USB Serial from the MiSTer
+      if (usb2oled_readlogo()==1) {                                         // ESP32 Receive Picture Data....
+        uint8_t userEffect = atoi (newCommand.substring(9).c_str ());
+        usb2oled_drawlogo(userEffect);                                      // ...and show them on the OLED with Transition Effect X
+      }
+    }
+
     else if (newCommand.startsWith("CMDCON,")) {                            // Command from Serial to receive Contrast-Level Data from the MiSTer
       usb2oled_readnsetcontrast();                                          // Read and Set contrast                                   
     }

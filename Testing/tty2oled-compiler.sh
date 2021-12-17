@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "-------- gut pull of unofficial libs"
+echo "-------- git pull of unofficial libs"
 git -C ~/Arduino/libraries/MIC184_Temperature_Sensor pull --ff-only
 git -C ~/Arduino/libraries/SSD1322_for_Adafruit_GFX pull --ff-only
 echo "-------- update of cores"
@@ -49,7 +49,7 @@ if [ "${1}" = "" ] || [ "${1}" = "stable" ]; then
     SKETCHPATH="$(dirname "${SKETCHNAME%.*}")"
     ahardware
     read OLDBUILDVER < "${WWWPATH}/buildver"
-    rm *-${OLDBUILDVER}.bin
+    ! [ "${OLDBUILDVER}" = "${BUILDVER}" ] && rm ${WWWPATH}/*_${OLDBUILDVER}.bin
     echo "${BUILDVER}" > "${WWWPATH}/buildver"
 fi
 
@@ -58,7 +58,7 @@ if [ "${1}" = "" ] || [ "${1}" = "testing" ]; then
     SKETCHPATH="$(dirname "${SKETCHNAME%.*}")"
     ahardware
     read OLDBUILDVER < "${WWWPATH}/buildverT"
-    rm *-${OLDBUILDVER}.bin
+    ! [ "${OLDBUILDVER}" = "${BUILDVER}" ] && rm ${WWWPATH}/*_${OLDBUILDVER}.bin
     echo "${BUILDVER}" > "${WWWPATH}/buildverT"
 fi
 

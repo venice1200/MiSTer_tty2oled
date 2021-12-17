@@ -334,16 +334,19 @@
    Clear the Display Screen with transition and given color
 
   2021-12-16
-  -Changed Command "CMDCOR,[Corename][,t]"
+  -Changed Command "CMDCOR"
    Adding optional Effect Parameter "t" after Corename, Example "CMDCOR,llander,19"
-   t= -1:Random Effect, 0=No Effect, >1=see Effect
-  -Changed Command "CMDCLST,t,c"
-   t= -1:Random Effect, 0=No Effect, >1=see Effect
+   t= -1:Random Effect, 0=No Effect, >1=see Effect List
+  -Changed Command "CMSPIC"
+   Adding optional Effect Parameter "t" after Command, Example "CMDSPIC,19"
+   t= -1:Random Effect, 0=No Effect, >1=see Effect List
+  -Changed Command "CMDCLST"
+   t= -1:Random Effect, 0=No Effect, >1=see Effect List
 
 ToDo
 -Everything I forgot
 
-Effects
+Effect List
 01 Fade In Left to Right
 02 Fade In Top to Bottom
 03 Fade In Right to left

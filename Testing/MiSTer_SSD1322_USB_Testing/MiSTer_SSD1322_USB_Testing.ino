@@ -459,12 +459,10 @@ void loop(void) {
       usb2oled_showcorename();
     }
 
-    else if (newCommand=="CMDSPIC") {                                       // Show actual loaded Picture with Transition
-      if (tEffect==-1) {                                                    // Send without Effect "CMDSPIC"
+    else if (newCommand.startsWith("CMDSPIC")) {                            // Show actual loaded Picture with(without Transition
+      usb2oled_showpic();
+      if (tEffect==-1) {                                                    // Send without Effect Parameter or Parameter = -1
         usb2oled_drawlogo(random(minEffect,maxEffect+1));                   // ...and show them on the OLED with Transition Effect 1..MaxEffect
-      } 
-      else if (tEffect==0) {                                                // Send with Effect 0 "CMDSPIC,0"
-        usb2oled_drawlogo(0);                                               // ...and show them on the OLED with Transition Effect 1..MaxEffect
       } 
       else {                                                                // Send with Effect "CMDSPIC,15"
         usb2oled_drawlogo(tEffect);
@@ -497,11 +495,8 @@ void loop(void) {
 
     else if (newCommand.startsWith("CMDCOR,")) {                            // Command from Serial to receive Picture Data via USB Serial from the MiSTer
       if (usb2oled_readlogo()==1) {                                         // Receive Picture Data... 
-        if (tEffect==-1) {                                                  // Send without Effect "CMDCOR,llander"
+        if (tEffect==-1) {                                                  // Send without Effect Parameter or with Effect Parameter -1
           usb2oled_drawlogo(random(minEffect,maxEffect+1));                 // ...and show them on the OLED with Transition Effect 1..MaxEffect
-        } 
-        else if (tEffect==0) {                                              // Send with Effect 0 "CMDCOR,llander,0"
-          usb2oled_drawlogo(0);                                             // ...and show them on the OLED with Transition Effect 1..MaxEffect
         } 
         else {                                                              // Send with Effect "CMDCOR,llander,15"
           usb2oled_drawlogo(tEffect);
@@ -835,6 +830,10 @@ void usb2oled_clswithtransition() {
   t = tT.toInt();
   c = cT.toInt();
 
+#ifdef XDEBUG
+  Serial.printf("Values: T:%i C:%i\n", t,c);
+#endif
+
   // Parameter check
   if (t<-1) t=-1;
   if (t>maxEffect) t=maxEffect;
@@ -863,6 +862,24 @@ void usb2oled_clswithtransition() {
 
 
 // --------------------------------------------------------------
+// ------------------------- Showpic ----------------------------
+// --------------------------------------------------------------
+void usb2oled_showpic(void) {
+  
+#ifdef XDEBUG
+  Serial.println("Called Command CMDSPIC");
+#endif
+  if (newCommand.length()>7) {                       // Parameter added?
+    tEffect=newCommand.substring(8).toInt();         // Get Effect from Command String (is set to 0 if not convertable)
+    if (tEffect<-1) tEffect=-1;                      // Check Effect minimum
+    if (tEffect>maxEffect) tEffect=maxEffect;        // Check Effect maximum
+  }
+  else {
+    tEffect=-1;                                      // Set Parameter to -1 (random)
+  }
+}
+
+// --------------------------------------------------------------
 // ----------------------- Read Logo ----------------------------
 // --------------------------------------------------------------
 int usb2oled_readlogo() {
@@ -878,17 +895,19 @@ int usb2oled_readlogo() {
   if (d1==-1) {                                      // No "," found = no Effect Parameter given
     actCorename=TextIn;                              // Get Corename
     tEffect=-1;                                      // Set Effect to -1 (Random)
+#ifdef XDEBUG
+    Serial.printf("Received Text: %s, Transition T:None\n", (char*)actCorename.c_str());
+#endif
   }
   else {                                             // "," found = Effect Parameter given
     actCorename=TextIn.substring(0, d1);             // Extract Corename from Command String
-    tEffect=TextIn.substring(d1+1).toInt();          // Get Effect from Command String (set to 0 if not convertable)
+    tEffect=TextIn.substring(d1+1).toInt();          // Get Effect from Command String (is set to 0 if not convertable)
     if (tEffect<-1) tEffect=-1;                      // Check Effect minimum
     if (tEffect>maxEffect) tEffect=maxEffect;        // Check Effect maximum
-  }
-  
 #ifdef XDEBUG
-  Serial.printf("Received Text: %s \n", (char*)actCorename.c_str());
+    Serial.printf("Received Text: %s, Transition T:%i \n", (char*)actCorename.c_str(),tEffect);
 #endif
+  }
   
 #ifdef USE_NODEMCU
   yield();

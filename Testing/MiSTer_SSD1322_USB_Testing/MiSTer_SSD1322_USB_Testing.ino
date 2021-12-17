@@ -21,12 +21,6 @@
   
   See changelog.md in Sketch folder for more details
 
-  2021-12-07
-  -ESP32DEV only: Adding PCA9536 availabilty check
-
-  2021-12-14
-  -New Command "CMDCLST,t,c" (t=transition, c=color (0..15))
-   Clear the Display Screen with transition and given color
 
   Effects
    01 Fade In Left to Right
@@ -60,7 +54,7 @@
 */
 
 // Set Version
-#define BuildVersion "211216T"                    // "T" for Testing
+#define BuildVersion "211217T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -466,7 +460,15 @@ void loop(void) {
     }
 
     else if (newCommand=="CMDSPIC") {                                       // Show actual loaded Picture with Transition
-      usb2oled_drawlogo(random(minEffect,maxEffect+1));
+      if (tEffect==-1) {                                                    // Send without Effect "CMDSPIC"
+        usb2oled_drawlogo(random(minEffect,maxEffect+1));                   // ...and show them on the OLED with Transition Effect 1..MaxEffect
+      } 
+      else if (tEffect==0) {                                                // Send with Effect 0 "CMDSPIC,0"
+        usb2oled_drawlogo(0);                                               // ...and show them on the OLED with Transition Effect 1..MaxEffect
+      } 
+      else {                                                                // Send with Effect "CMDSPIC,15"
+        usb2oled_drawlogo(tEffect);
+      }
     }
 
     else if (newCommand=="CMDDOFF") {                                       // Switch Display Off
@@ -490,11 +492,11 @@ void loop(void) {
     }
 
     else if (newCommand.startsWith("CMDAPD,")) {                            // Command from Serial to receive Picture Data via USB Serial from the MiSTer
-      usb2oled_readlogo();                                                  // ESP32 Receive Picture Data... 
+      usb2oled_readlogo();                                                  // Receive Picture Data... 
     }
 
     else if (newCommand.startsWith("CMDCOR,")) {                            // Command from Serial to receive Picture Data via USB Serial from the MiSTer
-      if (usb2oled_readlogo()==1) {                                         // ESP32 Receive Picture Data... 
+      if (usb2oled_readlogo()==1) {                                         // Receive Picture Data... 
         if (tEffect==-1) {                                                  // Send without Effect "CMDCOR,llander"
           usb2oled_drawlogo(random(minEffect,maxEffect+1));                 // ...and show them on the OLED with Transition Effect 1..MaxEffect
         } 
@@ -834,12 +836,12 @@ void usb2oled_clswithtransition() {
   c = cT.toInt();
 
   // Parameter check
-  if (t<0) t=0;
+  if (t<-1) t=-1;
   if (t>maxEffect) t=maxEffect;
   if (c<0) c=0;
   if (c>15) c=15;
   
-  if (t==0) {
+  if (t==-1) {
     t=random(minEffect,maxEffect+1);
   }
 

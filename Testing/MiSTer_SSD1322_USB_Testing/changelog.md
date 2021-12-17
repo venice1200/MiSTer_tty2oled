@@ -325,7 +325,47 @@
   2021-11-29..12-06
   -New Effects 15-19 (Fade in from center to...)
   -New Effects 20 (Slightly Clockwise), 21 (Shaft), 22 (Waterfall), 23 (Chess Squares)
+  
+  2021-12-07
+  -ESP32DEV only: Adding PCA9536 availabilty check
 
+  2021-12-14
+  -New Command "CMDCLST,t,c" (t=transition, c=color (0..15))
+   Clear the Display Screen with transition and given color
+
+  2021-12-16
+  -Changed Command "CMDCOR,[Corename][,t]"
+   Adding optional Effect Parameter "t" after Corename, Example "CMDCOR,llander,19"
+   t= -1:Random Effect, 0=No Effect, >1=see Effect
+  -Changed Command "CMDCLST,t,c"
+   t= -1:Random Effect, 0=No Effect, >1=see Effect
 
 ToDo
 -Everything I forgot
+
+Effects
+01 Fade In Left to Right
+02 Fade In Top to Bottom
+03 Fade In Right to left
+04 Fade In Bottom to Top 
+05 Fade In Even Line Left to Right / Odd Line Right to Left
+06 Fade In Top Part Left to Right / Bottom Part Right to Left
+07 Fade In Four Parts Left to Right to Left to Right...
+08 Fade In 4 Parts, Top-Left => Bottom-Right => Top-Right => Bottom-Left
+09 Fade In Particle Effect
+10 Fade In Left to Right Diagonally
+11 Slide In left to right
+12 Slide In Top to Bottom
+13 Slide In Right to left
+14 Slide In Bottom to Top
+15 Fade In Top and Bottom to Middle
+16 Fade In Left and Right to Middle
+17 Fade In Middle to Top and Bottom
+18 Fade In Middle to Left and Right
+19 Fade In Warp, Middle to Left, Right, Top and Bottom
+20 Fade In Slightly Clockwise
+21 Fade In Shaft
+22 Fade In Waterfall
+23 Fade In Chess
+24 WIP
+

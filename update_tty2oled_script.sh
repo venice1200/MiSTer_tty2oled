@@ -79,6 +79,11 @@ if [ -d /media/fat/tty2oledpics ]; then
   rm -rf /media/fat/tty2oledpics/
 fi
 
+# Get pv (Pipe Viewer) / rsyncy (progress bar for rsync)
+#wget ${NODEBUG} -Nq "${PICTURE_REPOSITORY_URL}/MiSTer_tty2oled-installer/pv" -O /media/fat/linux/pv
+wget ${NODEBUG} -Nq "${PICTURE_REPOSITORY_URL}/MiSTer_tty2oled-installer/rsyncy.py" -O /media/fat/linux/rsyncy.py
+
+
 echo -e "${fgreen}tty2oled update script"
 echo -e "----------------------${freset}"
 
@@ -133,14 +138,14 @@ if ! [ -d ${picturefolder}/GSC ];then
   fi
   ! [ -d ${picturefolder} ] && mkdir -p ${picturefolder}
   echo -e "${fyellow}Downloading Picture Archive (initial)...${freset}"
-  wget -qN --show-progress --ca-certificate=/etc/ssl/certs/cacert.pem ${PICTURE_REPOSITORY_URL} -O /tmp/MiSTer_tty2oled_pictures.7z
+  wget -qN --show-progress --ca-certificate=/etc/ssl/certs/cacert.pem ${PICTURE_REPOSITORY_URL}/MiSTer_tty2oled_pictures.7z -O /tmp/MiSTer_tty2oled_pictures.7z
   echo -e "${fyellow}Decompressing Pictures Archive...${freset}"
   7zr x -bsp0 -bso0 /tmp/MiSTer_tty2oled_pictures.7z -o${picturefolder}
   rm /tmp/MiSTer_tty2oled_pictures.7z
 else
   echo -e "${fyellow}Downloading Pictures...${freset}"
   [ "${OVERWRITE_PICTURE}" = "no" ] && RSYNCOPTS="--ignore-existing" || RSYNCOPTS="--delete"
-  rsync -crlzzP --modify-window=1 ${RSYNCOPTS} rsync://tty2oled-update-daemon@tty2tft.de/tty2oled-pictures/ ${picturefolder}/
+  rsyncy.py -crlzzP --modify-window=1 ${RSYNCOPTS} rsync://tty2oled-update-daemon@tty2tft.de/tty2oled-pictures/ ${picturefolder}/
 fi
 
 # Download tty2oled Utilities

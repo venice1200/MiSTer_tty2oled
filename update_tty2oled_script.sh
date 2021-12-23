@@ -80,8 +80,8 @@ if [ -d /media/fat/tty2oledpics ]; then
 fi
 
 # Get pv (Pipe Viewer) / rsyncy (progress bar for rsync)
-#wget ${NODEBUG} -Nq "${PICTURE_REPOSITORY_URL}/MiSTer_tty2oled-installer/pv" -O /media/fat/linux/pv
-wget ${NODEBUG} -Nq "${PICTURE_REPOSITORY_URL}/MiSTer_tty2oled-installer/rsyncy.py" -O /media/fat/linux/rsyncy.py
+#wget ${NODEBUG} -Nq "${PICTURE_REPOSITORY_URL}/MiSTer_tty2oled-installer/pv" -O ${TTY2OLED_PATH}/pv
+wget ${NODEBUG} -Nq "${PICTURE_REPOSITORY_URL}/MiSTer_tty2oled-installer/rsyncy.py" -O ${TTY2OLED_PATH}/rsyncy.py
 
 
 echo -e "${fgreen}tty2oled update script"
@@ -145,7 +145,7 @@ if ! [ -d ${picturefolder}/GSC ];then
 else
   echo -e "${fyellow}Downloading Pictures...${freset}"
   [ "${OVERWRITE_PICTURE}" = "no" ] && RSYNCOPTS="--ignore-existing" || RSYNCOPTS="--delete"
-  rsyncy.py -crlzzP --modify-window=1 ${RSYNCOPTS} rsync://tty2oled-update-daemon@tty2tft.de/tty2oled-pictures/ ${picturefolder}/
+  ${TTY2OLED_PATH}/rsyncy.py -crlzzP --modify-window=1 ${RSYNCOPTS} rsync://tty2oled-update-daemon@tty2tft.de/tty2oled-pictures/ ${picturefolder}/
 fi
 
 # Download tty2oled Utilities

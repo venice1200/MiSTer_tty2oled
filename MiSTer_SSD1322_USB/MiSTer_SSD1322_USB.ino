@@ -20,6 +20,33 @@
   -NodeMCU 1.0
   
   See changelog.md in Sketch folder for more details
+
+
+  Effects
+   01 Fade In Left to Right
+   02 Fade In Top to Bottom
+   03 Fade In Right to left
+   04 Fade In Bottom to Top 
+   05 Fade In Even Line Left to Right / Odd Line Right to Left
+   06 Fade In Top Part Left to Right / Bottom Part Right to Left
+   07 Fade In Four Parts Left to Right to Left to Right...
+   08 Fade In 4 Parts, Top-Left => Bottom-Right => Top-Right => Bottom-Left
+   09 Fade In Particle Effect
+   10 Fade In Left to Right Diagonally
+   11 Slide In left to right
+   12 Slide In Top to Bottom
+   13 Slide In Right to left
+   14 Slide In Bottom to Top
+   15 Fade In Top and Bottom to Middle
+   16 Fade In Left and Right to Middle
+   17 Fade In Middle to Top and Bottom
+   18 Fade In Middle to Left and Right
+   19 Fade In Warp, Middle to Left, Right, Top and Bottom
+   20 Fade In Slightly Clockwise
+   21 Fade In Shaft
+   22 Fade In Waterfall
+   23 Fade In Chess
+   24 WIP
    
   ToDo
   -Everything I forgot
@@ -27,14 +54,13 @@
 */
 
 // Set Version
-#define BuildVersion "211122"                     // "T" for Testing
+#define BuildVersion "220104"                     // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
 #include <SSD1322_for_Adafruit_GFX.h>             // SSD1322 Controller Display Library https://github.com/venice1200/SSD1322_for_Adafruit_GFX
 #include <U8g2_for_Adafruit_GFX.h>                // U8G2 Font Engine for Adafruit GFX  https://github.com/olikraus/U8g2_for_Adafruit_GFX
 #include "logo.h"                                 // Some needed Pictures
-
 
 // ---------------------------------------------------------------------------------------------------------------------
 // ----------------------------------------------- System Config -------------------------------------------------------
@@ -51,7 +77,7 @@
 // Uncomment for 180° StartUp Rotation (Display Connector up)
 //#define XROTATE
 
-// Uncomment for "Send Acknowledge" from tty2oled to MiSTer, need "waitfortty"
+// Uncomment for "Send Acknowledge" from tty2oled to MiSTer
 #define XSENDACK
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -64,11 +90,11 @@
 #endif
 
 #ifdef ARDUINO_LOLIN32
-  #define USE_LOLIN32            // Wemos LOLIN32, LOLIN32, DevKit_V4. Set Arduino Board to "WEMOS LOLIN32"
+  #define USE_LOLIN32             // Wemos LOLIN32, LOLIN32, DevKit_V4. Set Arduino Board to "WEMOS LOLIN32"
 #endif
 
 #if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
-  #define USE_NODEMCU            // ESP8266 NodeMCU v3. Set Arduino Board to "NodeMCU 1.0 (ESP-12E Module)"
+  #define USE_NODEMCU             // ESP8266 NodeMCU v3. Set Arduino Board to "NodeMCU 1.0 (ESP-12E Module)"
 #endif
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -145,6 +171,7 @@ String newCommand = "";                // Received Text, from MiSTer without "\n
 String prevCommand = "";
 String actCorename = "No Core loaded"; // Actual Received Corename
 uint8_t contrast = 5;                  // Contrast (brightness) of display, range: 0 (no contrast) to 255 (maximum)
+int tEffect = 0;                       // Run this Effect
 //char *newCommandChar;
 
 bool updateDisplay = false;
@@ -162,23 +189,27 @@ enum picType {NONE, XBM, GSC};                // Enum Picture Type
 int actPicType=0;
 int16_t xs, ys;
 uint16_t ws, hs;
-const uint8_t minEffect=1, maxEffect=14;      // Min/Max Effects for Random
-//const uint8_t minEffect=11, maxEffect=14;      // Min/Max Effects for Random
+const uint8_t minEffect=1, maxEffect=23;      // Min/Max Effects for Random
+//const uint8_t minEffect=22, maxEffect=23;      // Min/Max Effects for TESTING
 
 // Blinker 500ms Interval
-const long interval = 500;                   // Interval for Blink (milliseconds)
+const long interval = 500;                    // Interval for Blink (milliseconds)
 bool blink = false;
 bool prevblink = false;
-bool blinkpos = false;  // Pos Flanc
-bool blinkneg = false;  // Neg Flanc
+bool blinkpos = false;                        // Pos Flanc
+bool blinkneg = false;                        // Neg Flanc
 unsigned long previousMillis = 0;
 const int minInterval = 30;                   // Interval for Timer
 //const int minInterval = 60;                   // Interval for Timer
 int timer=0;                                  // Counter for Timer
 bool timerpos;                                // Positive Timer Signal
 
-// Is the MIC184 Sensor available?
-bool micAvail=false;
+// I2C Hardware
+bool micAvail=false;                          // Is the MIC184 Sensor available?
+const byte PCA9536_ADDR = 0x41;               // PCA9536 Base Address
+const byte PCA9536_IREG = 0x00;               // PCA9536 Input Register
+bool pcaAvail=false;                          // Is the PCA9536 Port-Extender Chip available?
+byte pcaInputValue=255;                       // PCA9536 Input Pin State as Byte Value
 
 // =============================================================================================================
 // ====================================== NEEDED FUNCTION PROTOTYPES ===========================================
@@ -228,26 +259,62 @@ void setup(void) {
 
 // Activate Options
 
-  // Setup d.ti Board (Temp.Sensor/USER_LED)
+  // Setup d.ti Board (Temp.Sensor/USER_LED/PCA9536)
 #ifdef USE_ESP32DEV                                             // Only for ESP-DEV (TTGO-T8/d.ti)
   pinMode(USER_LED, OUTPUT);                                    // Setup User LED
   Wire.begin(int(I2C1_SDA), int(I2C1_SCL), uint32_t(100000));   // Setup I2C-1 Port
   Wire.beginTransmission (MIC184_BASE_ADDRESS);                 // Check for MIC184 Sensor...
-  if (Wire.endTransmission () == 0) {                           // ..and wait for Answer
+  if (Wire.endTransmission() == 0) {                           // ..and wait for Answer
     micAvail=true;                                              // If Answer OK Sensor available
   }
   //tSensor.setZone(MIC184_ZONE_REMOTE);                        // Remote = use External Sensor using LM3906/MMBT3906
 #ifdef XDEBUG
   if (micAvail) {
+    Serial.println("MIC184 Sensor available.");
     Serial.print("Temperature: ");
     Serial.print(tSensor.getTemp());
     Serial.println("°C");
   }
   else {
-    Serial.println("No MIC184 Sensor available.");
+    Serial.println("MIC184 Sensor not available.");
   }
 #endif
+
+  Wire.beginTransmission(PCA9536_ADDR);                        // Check for PCA9536
+  if (Wire.endTransmission() == 0) {                           // ..and wait for Answer
+    pcaAvail=true;                                             // If Answer OK PCA available
+  }
+
+#ifdef XDEBUG
+  if (pcaAvail) {
+    Serial.println("PCA9536 available.");
+  }
+  else {
+    Serial.println("PCA9536 not available.");
+  }
 #endif
+#endif  // End USE_ESP32DEV
+
+  if (pcaAvail) {                                               // If PCA9536 available..
+    Wire.beginTransmission(PCA9536_ADDR);                       // start transmission and.. 
+    Wire.write(PCA9536_IREG);                                   // read Register 0 (Input Register).
+    if (Wire.endTransmission() == 0) {                          // If OK...
+      Wire.requestFrom(PCA9536_ADDR, byte(1));                  // request one byte from PCA
+      if (Wire.available() == 1) {                              // If just one byte is available,
+        pcaInputValue = Wire.read() & 0x0F;                     // read it and mask the high bits out.
+#ifdef XDEBUG
+        Serial.print("PCA9536 Input Register Value: ");
+        Serial.println(pcaInputValue);
+#endif
+      }
+      else {
+        while (Wire.available()) Wire.read();                   // If more byte are available = something wrong ;-)
+#ifdef XDEBUG
+        Serial.println("PCA9536: too much bytes available!");
+#endif
+      }
+    }
+  }
 
   // Tilt Sensor Rotation via Tilt-Sensor Pin
   RotationDebouncer.attach(TILT_PIN,INPUT_PULLUP);         // Attach the debouncer to a pin with INPUT mode
@@ -368,6 +435,10 @@ void loop(void) {
       oled.display();
     }
     
+    else if (newCommand.startsWith("CMDCLST")) {                            // Clear/Fill Screen with Transition and Color
+      usb2oled_clswithtransition();
+    }
+    
     else if (newCommand=="CMDSORG") {                                       // Show Startscreen
       oled_showStartScreen();
     }
@@ -388,8 +459,14 @@ void loop(void) {
       usb2oled_showcorename();
     }
 
-    else if (newCommand=="CMDSPIC") {                                       // Show actual loaded Picture with Transition
-      usb2oled_drawlogo(random(minEffect,maxEffect+1));
+    else if (newCommand.startsWith("CMDSPIC")) {                            // Show actual loaded Picture with(without Transition
+      usb2oled_showpic();
+      if (tEffect==-1) {                                                    // Send without Effect Parameter or Parameter = -1
+        usb2oled_drawlogo(random(minEffect,maxEffect+1));                   // ...and show them on the OLED with Transition Effect 1..MaxEffect
+      } 
+      else {                                                                // Send with Effect "CMDSPIC,15"
+        usb2oled_drawlogo(tEffect);
+      }
     }
 
     else if (newCommand=="CMDDOFF") {                                       // Switch Display Off
@@ -404,30 +481,29 @@ void loop(void) {
       usb2oled_updatedisplay();
     }
 
-    else if (newCommand.startsWith("CMDTXT,")) {                            // Command from Serial to write Text
+    else if (newCommand.startsWith("CMDTXT")) {                             // Command from Serial to write Text
       usb2oled_readnwritetext();                                            // Read and Write Text
     }
     
-    else if (newCommand.startsWith("CMDGEO,")) {                            // Command from Serial to draw geometrics
+    else if (newCommand.startsWith("CMDGEO")) {                             // Command from Serial to draw geometrics
       usb2oled_readndrawgeo();                                              // Read and Draw Geometrics
     }
 
-    else if (newCommand.startsWith("CMDAPD,")) {                            // Command from Serial to receive Picture Data via USB Serial from the MiSTer
-      usb2oled_readlogo();                                                  // ESP32 Receive Picture Data... 
+    else if (newCommand.startsWith("CMDAPD")) {                             // Command from Serial to receive Picture Data via USB Serial from the MiSTer
+      usb2oled_readlogo();                                                  // Receive Picture Data... 
     }
 
-    else if (newCommand.startsWith("CMDCOR,")) {                            // Command from Serial to receive Picture Data via USB Serial from the MiSTer
-      if (usb2oled_readlogo()==1) {                                         // ESP32 Receive Picture Data... 
-        usb2oled_drawlogo(random(minEffect,maxEffect+1));                   // ...and show them on the OLED with Transition Effect 1..10
+    else if (newCommand.startsWith("CMDCOR")) {                             // Command from Serial to receive Picture Data via USB Serial from the MiSTer
+      if (usb2oled_readlogo()==1) {                                         // Receive Picture Data... 
+        if (tEffect==-1) {                                                  // Send without Effect Parameter or with Effect Parameter -1
+          usb2oled_drawlogo(random(minEffect,maxEffect+1));                 // ...and show them on the OLED with Transition Effect 1..MaxEffect
+        } 
+        else {                                                              // Send with Effect "CMDCOR,llander,15"
+          usb2oled_drawlogo(tEffect);
+        }
       }
     }
 
-    else if (newCommand.startsWith("CMDCOR0,")) {                           // Command from Serial to receive Picture Data via USB Serial from the MiSTer
-      if (usb2oled_readlogo()==1) {                                         // ESP32 Receive Picture Data....
-        usb2oled_drawlogo(0);                                               // ...and show them on the OLED with Transition Effect 0
-      }
-    }
-    
     else if (newCommand.startsWith("CMDCON,")) {                            // Command from Serial to receive Contrast-Level Data from the MiSTer
       usb2oled_readnsetcontrast();                                          // Read and Set contrast                                   
     }
@@ -496,7 +572,7 @@ void loop(void) {
     oled.display();
   }
   // ..or CMDSTEMP was called
-  if (newCommand=="CMDSTEMP" && timerpos) {         // Show Temperature
+  if (newCommand=="CMDSTEMP" && timerpos) {          // Show Temperature
     usb2oled_showtemperature();
   }
 #endif
@@ -525,12 +601,12 @@ void oled_showStartScreen(void) {
     oled.fillRect(i,55,16,8,color);
     color++;
     oled.display();
-    delay(25);
+    delay(20);
   }
   for (int i=0; i<DispWidth; i+=16) {
     oled.fillRect(i,55,16,8,SSD1322_BLACK);
     oled.display();
-    delay(25);
+    delay(20);
   }
   delay(500);
   u8g2.setFont(u8g2_font_5x7_mf);            // 6 Pixel Font
@@ -545,10 +621,6 @@ void oled_showStartScreen(void) {
     u8g2.print("\xb0");
     u8g2.print("C");
   }
-  //else {
-  //  u8g2.setCursor(120,63);
-  //  u8g2.print("NN");
-  //}
 #endif
 
   oled.display();
@@ -659,7 +731,6 @@ void usb2oled_updatedisplay(void) {
 #ifdef XDEBUG
   Serial.println("Called Command CMDDUPD");
 #endif
-  
   oled.display();                 // Update Display Content
 }
 
@@ -680,6 +751,20 @@ void usb2oled_readnsetcontrast(void) {
 #endif
 
   oled.setContrast(cT.toInt());            // Read and Set contrast  
+}
+
+// --------------------------------------------------------------
+// ---------------- Show Parameter Error ------------------------
+// --------------------------------------------------------------
+void usb2oled_showperror(void) {
+  oled.clearDisplay();
+  u8g2.setFont(u8g2_font_luBS14_tf);
+  u8g2.setCursor(5, 20);
+  u8g2.print("Parameter Error!");
+  u8g2.setFont(u8g2_font_luBS10_tf);
+  u8g2.setCursor(5, 40);
+  u8g2.print(newCommand);
+  oled.display();
 }
 
 
@@ -717,19 +802,115 @@ void usb2oled_readnsetrotation(void) {
 
 
 // --------------------------------------------------------------
+// --------------- Clear Display with Transition ----------------
+// --------------------------------------------------------------
+void usb2oled_clswithtransition() {
+  String TextIn,tT="",cT="";
+  int w,t=0,c=0,d1=0;
+  bool pError=false;
+
+#ifdef XDEBUG
+  Serial.println("Called Command CMDCLST");
+#endif
+
+  TextIn = newCommand.substring(8);         // Get Command Text from "newCommand"
+
+  //Searching for the "," delimiter
+  d1 = TextIn.indexOf(',');                 // Find location of first ","
+
+  //Create Substrings
+  tT = TextIn.substring(0, d1);             // Get String for Transition
+  cT = TextIn.substring(d1+1);              // Get String for Draw Colour
+  
+#ifdef XDEBUG
+  Serial.printf("Created Strings: T:%s C%s\n", (char*)tT.c_str(), (char*)cT.c_str());
+#endif
+
+  // Enough Parameter given / Parameter Check
+  if (d1==-1) {
+    pError=true;
+  }
+
+  // Convert Strings to Integer
+  t = tT.toInt();
+  c = cT.toInt();
+
+#ifdef XDEBUG
+  Serial.printf("Values: T:%i C:%i\n", t,c);
+#endif
+
+  // Parameter check
+  if (t<-1) t=-1;
+  if (t>maxEffect) t=maxEffect;
+  if (c<0) c=0;
+  if (c>15) c=15;
+  
+  if (t==-1) {
+    t=random(minEffect,maxEffect+1);
+  }
+
+  actPicType=GSC;                        // Set Picture Type to GSC to enable Color Mode
+  actCorename="No Core";
+  for (w=0; w<logoBytes4bpp; w++) {
+    logoBin[w]=(c << 4) | c;             // Fill Picture with given Color..
+  }
+
+  if (!pError) {
+    usb2oled_drawlogo(t);                // ..and draw Picture to Display with Effect
+  }
+  else {
+    usb2oled_showperror();
+  }
+}  // end usb2oled_clswithtransition
+
+
+// --------------------------------------------------------------
+// ------------------------- Showpic ----------------------------
+// --------------------------------------------------------------
+void usb2oled_showpic(void) {
+  
+#ifdef XDEBUG
+  Serial.println("Called Command CMDSPIC");
+#endif
+  if (newCommand.length()>7) {                       // Parameter added?
+    tEffect=newCommand.substring(8).toInt();         // Get Effect from Command String (is set to 0 if not convertable)
+    if (tEffect<-1) tEffect=-1;                      // Check Effect minimum
+    if (tEffect>maxEffect) tEffect=maxEffect;        // Check Effect maximum
+  }
+  else {
+    tEffect=-1;                                      // Set Parameter to -1 (random)
+  }
+}
+
+// --------------------------------------------------------------
 // ----------------------- Read Logo ----------------------------
 // --------------------------------------------------------------
 int usb2oled_readlogo() {
-  //const int logoBytes = DispWidth * DispHeight / 8; // Make it more universal, here 2048
-  //String cN="";
-
+  String TextIn="",tT="";
+  int d1=0;
+  
 #ifdef XDEBUG
   Serial.println("Called Command CMDCOR");
 #endif
-  actCorename=newCommand.substring(7);               // Cre
+
+  TextIn=newCommand.substring(7);                    // Get Command String
+  d1 = TextIn.indexOf(',');                          // Search String for ","
+  if (d1==-1) {                                      // No "," found = no Effect Parameter given
+    actCorename=TextIn;                              // Get Corename
+    tEffect=-1;                                      // Set Effect to -1 (Random)
 #ifdef XDEBUG
-  Serial.printf("Received Text: %s\n", (char*)actCorename.c_str());
+    Serial.printf("Received Text: %s, Transition T:None\n", (char*)actCorename.c_str());
 #endif
+  }
+  else {                                             // "," found = Effect Parameter given
+    actCorename=TextIn.substring(0, d1);             // Extract Corename from Command String
+    tEffect=TextIn.substring(d1+1).toInt();          // Get Effect from Command String (set to 0 if not convertable)
+    if (tEffect<-1) tEffect=-1;                      // Check Effect minimum
+    if (tEffect>maxEffect) tEffect=maxEffect;        // Check Effect maximum
+#ifdef XDEBUG
+    Serial.printf("Received Text: %s, Transition T:%i \n", (char*)actCorename.c_str(),tEffect);
+#endif
+  }
   
 #ifdef USE_NODEMCU
   yield();
@@ -757,7 +938,6 @@ int usb2oled_readlogo() {
   // Check if 2048 or 8192 Bytes read
   if ((bytesReadCount != logoBytes1bpp) && (bytesReadCount != logoBytes4bpp)) {
     oled_drawlogo64h(transfererror_width, transfererror_pic);
-    
     return 0;
   }
   else {
@@ -773,6 +953,7 @@ void usb2oled_drawlogo(uint8_t e) {
   int w,x,y,x2,y2;
   unsigned char logoByteValue;
   int logoByte;
+  uint8_t vArray[DispLineBytes1bpp]={0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31};
 
 #ifdef XDEBUG
   Serial.println("Called Command CMDLOGO");
@@ -892,26 +1073,23 @@ void usb2oled_drawlogo(uint8_t e) {
         oled.display();
       }  // end for x
     break; // 8
-
-    case 9:                                      // Particle Effect
-      for (w=0; w<7500; w++) {
-        x = random(DispWidth);
-        y = random(DispHeight);
+    
+    case 9:                                      // Particle Effect NEW and faster
+      for (w=0; w<1000; w++) {
+        x = random(DispLineBytes1bpp);
+        y = random(DispHeight/8);
         for (int offset=0; offset<8; offset++) {
-          if (y+offset<64) drawEightPixelXY(x, y+offset);
+          drawEightPixelXY(x, y*8+offset);
         }
         // Different speed
-        if (w<=1000) {
-          if ((w % 25)==0) oled.display();
+        if (w<=250) {
+          if ((w % 5)==0) oled.display();
         }
-        if ((w>1000) && (w<=2000)) {
-          if ((w % 50)==0) oled.display();
+        if (w>250 && w<=500) {
+          if ((w % 10)==0) oled.display();
         }
-        if ((w>2000) && (w<=4000)) { 
-          if ((w % 100)==0) oled.display();
-        }
-        if (w>4000) { 
-          if ((w % 200)==0) oled.display();
+        if (w>500) {
+          if ((w % 20)==0) oled.display();
         }
       }
       // Finally overwrite the Screen with fill Size Picture
@@ -985,6 +1163,158 @@ void usb2oled_drawlogo(uint8_t e) {
       }
     break;  // 14
 
+    case 15:                                  // Top and Bottom to Middle
+      for (y=0; y<DispHeight/2; y++) {
+        for (x=0; x<DispLineBytes1bpp; x++) {
+          drawEightPixelXY(x, y);
+          drawEightPixelXY(x, DispHeight-y-1);
+        }
+      oled.display();
+      }
+    break;  // 15
+
+    case 16:                                  // Left and Right to Middle
+      for (x=0; x<DispLineBytes1bpp/2; x++) {
+        for (y=0; y<DispHeight; y++) {
+          drawEightPixelXY(x, y);
+          drawEightPixelXY(DispLineBytes1bpp-x-1, y);
+        }
+        oled.display();
+      }
+    break;  // 16
+
+    case 17:                                  // Middle to Top and Bottom
+      for (y=0; y<DispHeight/2; y++) {
+        for (x=0; x<DispLineBytes1bpp; x++) {
+          drawEightPixelXY(x, DispHeight/2-1-y);
+          drawEightPixelXY(x, DispHeight/2+y);
+        }
+      oled.display();
+      }
+    break;  // 17
+
+    case 18:                                  // Middle to Left and Right
+      for (x=0; x<DispLineBytes1bpp/2; x++) {
+        for (y=0; y<DispHeight; y++) {
+          drawEightPixelXY(DispLineBytes1bpp/2-1-x, y);
+          drawEightPixelXY(DispLineBytes1bpp/2+x, y);
+        }
+        oled.display();
+      }
+    break;  // 18
+    
+    case 19:                                  // Warp, Middle to Left, Right, Top and Bottom
+      for (w=0; w<DispLineBytes1bpp/2; w++) {
+        for (y=DispHeight/2-2-(w*2); y<=DispHeight/2+(w*2)+1; y++) {
+          for (x=DispLineBytes1bpp/2-1-w; x<=DispLineBytes1bpp/2+w; x++) {
+            drawEightPixelXY(x, y);
+          }
+        }
+        oled.display();
+      }
+    break;  // 19
+
+    case 20:                                  // Slightly Clockwise
+      for (y=0; y<DispHeight/2;y++) {
+        for (x=DispLineBytes1bpp-DispHeight/16;x<DispLineBytes1bpp;x++) {
+          drawEightPixelXY(x, y);
+        }
+      //oled.display();  
+      if (y%2==1) oled.display();             // Update only each uneven (second) round = faster 
+      }
+      for (x=DispLineBytes1bpp-1;x>=DispHeight/16;x--) {
+        for (y=DispHeight/2; y<DispHeight;y++) {
+          drawEightPixelXY(x, y);
+        }
+      oled.display();  
+      }
+      for (y=DispHeight-1; y>=DispHeight/2;y--) {
+        for (x=0;x<DispHeight/16;x++) {
+          drawEightPixelXY(x, y);
+        }
+      //oled.display();  
+      if (y%2==0) oled.display();             // Update only each even (second) round = faster 
+      }
+      for (x=0;x<DispLineBytes1bpp-DispHeight/16;x++) {
+        for (y=0; y<DispHeight/2;y++) {
+          drawEightPixelXY(x, y);
+        }
+      oled.display();  
+      }
+    break;  // 20
+
+    case 21:                                  // Shaft
+      for (y=0; y<DispHeight; y++) {
+        for (x=0; x<DispLineBytes1bpp; x++) {
+          if ((x>=0 && x<DispLineBytes1bpp/4*1) || (x>=DispLineBytes1bpp/2 && x<DispLineBytes1bpp/4*3)) drawEightPixelXY(x, y);
+          if ((x>=DispLineBytes1bpp/4*1 && x<DispLineBytes1bpp/2) || (x>=DispLineBytes1bpp/4*3 && x<DispLineBytes1bpp)) drawEightPixelXY(x, DispHeight-y-1);
+        }
+        //oled.display();
+        if (y%2==1) oled.display();
+      }
+    break;
+    
+    case 22:                                  // Waterfall
+      for (w=0; w<DispLineBytes1bpp; w++) {   // Shuffle the Array
+        x2=random(DispLineBytes1bpp);
+        x=vArray[w];
+        vArray[w]=vArray[x2];
+        vArray[x2]=x;
+      }
+      for (x=0; x<DispLineBytes1bpp/2;x++) {
+        for (y=0; y<DispHeight; y++) {
+          drawEightPixelXY(vArray[x*2], y);
+          drawEightPixelXY(vArray[x*2+1], y);
+          //if (y%8==7) oled.display();       // Waterfall Speed
+          if (y%16==15) oled.display();       // Waterfall Speed
+        }
+      }
+    break;  // 22
+
+    case 23:                                  // Chess Field with 8 squares
+      for (w=0; w<DispLineBytes1bpp/4; w++) { // Shuffle the Array
+        x2=random(DispLineBytes1bpp/4);
+        x=vArray[w];
+        vArray[w]=vArray[x2];
+        vArray[x2]=x;
+      }
+      for (w=0; w<DispLineBytes1bpp/4; w++) { // Set x,y for the fieled
+        switch(vArray[w]) {
+          case 0:
+            x2=0; y2=0;
+          break;
+          case 1:
+            x2=8; y2=0;
+          break;
+          case 2:
+            x2=16; y2=0;
+          break;
+          case 3:
+            x2=24; y2=0;
+          break;
+          case 4:
+            x2=0; y2=32;
+          break;
+          case 5:
+            x2=8; y2=32;
+          break;
+          case 6:
+            x2=16; y2=32;
+          break;
+          case 7:
+            x2=24; y2=32;
+          break;
+        }
+        for (x=x2;x<x2+DispLineBytes1bpp/4;x++) {
+          for (y=y2;y<y2+DispHeight/2;y++) {
+            drawEightPixelXY(x, y);
+          }
+        }
+        oled.display();
+        delay(100);                           // Delay
+      }
+    break;  // 23
+
     default:
       if (actPicType == XBM) {
 #ifdef XDEBUG
@@ -1027,13 +1357,13 @@ void drawEightPixelXY(int x, int y, int dx, int dy) {
   int i;
   switch (actPicType) {
     case XBM:
-      b=logoBin[dx+dy*DispLineBytes1bpp];            // Get Data Byte for 8 Pixels
+      b=logoBin[dx+dy*DispLineBytes1bpp];                // Get Data Byte for 8 Pixels
       for (i=0; i<8; i++){
         if (bitRead(b, i)) {
-          oled.drawPixel(x*8+i,y,SSD1322_WHITE);   // Draw Pixel if "1"
+          oled.drawPixel(x*8+i,y,SSD1322_WHITE);         // Draw Pixel if "1"
         }
         else {
-          oled.drawPixel(x*8+i,y,SSD1322_BLACK);   // Clear Pixel if "0"
+          oled.drawPixel(x*8+i,y,SSD1322_BLACK);         // Clear Pixel if "0"
         }
       }
     break;
@@ -1060,6 +1390,7 @@ void usb2oled_readnwritetext(void) {
   uint16_t w1,h1;
   String TextIn="", fT="", cT="", bT="", xT="", yT="", TextOut="";
   bool bufferMode=false;
+  bool pError=false;
   
 #ifdef XDEBUG
   Serial.println("Called Command CMDTEXT");
@@ -1087,7 +1418,7 @@ void usb2oled_readnwritetext(void) {
   TextOut = TextIn.substring(d5+1);         // Get String for Text
   
 #ifdef XDEBUG
-  Serial.printf("Created Strings: F:%s C%s X:%s Y:%s T:%s\n", (char*)fT.c_str(), (char*)cT.c_str(), (char*)xT.c_str(), (char*)yT.c_str(), (char*)TextOut.c_str());
+  Serial.printf("Created Strings: F:%s C%s B%s X:%s Y:%s T:%s\n", (char*)fT.c_str(), (char*)cT.c_str(), (char*)bT.c_str(), (char*)xT.c_str(), (char*)yT.c_str(), (char*)TextOut.c_str());
 #endif
 
   // Convert Strings to Integer
@@ -1099,11 +1430,7 @@ void usb2oled_readnwritetext(void) {
   
   // Parameter check
   if (f<0 || c<0 || c>15 || b<0 || b>15 || x<0 || x>DispWidth-1 || y<0 || y>DispHeight-1 || d1==-1 || d2==-1 || d3==-1 || d4==-1 || d5==-1) {
-    f=1;
-    c=15;
-    x=5;
-    y=40;
-    TextOut="Error CMDTEXT";
+    pError=true;
   }
 
   if (f>=100) {                  // Do not run oled.display() after printing
@@ -1155,15 +1482,19 @@ void usb2oled_readnwritetext(void) {
       u8g2.setFont(u8g2_font_tenfatguys_tr);      // Nice 10 Pixel Font
     break;
   }
-  // Write or Clear Text
-  u8g2.setForegroundColor(c);                           // Set Font Color
-  u8g2.setBackgroundColor(b);                           // Set Backgrounf Color
-  u8g2.setCursor(x,y);                                  // Set Cursor Position
-  u8g2.print(TextOut);                                  // Write Text to Buffer
-  if (!bufferMode) oled.display();                       // Update Screen only if not Clear Mode (Font>100)
-  u8g2.setForegroundColor(SSD1322_WHITE);               // Set Color back
-  u8g2.setBackgroundColor(SSD1322_BLACK);
-  //u8g2.setFontMode(0);
+  if (!pError) {
+    // Write or Clear Text
+    u8g2.setForegroundColor(c);                           // Set Font Color
+    u8g2.setBackgroundColor(b);                           // Set Backgrounf Color
+    u8g2.setCursor(x,y);                                  // Set Cursor Position
+    u8g2.print(TextOut);                                  // Write Text to Buffer
+    if (!bufferMode) oled.display();                       // Update Screen only if not Clear Mode (Font>100)
+    u8g2.setForegroundColor(SSD1322_WHITE);               // Set Color back
+    u8g2.setBackgroundColor(SSD1322_BLACK);
+  }
+  else { 
+    usb2oled_showperror();
+  }
 }
 
 
@@ -1265,18 +1596,16 @@ void usb2oled_readndrawgeo(void) {
       case 10: // Filled Triangle x0,y1,x1,y1,x2,y2,c
         oled.fillTriangle(x,y,i,j,k,l,c);
       break;
-      
       default:  // Just something :-)
         oled.drawCircle(128,32,32,15);
         oled.fillCircle(128,32,8,8);
         break;
     }
+    if (!bufferMode) oled.display();                       // Update Screen only if not Buffer Mode (Geo>100)
   }
-  else {
-    oled.setCursor(5, 40);
-    oled.print("Error CMDGEO");
+  else { 
+    usb2oled_showperror();
   }
-  if (!bufferMode) oled.display();                       // Update Screen only if not Buffer Mode (Geo>100)
 }
 
 

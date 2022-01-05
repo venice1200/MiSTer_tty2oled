@@ -20,41 +20,14 @@
   -NodeMCU 1.0
   
   See changelog.md in Sketch folder for more details
-
-
-  Effects
-   01 Fade In Left to Right
-   02 Fade In Top to Bottom
-   03 Fade In Right to left
-   04 Fade In Bottom to Top 
-   05 Fade In Even Line Left to Right / Odd Line Right to Left
-   06 Fade In Top Part Left to Right / Bottom Part Right to Left
-   07 Fade In Four Parts Left to Right to Left to Right...
-   08 Fade In 4 Parts, Top-Left => Bottom-Right => Top-Right => Bottom-Left
-   09 Fade In Particle Effect
-   10 Fade In Left to Right Diagonally
-   11 Slide In left to right
-   12 Slide In Top to Bottom
-   13 Slide In Right to left
-   14 Slide In Bottom to Top
-   15 Fade In Top and Bottom to Middle
-   16 Fade In Left and Right to Middle
-   17 Fade In Middle to Top and Bottom
-   18 Fade In Middle to Left and Right
-   19 Fade In Warp, Middle to Left, Right, Top and Bottom
-   20 Fade In Slightly Clockwise
-   21 Fade In Shaft
-   22 Fade In Waterfall
-   23 Fade In Chess
-   24 WIP
-   
+  
   ToDo
   -Everything I forgot
    
 */
 
 // Set Version
-#define BuildVersion "211218T"                    // "T" for Testing
+#define BuildVersion "220105T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -102,16 +75,17 @@
 // ------------------------------------ Make sure the Auto-Board-Config is not active ----------------------------------
 // ---------------------------------------------------------------------------------------------------------------------
 
-//#define USE_ESP32DEV             // TTGO-T8. Set Arduino Board to ESP32 Dev Module, xx MB Flash, def. Part. Schema
+//#define USE_ESP32DEV           // TTGO-T8. Set Arduino Board to ESP32 Dev Module, xx MB Flash, def. Part. Schema
 //#define USE_LOLIN32            // Wemos LOLIN32, LOLIN32, DevKit_V4. Set Arduino Board to "WEMOS LOLIN32"
 //#define USE_NODEMCU            // ESP8266 NodeMCU v3. Set Arduino Board to NodeMCU 1.0 (ESP-12E Module)
 
-// Display Objects
+// Display Objects, Tilt Pin
 // TTGO-T8 using VSPI SCLK = 18, MISO = 19, MOSI = 23 and...
 #ifdef USE_ESP32DEV
   #define OLED_CS 26
   #define OLED_DC 25
   #define OLED_RESET 27
+  #define TILT_PIN 32
 #endif
 
 // WEMOS LOLIN32/Devkit_V4 using VSPI SCLK = 18, MISO = 19, MOSI = 23, SS = 5 and...
@@ -119,6 +93,7 @@
   #define OLED_CS 5
   #define OLED_DC 16
   #define OLED_RESET 17
+  #define TILT_PIN 32
 #endif
 
 // ESP8266-Board (NodeMCU v3)
@@ -126,6 +101,7 @@
   #define OLED_CS 15
   #define OLED_DC 4
   #define OLED_RESET 5
+  #define TILT_PIN 16
 #endif
 
 // Hardware Constructor OLED Display and U8G2 Support
@@ -136,12 +112,6 @@ U8G2_FOR_ADAFRUIT_GFX u8g2;
 #include <Bounce2.h>                     // << Extra Library, via Arduino Library Manager
 #define DEBOUNCE_TIME 25                 // Debounce Time
 Bounce RotationDebouncer = Bounce();     // Create Bounce class
-#ifdef ESP32
-  #define TILT_PIN 32                    // Tilt-Sensor Pin 32 for ESP32
-#endif
-#ifdef USE_NODEMCU
-  #define TILT_PIN 16                    // Tilt-Sensor Pin 16 for ESP8266
-#endif
 
 // ESP32_DEV T-Sensor MIC184 & User LED
 #ifdef USE_ESP32DEV
@@ -179,8 +149,10 @@ bool startScreenActive = false;
 
 // Display Vars
 uint16_t DispWidth, DispHeight, DispLineBytes1bpp, DispLineBytes4bpp;
-unsigned int logoBytes1bpp=0;
-unsigned int logoBytes4bpp=0;
+int logoBytes1bpp=0;
+int logoBytes4bpp=0;
+//unsigned int logoBytes1bpp=0;
+//unsigned int logoBytes4bpp=0;
 const int cDelay=25;                          // Command Delay in ms for Handshake
 const int hwDelay=100;                        // Delay for HWINFO Request
 size_t bytesReadCount=0;
@@ -223,6 +195,7 @@ inline void drawEightPixelXY(int x, int y) { drawEightPixelXY(x,y,x,y); };
 // =============================================================================================================
 // ================================================ SETUP ======================================================
 // =============================================================================================================
+
 void setup(void) {
   // Init Serial
   Serial.begin(115200);                      // 115200 for MiSTer ttyUSBx Device CP2102 Chip on ESP32
@@ -334,6 +307,10 @@ void setup(void) {
 
 // Go...
   oled_showStartScreen();                                  // OLED Startup
+
+  delay(cDelay);                                           // Command Response Delay
+  Serial.print("ttyrdy;");                                 // Send "ttyrdy;" after setup is done.
+  //Serial.println("ttyrdy;");                                 // Send "ttyrdy;" with "\n" after setup is done.
 }
 
 // =============================================================================================================
@@ -430,11 +407,15 @@ void loop(void) {
     // ---------------------------------------------------
 
     // -- Test Commands --
-    else if (newCommand=="CMDCLS") {                                        // Clear Screen
+    else if (newCommand=="CMDCLS") {                                        // Clear Screen with Display Update
       oled.clearDisplay();
       oled.display();
     }
     
+    else if (newCommand=="CMDCLSWU") {                                      // Clear Screen without Display Update
+      oled.clearDisplay();
+    }
+
     else if (newCommand.startsWith("CMDCLST")) {                            // Clear/Fill Screen with Transition and Color
       usb2oled_clswithtransition();
     }
@@ -806,6 +787,7 @@ void usb2oled_readnsetrotation(void) {
 // --------------------------------------------------------------
 void usb2oled_clswithtransition() {
   String TextIn,tT="",cT="";
+  //uint16_t w,t=0,c=0,d1=0;
   int w,t=0,c=0,d1=0;
   bool pError=false;
 
@@ -916,7 +898,8 @@ int usb2oled_readlogo() {
   yield();
 #endif
 
-  bytesReadCount = Serial.readBytes(logoBin, logoBytes4bpp);  // Read 2048 or 8192 Bytes from Serial
+  // 2022-01-05 Add Cast Operator (char*) to the command
+  bytesReadCount = Serial.readBytes((char*)logoBin, logoBytes4bpp);  // Read 2048 or 8192 Bytes from Serial
 
   // Set the Actual Picture Type
   if (bytesReadCount == 2048) actPicType = XBM;
@@ -936,7 +919,7 @@ int usb2oled_readlogo() {
 #endif
 
   // Check if 2048 or 8192 Bytes read
-  if ((bytesReadCount != logoBytes1bpp) && (bytesReadCount != logoBytes4bpp)) {
+  if (((int)bytesReadCount != logoBytes1bpp) && ((int)bytesReadCount != logoBytes4bpp)) {
     oled_drawlogo64h(transfererror_width, transfererror_pic);
     return 0;
   }
@@ -950,9 +933,9 @@ int usb2oled_readlogo() {
 // ----------------------- Draw Logo ----------------------------
 // --------------------------------------------------------------
 void usb2oled_drawlogo(uint8_t e) {
-  int w,x,y,x2,y2;
-  unsigned char logoByteValue;
-  int logoByte;
+  int w,x,y,x2=0,y2=0;
+  //unsigned char logoByteValue;
+  //int logoByte;
   uint8_t vArray[DispLineBytes1bpp]={0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31};
 
 #ifdef XDEBUG
@@ -1386,8 +1369,8 @@ void drawEightPixelXY(int x, int y, int dx, int dy) {
 // ----------------------------------------------------------------------
 void usb2oled_readnwritetext(void) {
   int f=0,c=0,b=0,x=0,y=0,d1=0,d2=0,d3=0,d4=0,d5=0;
-  int16_t x1,y1;
-  uint16_t w1,h1;
+  //int16_t x1,y1;
+  //uint16_t w1,h1;
   String TextIn="", fT="", cT="", bT="", xT="", yT="", TextOut="";
   bool bufferMode=false;
   bool pError=false;

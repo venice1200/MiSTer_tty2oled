@@ -320,7 +320,10 @@
   -Tilt available for all Hardware Platforms, ESP8266 Tilt Pin = Pin16
 
   2021-11-22
-  -Cleanup not needed "NA/NN" Text
+  -Cleanup not needed "NA/NN" Texts
+  
+  2021-11-26
+  ** Release ** See forums post next to https://misterfpga.org/viewtopic.php?p=38195#p38195 
   
   2021-11-29..12-06
   -New Effects 15-19 (Fade in from center to...)
@@ -337,16 +340,28 @@
   -Changed Command "CMDCOR"
    Adding optional Effect Parameter "t" after Corename, Example "CMDCOR,llander,19"
    t= -1:Random Effect, 0=No Effect, >1=see Effect List
-  -Changed Command "CMSPIC"
+  -Changed Command "CMDSPIC"
    Adding optional Effect Parameter "t" after Command, Example "CMDSPIC,19"
    t= -1:Random Effect, 0=No Effect, >1=see Effect List
   -Changed Command "CMDCLST"
    t= -1:Random Effect, 0=No Effect, >1=see Effect List
 
+  2022-01-04
+  ** Release to stable**
+  
+  2022-01-04
+  -New Command CMDCLSWU
+   Clear Display Buffer without Display Update (like CMDCLS) 
+  -Send "ttyrdy;" after Display Start/Setup is done
+  
+  2022-01-05
+  -Cleanup unused vars, adding some cast operators
+  
+  
 ToDo
 -Everything I forgot
 
-Effect List
+Effect List (2021/12)
 01 Fade In Left to Right
 02 Fade In Top to Bottom
 03 Fade In Right to left

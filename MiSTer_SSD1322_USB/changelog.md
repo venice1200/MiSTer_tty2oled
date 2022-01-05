@@ -340,7 +340,7 @@
   -Changed Command "CMDCOR"
    Adding optional Effect Parameter "t" after Corename, Example "CMDCOR,llander,19"
    t= -1:Random Effect, 0=No Effect, >1=see Effect List
-  -Changed Command "CMSPIC"
+  -Changed Command "CMDSPIC"
    Adding optional Effect Parameter "t" after Command, Example "CMDSPIC,19"
    t= -1:Random Effect, 0=No Effect, >1=see Effect List
   -Changed Command "CMDCLST"
@@ -356,7 +356,7 @@ ToDo
 Effect List (2021/12)
 01 Fade In Left to Right
 02 Fade In Top to Bottom
-03 Fade In Right to left
+03 Fade In Right to Left
 04 Fade In Bottom to Top 
 05 Fade In Even Line Left to Right / Odd Line Right to Left
 06 Fade In Top Part Left to Right / Bottom Part Right to Left
@@ -364,15 +364,15 @@ Effect List (2021/12)
 08 Fade In 4 Parts, Top-Left => Bottom-Right => Top-Right => Bottom-Left
 09 Fade In Particle Effect
 10 Fade In Left to Right Diagonally
-11 Slide In left to right
+11 Slide In left to Right
 12 Slide In Top to Bottom
-13 Slide In Right to left
+13 Slide In Right to Left
 14 Slide In Bottom to Top
-15 Fade In Top and Bottom to Middle
-16 Fade In Left and Right to Middle
-17 Fade In Middle to Top and Bottom
-18 Fade In Middle to Left and Right
-19 Fade In Warp, Middle to Left, Right, Top and Bottom
+15 Fade In Top and Bottom to Center
+16 Fade In Left and Right to Center
+17 Fade In Center to Top and Bottom
+18 Fade In Center to Left and Right
+19 Fade In Warp (Center to Left, Right, Top and Bottom)
 20 Fade In Slightly Clockwise
 21 Fade In Shaft
 22 Fade In Waterfall

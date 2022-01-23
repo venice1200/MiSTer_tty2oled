@@ -48,6 +48,7 @@
 # 2021-09    Grayscale pictures implemented
 # 2021-10-02 Complete rework of senddata
 # 2021-10-05 USE_RANDOM_ALT to choose between _altX pictures
+# 2022-01-23 Bugfix: Comment the reload of INI Files in function "senddata" because command line parameter don't work
 #
 #
 
@@ -97,8 +98,8 @@ sendrotation() {
 
 # USB Send-Picture-Data function
 senddata() {
-  . /media/fat/tty2oled/tty2oled-system.ini					# ReRead INI for changes
-  . /media/fat/tty2oled/tty2oled-user.ini					# ReRead INI for changes
+  #. /media/fat/tty2oled/tty2oled-system.ini					# ReRead INI for changes
+  #. /media/fat/tty2oled/tty2oled-user.ini					# ReRead INI for changes
   newcore="${1}"
   unset picfnam
   if [ "${USBMODE}" = "yes" ]; then						# Check the tty2xxx mode

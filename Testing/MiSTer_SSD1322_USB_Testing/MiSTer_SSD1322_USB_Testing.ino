@@ -20,6 +20,11 @@
   -NodeMCU 1.0
   
   See changelog.md in Sketch folder for more details
+
+  2022-01-23
+  -Add Support for d.ti Board Rev 1.2 including WS2812B LED, Buzzer, Power(off)LED
+  -Piezo Buzzer Tone Examples https://makeabilitylab.github.io/physcomp/esp32/tone.html
+  -FastLED https://github.com/FastLED/FastLED/wiki, https://www.youtube.com/watch?v=FQpXStjJ4Vc
   
   ToDo
   -Everything I forgot
@@ -27,7 +32,7 @@
 */
 
 // Set Version
-#define BuildVersion "220105T"                    // "T" for Testing
+#define BuildVersion "220123T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -79,13 +84,30 @@
 //#define USE_LOLIN32            // Wemos LOLIN32, LOLIN32, DevKit_V4. Set Arduino Board to "WEMOS LOLIN32"
 //#define USE_NODEMCU            // ESP8266 NodeMCU v3. Set Arduino Board to NodeMCU 1.0 (ESP-12E Module)
 
-// Display Objects, Tilt Pin
-// TTGO-T8 using VSPI SCLK = 18, MISO = 19, MOSI = 23 and...
+// ---------------------------------------------------------------------------------------------------------------------
+// -------------------------------------------------- Hardware-Config --------------------------------------------------
+// ---------------------------------------------------------------------------------------------------------------------
+
+// TTGO-T8/d.ti/ESP32 Dev
+// OLED Pins, Tilt Pin, I2C, User-LED for d.ti Board
+// using VSPI SCLK = 18, MISO = 19, MOSI = 23 and...
 #ifdef USE_ESP32DEV
-  #define OLED_CS 26
-  #define OLED_DC 25
-  #define OLED_RESET 27
-  #define TILT_PIN 32
+  #define OLED_CS 26               // OLED Chip Select Pin
+  #define OLED_DC 25               // OLED Data/Command Pin
+  #define OLED_RESET 27            // OLED Reset Pin
+  #define I2C1_SDA 17              // I2C_1-SDA
+  #define I2C1_SCL 16              // I2C_1-SCL
+  #define TILT_PIN 32              // Using internal PullUp
+  #define USER_LED 19              // USER_LED/WS2812B
+  #define PWRLED 5                 // Pin=1 LED's off
+  #define BUZZER 4                 // Piezo Buzzer
+  #define TONE_PWM_CHANNEL 0       // See: https://makeabilitylab.github.io/physcomp/esp32/tone.html
+  #include <MIC184.h>              // MIC184 Library
+  MIC184 tSensor;                  // Create Sensor Class
+  #include <FastLED.h>             // FastLED Library
+  #define NUM_WSLEDS 1             // Number of WS-LED's
+  #define WS_BRIGHTNESS 50         // WS-LED Brightness
+  CRGB wsleds[NUM_WSLEDS];         // Create WS-LED RGB Array
 #endif
 
 // WEMOS LOLIN32/Devkit_V4 using VSPI SCLK = 18, MISO = 19, MOSI = 23, SS = 5 and...
@@ -113,13 +135,7 @@ U8G2_FOR_ADAFRUIT_GFX u8g2;
 #define DEBOUNCE_TIME 25                 // Debounce Time
 Bounce RotationDebouncer = Bounce();     // Create Bounce class
 
-// ESP32_DEV T-Sensor MIC184 & User LED
 #ifdef USE_ESP32DEV
-  #include <MIC184.h>              // << Extra Library
-  MIC184 tSensor;                  // Create Sensor Class
-  #define I2C1_SDA 17              // I2C_1-SDA
-  #define I2C1_SCL 16              // I2C_1-SCL
-  #define USER_LED 19              // USER_LED
 #endif
 
 // OTA and Reset only for ESP32
@@ -234,8 +250,11 @@ void setup(void) {
 
   // Setup d.ti Board (Temp.Sensor/USER_LED/PCA9536)
 #ifdef USE_ESP32DEV                                             // Only for ESP-DEV (TTGO-T8/d.ti)
-  pinMode(USER_LED, OUTPUT);                                    // Setup User LED
+  pinMode(PWRLED, OUTPUT);                                      // Setup Power LED
+  ledcAttachPin(BUZZER, TONE_PWM_CHANNEL);                      // Buzzer
+  
   Wire.begin(int(I2C1_SDA), int(I2C1_SCL), uint32_t(100000));   // Setup I2C-1 Port
+  
   Wire.beginTransmission (MIC184_BASE_ADDRESS);                 // Check for MIC184 Sensor...
   if (Wire.endTransmission() == 0) {                           // ..and wait for Answer
     micAvail=true;                                              // If Answer OK Sensor available
@@ -251,7 +270,7 @@ void setup(void) {
   else {
     Serial.println("MIC184 Sensor not available.");
   }
-#endif
+#endif  // XDEBUG
 
   Wire.beginTransmission(PCA9536_ADDR);                        // Check for PCA9536
   if (Wire.endTransmission() == 0) {                           // ..and wait for Answer
@@ -265,8 +284,7 @@ void setup(void) {
   else {
     Serial.println("PCA9536 not available.");
   }
-#endif
-#endif  // End USE_ESP32DEV
+#endif  // XDEBUG
 
   if (pcaAvail) {                                               // If PCA9536 available..
     Wire.beginTransmission(PCA9536_ADDR);                       // start transmission and.. 
@@ -278,16 +296,25 @@ void setup(void) {
 #ifdef XDEBUG
         Serial.print("PCA9536 Input Register Value: ");
         Serial.println(pcaInputValue);
-#endif
+#endif  // XDEBUG
       }
       else {
         while (Wire.available()) Wire.read();                   // If more byte are available = something wrong ;-)
 #ifdef XDEBUG
         Serial.println("PCA9536: too much bytes available!");
-#endif
+#endif  // XDEBUG
       }
     }
   }
+  
+  if (!pcaAvail) {                                                 // If PCA9536 is not available = d.ti Board Rev 1.1
+    pinMode(USER_LED, OUTPUT);                                     // Setup User LED
+  }
+  else {                                                           // If PCA9536 is available = d.ti Board Rev 1.2 or greater
+    FastLED.addLeds<WS2812B, USER_LED, GRB>(wsleds, NUM_WSLEDS);   // Setup User WS2812B LED
+    FastLED.setBrightness(WS_BRIGHTNESS);                          // and set Brightness
+  }
+#endif  // USE_ESP32DEV
 
   // Tilt Sensor Rotation via Tilt-Sensor Pin
   RotationDebouncer.attach(TILT_PIN,INPUT_PULLUP);         // Attach the debouncer to a pin with INPUT mode
@@ -592,7 +619,9 @@ void oled_showStartScreen(void) {
   delay(500);
   u8g2.setFont(u8g2_font_5x7_mf);            // 6 Pixel Font
   u8g2.setCursor(0,63);
-  u8g2.print(BuildVersion);   
+  u8g2.print(BuildVersion);
+  if (micAvail) u8g2.print("M");
+  if (pcaAvail) u8g2.print("P");
   oled.drawXBitmap(DispWidth-usb_icon_width, DispHeight-usb_icon_height, usb_icon, usb_icon_width, usb_icon_height, SSD1322_WHITE);
 
 #ifdef USE_ESP32DEV
@@ -601,6 +630,9 @@ void oled_showStartScreen(void) {
     u8g2.print(tSensor.getTemp());    // Show Temperature if Sensor available
     u8g2.print("\xb0");
     u8g2.print("C");
+  }
+  if (pcaAvail) {
+    digitalWrite(PWRLED,1);           // Power off Power LED's D2 & D3
   }
 #endif
 
@@ -1622,6 +1654,7 @@ void usb2oled_showtemperature() {
 // --------------------------------------------------------------
 void usb2oled_readnsetuserled(void) {
   String xT="";
+  int x;
 #ifdef XDEBUG
   Serial.println("Called Command CMDULED");
 #endif
@@ -1631,10 +1664,57 @@ void usb2oled_readnsetuserled(void) {
 #ifdef XDEBUG
   Serial.printf("Received Text: %s\n", (char*)xT.c_str());
 #endif
-
-  //digitalWrite(USER_LED, lT.toInt());
-  if (xT.toInt()==0) digitalWrite(USER_LED, LOW);
-  if (xT.toInt()==1) digitalWrite(USER_LED, HIGH);
+  
+  x=xT.toInt();                                  // Convert Value
+  
+  if (!pcaAvail) {                               // PCA not avail = Board Rev 1.1 = LED
+    if (x>1) x=1;
+    digitalWrite(USER_LED,x);  
+    //if (x==0) digitalWrite(USER_LED, LOW);
+    //if (x==1) digitalWrite(USER_LED, HIGH);
+  }
+  else {                                         // PCA avail = Board Rev 1.2 = WS2812B LED
+    switch (x) {
+      case 0:
+        wsleds[0] = CRGB::Black;                 // Off
+        break;
+      case 1:
+        wsleds[0] = CRGB::Yellow;
+        break;
+      case 2:
+        wsleds[0] = CRGB::Red;
+        break;
+      case 3:
+        wsleds[0] = CRGB::Green;
+        break;
+      case 4:
+        wsleds[0] = CRGB::Blue;
+        break;
+      case 99:
+        wsleds[0] = CRGB::White;                 // All On = White
+        break;
+      case 999:
+        ledcWriteNote(TONE_PWM_CHANNEL, NOTE_C, 4);
+        delay(500);
+        ledcWriteNote(TONE_PWM_CHANNEL, NOTE_D, 4);
+        delay(500);
+        ledcWriteNote(TONE_PWM_CHANNEL, NOTE_E, 4);
+        delay(500);
+        ledcWriteNote(TONE_PWM_CHANNEL, NOTE_F, 4);
+        delay(500);
+        ledcWriteNote(TONE_PWM_CHANNEL, NOTE_G, 4);
+        delay(500);
+        ledcWriteNote(TONE_PWM_CHANNEL, NOTE_A, 4);
+        delay(500);
+        ledcWriteNote(TONE_PWM_CHANNEL, NOTE_B, 4);
+        delay(500);
+        ledcWriteNote(TONE_PWM_CHANNEL, NOTE_C, 5);
+        delay(500);        
+        ledcWriteTone(TONE_PWM_CHANNEL, 0);
+        break;
+    }
+    FastLED.show();
+  }
 }
 
 

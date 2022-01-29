@@ -22,9 +22,13 @@
   See changelog.md in Sketch folder for more details
 
   2022-01-23
-  -Add Support for d.ti Board Rev 1.2 including WS2812B LED, Buzzer, Power(off)LED
+  -Add Basic Support for d.ti Board Rev 1.2 and the included WS2812B LED, Buzzer, Power(off)LED
   -Piezo Buzzer Tone Examples https://makeabilitylab.github.io/physcomp/esp32/tone.html
   -FastLED https://github.com/FastLED/FastLED/wiki, https://www.youtube.com/watch?v=FQpXStjJ4Vc
+
+  2022-01-29
+  -Add Command CMDPLED for d.ti Board v1.2, Switch Power LED on (1)/off(0)
+  -Add Command CMDPTONE for d.ti Board v1.2
   
   ToDo
   -Everything I forgot
@@ -32,7 +36,7 @@
 */
 
 // Set Version
-#define BuildVersion "220123T"                    // "T" for Testing
+#define BuildVersion "220129T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -99,7 +103,7 @@
   #define I2C1_SCL 16              // I2C_1-SCL
   #define TILT_PIN 32              // Using internal PullUp
   #define USER_LED 19              // USER_LED/WS2812B
-  #define PWRLED 5                 // Pin=1 LED's off
+  #define PWRLED 5                 // Set Pin to "1" = LED's off
   #define BUZZER 4                 // Piezo Buzzer
   #define TONE_PWM_CHANNEL 0       // See: https://makeabilitylab.github.io/physcomp/esp32/tone.html
   #include <MIC184.h>              // MIC184 Library
@@ -251,7 +255,7 @@ void setup(void) {
   // Setup d.ti Board (Temp.Sensor/USER_LED/PCA9536)
 #ifdef USE_ESP32DEV                                             // Only for ESP-DEV (TTGO-T8/d.ti)
   pinMode(PWRLED, OUTPUT);                                      // Setup Power LED
-  ledcAttachPin(BUZZER, TONE_PWM_CHANNEL);                      // Buzzer
+  //ledcAttachPin(BUZZER, TONE_PWM_CHANNEL);                      // Buzzer Setup Move to playtone function
   
   Wire.begin(int(I2C1_SDA), int(I2C1_SCL), uint32_t(100000));   // Setup I2C-1 Port
   
@@ -405,13 +409,13 @@ void loop(void) {
     updateDisplay=true;                                    // Set Update-Display Flag
 
 #ifdef XDEBUG
-    Serial.printf("Received Corename or Command: %s\n", (char*)newCommand.c_str());
+    Serial.printf("\nReceived Corename or Command: %s\n", (char*)newCommand.c_str());
 #endif
   }  // end serial available
     
-  if (updateDisplay) {                                           // Proceed only if it's allowed because of new data from serial
-    if (startScreenActive && newCommand.startsWith("CMD")) {     // If any Command is processed the StartScreen isn't shown any more
-      startScreenActive=false;                                   // This variable should prevent "side effects" with Commands and is used to disable automatic drawings
+  if (updateDisplay) {                                                                                 // Proceed only if it's allowed because of new data from serial
+    if (startScreenActive && newCommand.startsWith("CMD") && !newCommand.startsWith("CMDTZONE")) {     // If any Command is processed the StartScreen isn't shown any more
+      startScreenActive=false;                                                                         // This variable should prevent "side effects" with Commands and is used to disable automatic drawings
     }
 
     if (newCommand.endsWith("QWERTZ")) {                         // Process first Transmission after PowerOn/Reboot.
@@ -522,18 +526,26 @@ void loop(void) {
 
     // The following Commands are only for the d.ti Board
 #ifdef USE_ESP32DEV
-    else if (newCommand.startsWith("CMDULED,")) {                            // Command from Serial to receive Contrast-Level Data from the MiSTer
-      usb2oled_readnsetuserled();                                            // Set LED                                   
+    else if (newCommand.startsWith("CMDULED,")) {                           // User LED
+      usb2oled_readnsetuserled();                                           // Set LED                                   
+    }
+    
+    else if (newCommand.startsWith("CMDPLED,")) {                           // Power Control LED
+      usb2oled_readnsetpowerled();                                          // Set LED
     }
 
-    else if (newCommand=="CMDSTEMP") {                                      // Show Temperature
+    else if (newCommand=="CMDSTEMP") {                                      // Enable to show Temperature Big Picture
     usb2oled_showtemperature();
     }
 
     else if (newCommand.startsWith("CMDTZONE")) {                           // Set Temperature Zone
     usb2oled_settempzone();
     }
-#endif
+
+    else if (newCommand.startsWith("CMDPTONE")) {                           // Play Tone
+    usb2oled_playtone();
+    }
+#endif  // USE_ESP32DEV
 
     // The following Commands are only for ESP32
 #ifdef ESP32  // OTA and Reset only for ESP32
@@ -544,7 +556,7 @@ void loop(void) {
     else if (newCommand=="CMDRESET") {                                      // Command from Serial for Resetting the ESP
       ESP.restart();                                                        // Reset ESP
     }
-#endif
+#endif  // ESP32
 
     // -- Unidentified Core Name, just write it on screen
     else {
@@ -760,7 +772,7 @@ void usb2oled_readnsetcontrast(void) {
   cT=newCommand.substring(7);
 
 #ifdef XDEBUG
-  Serial.printf("Received Text: %s\n", (char*)cT.c_str());
+  Serial.printf("\nReceived Text: %s\n", (char*)cT.c_str());
 #endif
 
   oled.setContrast(cT.toInt());            // Read and Set contrast  
@@ -795,7 +807,7 @@ void usb2oled_readnsetrotation(void) {
   rT=newCommand.substring(7);
 
 #ifdef XDEBUG
-  Serial.printf("Received Text: %s\n", (char*)rT.c_str());
+  Serial.printf("\nReceived Text: %s\n", (char*)rT.c_str());
 #endif
 
   r=rT.toInt();
@@ -837,7 +849,7 @@ void usb2oled_clswithtransition() {
   cT = TextIn.substring(d1+1);              // Get String for Draw Colour
   
 #ifdef XDEBUG
-  Serial.printf("Created Strings: T:%s C%s\n", (char*)tT.c_str(), (char*)cT.c_str());
+  Serial.printf("\nCreated Strings: T:%s C%s\n", (char*)tT.c_str(), (char*)cT.c_str());
 #endif
 
   // Enough Parameter given / Parameter Check
@@ -850,7 +862,7 @@ void usb2oled_clswithtransition() {
   c = cT.toInt();
 
 #ifdef XDEBUG
-  Serial.printf("Values: T:%i C:%i\n", t,c);
+  Serial.printf("\nValues: T:%i C:%i\n", t,c);
 #endif
 
   // Parameter check
@@ -913,7 +925,7 @@ int usb2oled_readlogo() {
     actCorename=TextIn;                              // Get Corename
     tEffect=-1;                                      // Set Effect to -1 (Random)
 #ifdef XDEBUG
-    Serial.printf("Received Text: %s, Transition T:None\n", (char*)actCorename.c_str());
+    Serial.printf("\nReceived Text: %s, Transition T:None\n", (char*)actCorename.c_str());
 #endif
   }
   else {                                             // "," found = Effect Parameter given
@@ -922,7 +934,7 @@ int usb2oled_readlogo() {
     if (tEffect<-1) tEffect=-1;                      // Check Effect minimum
     if (tEffect>maxEffect) tEffect=maxEffect;        // Check Effect maximum
 #ifdef XDEBUG
-    Serial.printf("Received Text: %s, Transition T:%i \n", (char*)actCorename.c_str(),tEffect);
+    Serial.printf("\nReceived Text: %s, Transition T:%i \n", (char*)actCorename.c_str(),tEffect);
 #endif
   }
   
@@ -1414,7 +1426,7 @@ void usb2oled_readnwritetext(void) {
   TextIn = newCommand.substring(7);            // Get Command Text from "newCommand"
   
 #ifdef XDEBUG
-  Serial.printf("Received Text: %s\n", (char*)TextIn.c_str());
+  Serial.printf("\nReceived Text: %s\n", (char*)TextIn.c_str());
 #endif
 
   //Searching for the "," delimiter
@@ -1433,7 +1445,7 @@ void usb2oled_readnwritetext(void) {
   TextOut = TextIn.substring(d5+1);         // Get String for Text
   
 #ifdef XDEBUG
-  Serial.printf("Created Strings: F:%s C%s B%s X:%s Y:%s T:%s\n", (char*)fT.c_str(), (char*)cT.c_str(), (char*)bT.c_str(), (char*)xT.c_str(), (char*)yT.c_str(), (char*)TextOut.c_str());
+  Serial.printf("\nCreated Strings: F:%s C%s B%s X:%s Y:%s T:%s\n", (char*)fT.c_str(), (char*)cT.c_str(), (char*)bT.c_str(), (char*)xT.c_str(), (char*)yT.c_str(), (char*)TextOut.c_str());
 #endif
 
   // Convert Strings to Integer
@@ -1529,7 +1541,7 @@ void usb2oled_readndrawgeo(void) {
   TextIn = newCommand.substring(7);             // Get Command Text from "newCommand"
   
 #ifdef XDEBUG
-  Serial.printf("Received Text: %s\n", (char*)TextIn.c_str());
+  Serial.printf("\nReceived Text: %s\n", (char*)TextIn.c_str());
 #endif
   
   //Searching for the "," delimiter
@@ -1552,7 +1564,7 @@ void usb2oled_readndrawgeo(void) {
   lT = TextIn.substring(d7+1);            // Get String for Parameter l
 
 #ifdef XDEBUG
-  Serial.printf("Part-Strings: G:%s C:%s X:%s Y:%s I:%s J:%s K:%s L:%s\n", (char*)gT.c_str(), (char*)cT.c_str(), (char*)xT.c_str(), (char*)yT.c_str(), (char*)iT.c_str(), (char*)jT.c_str(), (char*)kT.c_str(), (char*)lT.c_str());
+  Serial.printf("\nPart-Strings: G:%s C:%s X:%s Y:%s I:%s J:%s K:%s L:%s\n", (char*)gT.c_str(), (char*)cT.c_str(), (char*)xT.c_str(), (char*)yT.c_str(), (char*)iT.c_str(), (char*)jT.c_str(), (char*)kT.c_str(), (char*)lT.c_str());
 #endif
 
   // Convert Strings to Integer
@@ -1566,7 +1578,7 @@ void usb2oled_readndrawgeo(void) {
   l = lT.toInt();
 
 #ifdef XDEBUG
-  Serial.printf("Values: G:%i C:%i X:%i Y:%i I:%i J:%i K:%i L:%i\n", g,c,x,y,i,j,k,l);
+  Serial.printf("\nValues: G:%i C:%i X:%i Y:%i I:%i J:%i K:%i L:%i\n", g,c,x,y,i,j,k,l);
 #endif
 
   // Enough Parameter given / Parameter Check
@@ -1626,6 +1638,7 @@ void usb2oled_readndrawgeo(void) {
 
 // ------------------ D.TI Board Funtions -----------------------
 #ifdef USE_ESP32DEV
+
 // --------------------------------------------------------------
 // ---------------- Just show the Temperature -------------------
 // --------------------------------------------------------------
@@ -1662,56 +1675,23 @@ void usb2oled_readnsetuserled(void) {
   xT=newCommand.substring(8);
 
 #ifdef XDEBUG
-  Serial.printf("Received Text: %s\n", (char*)xT.c_str());
+  Serial.printf("\nReceived Text: %s\n", (char*)xT.c_str());
 #endif
   
   x=xT.toInt();                                  // Convert Value
+  if (x<0) x=0;
   
   if (!pcaAvail) {                               // PCA not avail = Board Rev 1.1 = LED
     if (x>1) x=1;
     digitalWrite(USER_LED,x);  
-    //if (x==0) digitalWrite(USER_LED, LOW);
-    //if (x==1) digitalWrite(USER_LED, HIGH);
   }
   else {                                         // PCA avail = Board Rev 1.2 = WS2812B LED
-    switch (x) {
-      case 0:
-        wsleds[0] = CRGB::Black;                 // Off
-        break;
-      case 1:
-        wsleds[0] = CRGB::Yellow;
-        break;
-      case 2:
-        wsleds[0] = CRGB::Red;
-        break;
-      case 3:
-        wsleds[0] = CRGB::Green;
-        break;
-      case 4:
-        wsleds[0] = CRGB::Blue;
-        break;
-      case 99:
-        wsleds[0] = CRGB::White;                 // All On = White
-        break;
-      case 999:
-        ledcWriteNote(TONE_PWM_CHANNEL, NOTE_C, 4);
-        delay(500);
-        ledcWriteNote(TONE_PWM_CHANNEL, NOTE_D, 4);
-        delay(500);
-        ledcWriteNote(TONE_PWM_CHANNEL, NOTE_E, 4);
-        delay(500);
-        ledcWriteNote(TONE_PWM_CHANNEL, NOTE_F, 4);
-        delay(500);
-        ledcWriteNote(TONE_PWM_CHANNEL, NOTE_G, 4);
-        delay(500);
-        ledcWriteNote(TONE_PWM_CHANNEL, NOTE_A, 4);
-        delay(500);
-        ledcWriteNote(TONE_PWM_CHANNEL, NOTE_B, 4);
-        delay(500);
-        ledcWriteNote(TONE_PWM_CHANNEL, NOTE_C, 5);
-        delay(500);        
-        ledcWriteTone(TONE_PWM_CHANNEL, 0);
-        break;
+    if (x>255) x=255;
+    if (x==0) {
+      wsleds[0] = CRGB::Black;                   // off
+    }
+    else {
+      wsleds[0] = CHSV(x,255,255);               // color
     }
     FastLED.show();
   }
@@ -1730,7 +1710,7 @@ void usb2oled_settempzone(void) {
   xZ=newCommand.substring(9);
 
 #ifdef XDEBUG
-  Serial.printf("Received Text: %s\n", (char*)xZ.c_str());
+  Serial.printf("\nReceived Text: %s\n", (char*)xZ.c_str());
 #endif
   if (micAvail) {
     if (xZ.toInt()==0) tSensor.setZONE(MIC184_ZONE_INTERNAL);
@@ -1738,6 +1718,104 @@ void usb2oled_settempzone(void) {
     //delay(1000);
   }
 }
+
+// --------------------------------------------------------------
+// ---------------------- Set Power LED -------------------------
+// --------------------------------------------------------------
+void usb2oled_readnsetpowerled(void) {
+  String xT="";
+  int x;
+#ifdef XDEBUG
+  Serial.println("Called Command CMDPLED");
+#endif
+  xT=newCommand.substring(8);
+#ifdef XDEBUG
+  Serial.printf("\nReceived Text: %s\n", (char*)xT.c_str());
+#endif
+  
+  x=xT.toInt();                                 // Convert Value
+  
+  if (pcaAvail) {                               // PCA not avail = Board Rev 1.1 = LED
+    if (x<0) x=0;
+    if (x>1) x=1;
+    digitalWrite(PWRLED,!x);                    // Need to negate Signal, Pin = 1 LED's off
+  }
+}
+
+// --------------------------------------------------------------
+// ------------ Play Tone using Piezo Beeper --------------------
+// --------------------------------------------------------------
+void usb2oled_playtone(void) {
+  int d0=0,d1=0,d2=0,d3=0,d4=0,o=0,d=0,p=0;
+  String TextIn="",nT="",oT="",dT="",pT="";
+  note_t n;
+  
+#ifdef XDEBUG
+  Serial.println("Called Command CMDPTONE");
+#endif  
+  TextIn=newCommand.substring(8);               // Start to find the first "," after the command
+#ifdef XDEBUG
+  Serial.printf("\nReceived Text: %s\n", (char*)TextIn.c_str());
+#endif
+  
+  d0 = TextIn.indexOf(',');                 // Find location of the Starting ","
+ 
+  ledcAttachPin(BUZZER, TONE_PWM_CHANNEL);
+ 
+  Serial.printf("\nReceived Text: %s\n", (char*)TextIn.c_str());
+
+  do {
+    // find ","
+    d1 = TextIn.indexOf(',', d0+1 );          // Find location of first ","
+    d2 = TextIn.indexOf(',', d1+1 );          // Find location of second ","
+    d3 = TextIn.indexOf(',', d2+1 );          // Find location of third ","
+    d4 = TextIn.indexOf(',', d3+1 );          // Find location of fouth "," => value = "-1" if not found = no more Notes available
+
+    //Create Substrings
+    nT = TextIn.substring(d0+1, d1);          // Get String for Note
+    oT = TextIn.substring(d1+1, d2);          // Get String for Octave
+    dT = TextIn.substring(d2+1, d3);          // Get String for Duration
+    if (d4 != -1) {
+      pT = TextIn.substring(d3+1, d4);        // Get String for Pause
+    }
+    else {
+      pT = TextIn.substring(d3+1);            // Get String for Pause
+    }
+
+    // Build Note and convert Substrings to Integers
+    // See https://github.com/espressif/arduino-esp32/blob/6a7bcabd6b7a33f074f93ed60e5cc4378d350b81/cores/esp32/esp32-hal-ledc.c#L141
+    // NOTE_C, NOTE_Cs, NOTE_D, NOTE_Eb, NOTE_E, NOTE_F, NOTE_Fs, NOTE_G, NOTE_Gs, NOTE_A, NOTE_Bb, NOTE_B, NOTE_MAX
+    nT.toUpperCase();                         // Set Note
+    if (nT == "C")   n = NOTE_C;
+    if (nT == "CS")  n = NOTE_Cs;
+    if (nT == "D")   n = NOTE_D;
+    if (nT == "EB")  n = NOTE_Eb;
+    if (nT == "E")   n = NOTE_E;
+    if (nT == "F")   n = NOTE_F;
+    if (nT == "FS")  n = NOTE_Fs;
+    if (nT == "G")   n = NOTE_G;
+    if (nT == "GS")  n = NOTE_Gs;
+    if (nT == "A")   n = NOTE_A;
+    if (nT == "BB")  n = NOTE_Bb;
+    if (nT == "B")   n = NOTE_B;
+    if (nT == "MAX") n = NOTE_MAX;
+    o = oT.toInt();                           // Octave
+    d = dT.toInt();                           // Duration
+    p = pT.toInt();                           // Pause after playing tone
+
+    Serial.printf("Values to Play: %s %d %d %d\n", (char*)nT.c_str(), o, d, p);
+  
+    ledcWriteNote(TONE_PWM_CHANNEL, n, o);    // Play Note
+    delay(d);                                 // Duration
+    ledcWriteTone(TONE_PWM_CHANNEL, 0);       // Buzzer off
+    delay(p);                                 // Pause
+
+    d0=d4; // Set Index in String for next Note
+  } while (d4 != -1);                         // Repeat as long the fourth "," is found
+
+  ledcDetachPin(BUZZER);
+}
+
 #endif  // ----------- d.ti functions---------------
 
 

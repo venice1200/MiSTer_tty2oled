@@ -27,9 +27,17 @@
   -FastLED https://github.com/FastLED/FastLED/wiki, https://www.youtube.com/watch?v=FQpXStjJ4Vc
 
   2022-01-29
-  -Add Command CMDPLED for d.ti Board v1.2, Switch Power LED on (1)/off(0)
+  -Modded Command CMDULED supporting d.ti Board v1.2
+   d.ti Board v1.1 CMDULED,[0,1] User LED Off/On
+   d.ti Board v1.2 CMDULED,[0,1..255] WS2812B User LED Off/On with Color (HSV Colors; Hue = Command Parameter, Saturation & Value = 255)
+  -Add Command CMDPLED for d.ti Board v1.2
+   CMDPLED,[0,1] Switch Power LED Off/On
   -Add Command CMDPTONE for d.ti Board v1.2
-  
+   CMDPTONE,[Note,Octave,Duration,Pause],[Note,Octave,Duration,Pause]... play Tone using the Buzzer.
+   CMDPTONE,C,4,150,30,C,4,160,30,C,4,150,30,F,4,150,30,C,4,150,30
+  -Add Command CMDPFREQ for d.ti Board v1.2
+   CMDPFRQ,[Frequency,Duration,Pause],[Frequency,Duration,Pause]... play Frequency using the Buzzer.
+   
   ToDo
   -Everything I forgot
    
@@ -544,6 +552,10 @@ void loop(void) {
 
     else if (newCommand.startsWith("CMDPTONE")) {                           // Play Tone
     usb2oled_playtone();
+    }
+
+    else if (newCommand.startsWith("CMDPFREQ")) {                           // Play Frequency
+    usb2oled_playfrequency();
     }
 #endif  // USE_ESP32DEV
 
@@ -1812,6 +1824,60 @@ void usb2oled_playtone(void) {
 
     d0=d4; // Set Index in String for next Note
   } while (d4 != -1);                         // Repeat as long the fourth "," is found
+
+  ledcDetachPin(BUZZER);
+}
+
+// --------------------------------------------------------------
+// --------- Play Frequency using Piezo Beeper ------------------
+// --------------------------------------------------------------
+void usb2oled_playfrequency(void) {
+  int d0=0,d1=0,d2=0,d3=0,f=0,d=0,p=0;
+  String TextIn="",fT="",dT="",pT="";
+  
+#ifdef XDEBUG
+  Serial.println("Called Command CMDPFREQ");
+#endif  
+  TextIn=newCommand.substring(8);               // Start to find the first "," after the command
+#ifdef XDEBUG
+  Serial.printf("\nReceived Text: %s\n", (char*)TextIn.c_str());
+#endif
+  
+  d0 = TextIn.indexOf(',');                 // Find location of the Starting ","
+ 
+  ledcAttachPin(BUZZER, TONE_PWM_CHANNEL);
+ 
+  Serial.printf("\nReceived Text: %s\n", (char*)TextIn.c_str());
+
+  do {
+    // find ","
+    d1 = TextIn.indexOf(',', d0+1 );          // Find location of first ","
+    d2 = TextIn.indexOf(',', d1+1 );          // Find location of second ","
+    d3 = TextIn.indexOf(',', d2+1 );          // Find location of third "," => value = "-1" if not found = no more Notes available
+
+    //Create Substrings
+    fT = TextIn.substring(d0+1, d1);          // Get String for Frequency
+    dT = TextIn.substring(d1+1, d2);          // Get String for Duration
+    if (d3 != -1) {
+      pT = TextIn.substring(d2+1, d3);        // Get String for Pause
+    }
+    else {
+      pT = TextIn.substring(d2+1);            // Get String for Pause
+    }
+
+    f = fT.toInt();                           // Octave
+    d = dT.toInt();                           // Duration
+    p = pT.toInt();                           // Pause after playing tone
+
+    Serial.printf("Values to Play: %d %d %d\n", f, d, p);
+  
+    ledcWriteTone(TONE_PWM_CHANNEL, f);       // Play Frequency
+    delay(d);                                 // Duration
+    ledcWriteTone(TONE_PWM_CHANNEL, 0);       // Buzzer off
+    delay(p);                                 // Pause
+
+    d0=d3; // Set Index in String for next Note
+  } while (d3 != -1);                         // Repeat as long the fourth "," is found
 
   ledcDetachPin(BUZZER);
 }

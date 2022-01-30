@@ -26,14 +26,15 @@
   -Piezo Buzzer Tone Examples https://makeabilitylab.github.io/physcomp/esp32/tone.html
   -FastLED https://github.com/FastLED/FastLED/wiki, https://www.youtube.com/watch?v=FQpXStjJ4Vc
 
-  2022-01-29
+  2022-01-29..30
+  -Enhanced Support for d.ti Board Rev 1.2
   -Modded Command CMDULED supporting d.ti Board v1.2
    d.ti Board v1.1 CMDULED,[0,1] User LED Off/On
    d.ti Board v1.2 CMDULED,[0,1..255] WS2812B User LED Off/On with Color (HSV Colors; Hue = Command Parameter, Saturation & Value = 255)
   -Add Command CMDPLED for d.ti Board v1.2
    CMDPLED,[0,1] Switch Power LED Off/On
   -Add Command CMDPTONE for d.ti Board v1.2
-   CMDPTONE,[Note,Octave,Duration,Pause],[Note,Octave,Duration,Pause]... play Tone using the Buzzer.
+   CMDPTONE,[Note,Octave,Duration,Pause],[Note,Octave,Duration,Pause]... play Note/Tone using the Buzzer.
    CMDPTONE,C,4,150,30,C,4,160,30,C,4,150,30,F,4,150,30,C,4,150,30
   -Add Command CMDPFREQ for d.ti Board v1.2
    CMDPFRQ,[Frequency,Duration,Pause],[Frequency,Duration,Pause]... play Frequency using the Buzzer.
@@ -44,7 +45,7 @@
 */
 
 // Set Version
-#define BuildVersion "220129T"                    // "T" for Testing
+#define BuildVersion "220130T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -75,16 +76,16 @@
 // ------------------------------------ Make sure the Auto-Board-Config is not active ----------------------------------
 // ---------------------------------------------------------------------------------------------------------------------
 
-#ifdef ARDUINO_ESP32_DEV
-  #define USE_ESP32DEV            // TTGO-T8, tty2oled Board by d.ti. Set Arduino Board to "ESP32 Dev Module"
+#ifdef ARDUINO_ESP32_DEV          // Set Arduino Board to "ESP32 Dev Module"
+  #define USE_ESP32DEV            // TTGO-T8, tty2oled Board by d.ti
 #endif
 
-#ifdef ARDUINO_LOLIN32
-  #define USE_LOLIN32             // Wemos LOLIN32, LOLIN32, DevKit_V4. Set Arduino Board to "WEMOS LOLIN32"
+#ifdef ARDUINO_LOLIN32            // Set Arduino Board to "WEMOS LOLIN32"
+  #define USE_LOLIN32             // Wemos LOLIN32, LOLIN32, DevKit_V4
 #endif
 
-#if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)
-  #define USE_NODEMCU             // ESP8266 NodeMCU v3. Set Arduino Board to "NodeMCU 1.0 (ESP-12E Module)"
+#if defined(ARDUINO_ESP8266_NODEMCU) || defined(ARDUINO_ESP8266_NODEMCU_ESP12E)  // Set Arduino Board to "NodeMCU 1.0 (ESP-12E Module)"
+  #define USE_NODEMCU             // ESP8266 NodeMCU v3
 #endif
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -114,9 +115,9 @@
   #define PWRLED 5                 // Set Pin to "1" = LED's off
   #define BUZZER 4                 // Piezo Buzzer
   #define TONE_PWM_CHANNEL 0       // See: https://makeabilitylab.github.io/physcomp/esp32/tone.html
-  #include <MIC184.h>              // MIC184 Library
+  #include <MIC184.h>              // MIC184 Library, get from https://github.com/venice1200/MIC184_Temperature_Sensor
   MIC184 tSensor;                  // Create Sensor Class
-  #include <FastLED.h>             // FastLED Library
+  #include <FastLED.h>             // FastLED Library, get from Library Manager
   #define NUM_WSLEDS 1             // Number of WS-LED's
   #define WS_BRIGHTNESS 50         // WS-LED Brightness
   CRGB wsleds[NUM_WSLEDS];         // Create WS-LED RGB Array
@@ -1781,7 +1782,7 @@ void usb2oled_playtone(void) {
     d1 = TextIn.indexOf(',', d0+1 );          // Find location of first ","
     d2 = TextIn.indexOf(',', d1+1 );          // Find location of second ","
     d3 = TextIn.indexOf(',', d2+1 );          // Find location of third ","
-    d4 = TextIn.indexOf(',', d3+1 );          // Find location of fouth "," => value = "-1" if not found = no more Notes available
+    d4 = TextIn.indexOf(',', d3+1 );          // Find location of fouth "," - Value = "-1" if not found = no more Notes available
 
     //Create Substrings
     nT = TextIn.substring(d0+1, d1);          // Get String for Note
@@ -1789,6 +1790,7 @@ void usb2oled_playtone(void) {
     dT = TextIn.substring(d2+1, d3);          // Get String for Duration
     if (d4 != -1) {
       pT = TextIn.substring(d3+1, d4);        // Get String for Pause
+      d0=d4;                                  // Set Index for next Note
     }
     else {
       pT = TextIn.substring(d3+1);            // Get String for Pause
@@ -1814,16 +1816,15 @@ void usb2oled_playtone(void) {
     o = oT.toInt();                           // Octave
     d = dT.toInt();                           // Duration
     p = pT.toInt();                           // Pause after playing tone
-
+#ifdef XDEBUG
     Serial.printf("Values to Play: %s %d %d %d\n", (char*)nT.c_str(), o, d, p);
-  
+#endif  
     ledcWriteNote(TONE_PWM_CHANNEL, n, o);    // Play Note
     delay(d);                                 // Duration
     ledcWriteTone(TONE_PWM_CHANNEL, 0);       // Buzzer off
     delay(p);                                 // Pause
-
-    d0=d4; // Set Index in String for next Note
-  } while (d4 != -1);                         // Repeat as long the fourth "," is found
+    
+  } while (d4 != -1);                         // Repeat as long a fourth "," is found
 
   ledcDetachPin(BUZZER);
 }
@@ -1853,13 +1854,14 @@ void usb2oled_playfrequency(void) {
     // find ","
     d1 = TextIn.indexOf(',', d0+1 );          // Find location of first ","
     d2 = TextIn.indexOf(',', d1+1 );          // Find location of second ","
-    d3 = TextIn.indexOf(',', d2+1 );          // Find location of third "," => value = "-1" if not found = no more Notes available
+    d3 = TextIn.indexOf(',', d2+1 );          // Find location of third "," - Value = "-1" if not found = no more Notes available
 
     //Create Substrings
     fT = TextIn.substring(d0+1, d1);          // Get String for Frequency
     dT = TextIn.substring(d1+1, d2);          // Get String for Duration
     if (d3 != -1) {
       pT = TextIn.substring(d2+1, d3);        // Get String for Pause
+      d0=d3;                                  // Set Index in String for next Note
     }
     else {
       pT = TextIn.substring(d2+1);            // Get String for Pause
@@ -1868,16 +1870,15 @@ void usb2oled_playfrequency(void) {
     f = fT.toInt();                           // Octave
     d = dT.toInt();                           // Duration
     p = pT.toInt();                           // Pause after playing tone
-
+#ifdef XDEBUG
     Serial.printf("Values to Play: %d %d %d\n", f, d, p);
-  
+#endif  
     ledcWriteTone(TONE_PWM_CHANNEL, f);       // Play Frequency
     delay(d);                                 // Duration
     ledcWriteTone(TONE_PWM_CHANNEL, 0);       // Buzzer off
     delay(p);                                 // Pause
-
-    d0=d3; // Set Index in String for next Note
-  } while (d3 != -1);                         // Repeat as long the fourth "," is found
+   
+  } while (d3 != -1);                         // Repeat as long a third "," is found
 
   ledcDetachPin(BUZZER);
 }

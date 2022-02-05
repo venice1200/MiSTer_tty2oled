@@ -41,7 +41,8 @@
 
   2022-02-05
   -Add Commdand CMDSAVER to enable the Screensaver
-   CMDSAVER,Mode(0/1),Interval(10..600)
+   CMDSAVER,Mode/Color, Interval
+   Mode/Color: 0=Off, 1..15=On/Color, Interval: 10..600 Seconds
    
   ToDo
   -Everything I forgot
@@ -212,11 +213,12 @@ bool timer10pos;                             // Positive Timer 10 sec Signal
 bool timer30pos;                             // Positive Timer 30 sec Signal
 bool timer60pos;                             // Positive Timer 60 sec Signal
 
-
+// ScreenSaver
 bool ScreenSaverActive=false;
 int ScreenSaverTimer=0;                      // ScreenSaverTimer
 int ScreenSaverInterval=60;                  // Interval for ScreenSaverTimer
 bool ScreenSaverPos;                         // Positive Signal ScreenSaver
+int ScreenSaverColor=1;                      // ScreenSaver Drawing Color
 
 // I2C Hardware
 bool micAvail=false;                          // Is the MIC184 Sensor available?
@@ -613,9 +615,9 @@ void loop(void) {
     updateDisplay=false;                              // Clear Update-Display Flag
   } // endif updateDisplay
 
-  // Screensaver if Active
+  // ScreenSaver if Active
   if (ScreenSaverActive && ScreenSaverPos) {              // Screensaver each 60secs
-    oled_showScreensaverPicture();
+    oled_showScreenSaverPicture();
   }
 
 // Show Temperature ESP32DEV only
@@ -711,14 +713,14 @@ void usb2oled_readnsetscreensaver(void) {
   d1 = TextIn.indexOf(',');                 // Find location of first ","
 
   //Create Substrings
-  mT = TextIn.substring(0, d1);             // Get String for Mode
+  mT = TextIn.substring(0, d1);             // Get String for Mode/Color
   iT = TextIn.substring(d1+1);              // Get String for Interval
 
   m=mT.toInt();                             // Convert Value
   i=iT.toInt();                             // Convert Value
 
-  if (m<0) m=0;                             // Check & Set Mode low
-  if (m>1) m=1;                             // Check & Set Mode high
+  if (m<0) m=0;                             // Check & Set Mode/Color low
+  if (m>15) m=15;                           // Check & Set Mode/Color high
   if (i<10) i=10;                           // Check&Set Minimum    
   if (i>600) i=600;                         // Check&Set Maximiun
   
@@ -730,8 +732,9 @@ void usb2oled_readnsetscreensaver(void) {
   if (m==0) {
     ScreenSaverActive = false;
   }
-  if (m==1) {
+  else{
     ScreenSaverActive = true;
+    ScreenSaverColor = m;                     // Set ScreenSaver Color
     ScreenSaverInterval=i;                    // Set ScreenSaverTimer Interval
     ScreenSaverTimer=0;                       // Reset Screensaver-Timer
   }
@@ -741,19 +744,19 @@ void usb2oled_readnsetscreensaver(void) {
 // --------------------------------------------------------------
 // ---------------- Show ScreesnSaver Picture  ------------------
 // --------------------------------------------------------------
-void oled_showScreensaverPicture(void) {
+void oled_showScreenSaverPicture(void) {
   int l,x,y;
   l=random(1+1);
   oled.clearDisplay();
   if (l==0) {
     x=random(DispWidth - mister_logo32_width);
     y=random(DispHeight - mister_logo32_height);
-    oled.drawXBitmap(x, y, mister_logo32, mister_logo32_width, mister_logo32_height, SSD1322_WHITE);
+    oled.drawXBitmap(x, y, mister_logo32, mister_logo32_width, mister_logo32_height, ScreenSaverColor);
   }
   else {
     x=random(DispWidth - tty2oled_logo32_width);
     y=random(DispHeight - tty2oled_logo32_height);
-    oled.drawXBitmap(x, y , tty2oled_logo32, tty2oled_logo32_width, tty2oled_logo32_height, SSD1322_WHITE);
+    oled.drawXBitmap(x, y , tty2oled_logo32, tty2oled_logo32_width, tty2oled_logo32_height, ScreenSaverColor);
   }
   oled.display();
 }

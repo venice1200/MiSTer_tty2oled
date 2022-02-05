@@ -38,6 +38,10 @@
    CMDPTONE,C,4,150,30,C,4,160,30,C,4,150,30,F,4,150,30,C,4,150,30
   -Add Command CMDPFREQ for d.ti Board v1.2
    CMDPFRQ,[Frequency,Duration,Pause],[Frequency,Duration,Pause]... play Frequency using the Buzzer.
+
+  2022-02-05
+  -Add Commdand CMDSAVER to enable the Screensaver
+   CMDSAVER,Mode(0/1),Interval(10..600)
    
   ToDo
   -Everything I forgot
@@ -45,7 +49,7 @@
 */
 
 // Set Version
-#define BuildVersion "220130T"                    // "T" for Testing
+#define BuildVersion "220205T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -200,10 +204,19 @@ bool prevblink = false;
 bool blinkpos = false;                        // Pos Flanc
 bool blinkneg = false;                        // Neg Flanc
 unsigned long previousMillis = 0;
-const int minInterval = 30;                   // Interval for Timer
-//const int minInterval = 60;                   // Interval for Timer
-int timer=0;                                  // Counter for Timer
-bool timerpos;                                // Positive Timer Signal
+const int interval10 = 10;                   // Interval for Timer 10sec
+const int interval30 = 30;                   // Interval for Timer 30sec
+const int interval60 = 60;                   // Interval for Timer 60sec
+int timer=0;                                 // Counter for Timer
+bool timer10pos;                             // Positive Timer 10 sec Signal
+bool timer30pos;                             // Positive Timer 30 sec Signal
+bool timer60pos;                             // Positive Timer 60 sec Signal
+
+
+bool ScreenSaverActive=false;
+int ScreenSaverTimer=0;                      // ScreenSaverTimer
+int ScreenSaverInterval=60;                  // Interval for ScreenSaverTimer
+bool ScreenSaverPos;                         // Positive Signal ScreenSaver
 
 // I2C Hardware
 bool micAvail=false;                          // Is the MIC184 Sensor available?
@@ -402,18 +415,28 @@ void loop(void) {
 
   // Timer
   if (blinkpos) timer++;
-  if (timer>minInterval) timer = 0;
-  timerpos = (timer == minInterval) && blinkpos;
+  timer10pos = (timer % interval10 == 0) && blinkpos;
+  timer30pos = (timer % interval30 == 0) && blinkpos;
+  timer60pos = (timer % interval60 == 0) && blinkpos;
+  if (timer>=interval60) timer = 0;
+  
+  // ScreenSaver Timer  
+  if (blinkpos) ScreenSaverTimer++;
+  ScreenSaverPos = (ScreenSaverTimer == ScreenSaverInterval) && blinkpos;
+  if (ScreenSaverTimer>=ScreenSaverInterval) ScreenSaverTimer=0;
 
 #ifdef XDEBUG
-  if (blinkpos) Serial.println("Blink-Pos...");
-  if (blinkneg) Serial.println("Blink-Neg...");
-  if (timerpos) Serial.println("Blink-Pos-60...");
+  //if (blinkpos) Serial.println("Blink-Pos");
+  //if (blinkneg) Serial.println("Blink-Neg");
+  if (timer10pos) Serial.println("Blink-10s");
+  if (timer30pos) Serial.println("Blink-30s");
+  if (timer60pos) Serial.println("Blink-60s");
+  if (ScreenSaverPos) Serial.println("ScreenSaverTimer");
 #endif
 
   // Get Serial Data
   if (Serial.available()) {
-	prevCommand = newCommand;                                // Save old Command
+  	prevCommand = newCommand;                              // Save old Command
     newCommand = Serial.readStringUntil('\n');             // Read string from serial until NewLine "\n" (from MiSTer's echo command) is detected or timeout (1000ms) happens.
     updateDisplay=true;                                    // Set Update-Display Flag
 
@@ -525,21 +548,24 @@ void loop(void) {
       }
     }
 
-    else if (newCommand.startsWith("CMDCON,")) {                            // Command from Serial to receive Contrast-Level Data from the MiSTer
+    else if (newCommand.startsWith("CMDCON")) {                            // Command from Serial to receive Contrast-Level Data from the MiSTer
       usb2oled_readnsetcontrast();                                          // Read and Set contrast                                   
     }
 
-    else if (newCommand.startsWith("CMDROT,")) {                            // Command from Serial to set Rotation
-      usb2oled_readnsetrotation();                                          // Set Rotation
+    else if (newCommand.startsWith("CMDROT")) {                            // Command from Serial to set Rotation
+      usb2oled_readnsetrotation();                                         // Set Rotation
+    }
+    else if (newCommand.startsWith("CMDSAVER")) {                          // Command from Serial to set Screensaver
+      usb2oled_readnsetscreensaver();                                      // Enable/Disable Screensaver
     }
 
     // The following Commands are only for the d.ti Board
 #ifdef USE_ESP32DEV
-    else if (newCommand.startsWith("CMDULED,")) {                           // User LED
+    else if (newCommand.startsWith("CMDULED")) {                           // User LED
       usb2oled_readnsetuserled();                                           // Set LED                                   
     }
     
-    else if (newCommand.startsWith("CMDPLED,")) {                           // Power Control LED
+    else if (newCommand.startsWith("CMDPLED")) {                           // Power Control LED
       usb2oled_readnsetpowerled();                                          // Set LED
     }
 
@@ -584,30 +610,31 @@ void loop(void) {
     Serial.flush();                          // Wait for sendbuffer is clear
 #endif
 
-    updateDisplay=false;                     // Clear Update-Display Flag
-  } // end updateDisplay
+    updateDisplay=false;                              // Clear Update-Display Flag
+  } // endif updateDisplay
 
+  // Screensaver if Active
+  if (ScreenSaverActive && ScreenSaverPos) {              // Screensaver each 60secs
+    oled_showScreensaverPicture();
+  }
 
+// Show Temperature ESP32DEV only
 #ifdef USE_ESP32DEV
-  // Update Temp each Timer Interval
+  // Update Temp each Timer Interval only if MIC184 is available and..
   // ..if just the plain Boot Screen is shown..
-  if (startScreenActive && timerpos) {
-    if (micAvail) {
+  if (micAvail) {
+    if (startScreenActive && timer30pos) {
       u8g2.setCursor(111,63);
       u8g2.print(tSensor.getTemp());                  // Show Temperature if Sensor available
       u8g2.print("\xb0");
       u8g2.print("C");
+      oled.display();
     }
-    //else {
-    //  u8g2.setCursor(120,63);
-    //  u8g2.print("NA");
-    //}
-    oled.display();
-  }
-  // ..or CMDSTEMP was called
-  if (newCommand=="CMDSTEMP" && timerpos) {          // Show Temperature
-    usb2oled_showtemperature();
-  }
+    // ..or CMDSTEMP was called
+    if (newCommand=="CMDSTEMP" && timer30pos) {          // Show Temperature
+      usb2oled_showtemperature();
+    }
+  }  // endif micAvail
 #endif
   
 } // End Main Loop
@@ -664,6 +691,72 @@ void oled_showStartScreen(void) {
   oled.display();
   startScreenActive=true;
 } // end mistertext
+
+
+// --------------------------------------------------------------
+// ------------------ Set Screensave Mode -----------------------
+// --------------------------------------------------------------
+void usb2oled_readnsetscreensaver(void) {
+  String TextIn="",mT="",iT="";
+  int d1,m,i;
+#ifdef XDEBUG
+  Serial.println("Called Command CMDSAVER");
+#endif
+  TextIn=newCommand.substring(9);
+#ifdef XDEBUG
+  Serial.printf("Received Text: %s\n", (char*)TextIn.c_str());
+#endif
+ 
+  //Searching for the "," delimiter
+  d1 = TextIn.indexOf(',');                 // Find location of first ","
+
+  //Create Substrings
+  mT = TextIn.substring(0, d1);             // Get String for Mode
+  iT = TextIn.substring(d1+1);              // Get String for Interval
+
+  m=mT.toInt();                             // Convert Value
+  i=iT.toInt();                             // Convert Value
+
+  if (m<0) m=0;                             // Check & Set Mode low
+  if (m>1) m=1;                             // Check & Set Mode high
+  if (i<10) i=10;                           // Check&Set Minimum    
+  if (i>600) i=600;                         // Check&Set Maximiun
+  
+#ifdef XDEBUG
+  Serial.printf("Created Strings: M:%s I:%s\n", (char*)mT.c_str(), (char*)iT.c_str());
+  Serial.printf("Values: M:%i T:%i\n", m, i);
+#endif
+
+  if (m==0) {
+    ScreenSaverActive = false;
+  }
+  if (m==1) {
+    ScreenSaverActive = true;
+    ScreenSaverInterval=i;                    // Set ScreenSaverTimer Interval
+    ScreenSaverTimer=0;                       // Reset Screensaver-Timer
+  }
+}
+
+
+// --------------------------------------------------------------
+// ---------------- Show ScreesnSaver Picture  ------------------
+// --------------------------------------------------------------
+void oled_showScreensaverPicture(void) {
+  int l,x,y;
+  l=random(1+1);
+  oled.clearDisplay();
+  if (l==0) {
+    x=random(DispWidth - mister_logo32_width);
+    y=random(DispHeight - mister_logo32_height);
+    oled.drawXBitmap(x, y, mister_logo32, mister_logo32_width, mister_logo32_height, SSD1322_WHITE);
+  }
+  else {
+    x=random(DispWidth - tty2oled_logo32_width);
+    y=random(DispHeight - tty2oled_logo32_height);
+    oled.drawXBitmap(x, y , tty2oled_logo32, tty2oled_logo32_width, tty2oled_logo32_height, SSD1322_WHITE);
+  }
+  oled.display();
+}
 
 
 // --------------------------------------------------------------
@@ -787,8 +880,8 @@ void usb2oled_readnsetcontrast(void) {
 #ifdef XDEBUG
   Serial.printf("\nReceived Text: %s\n", (char*)cT.c_str());
 #endif
-
-  oled.setContrast(cT.toInt());            // Read and Set contrast  
+  contrast=cT.toInt();                   // Convert Value
+  oled.setContrast(contrast);            // Read and Set contrast  
 }
 
 // --------------------------------------------------------------
@@ -862,7 +955,8 @@ void usb2oled_clswithtransition() {
   cT = TextIn.substring(d1+1);              // Get String for Draw Colour
   
 #ifdef XDEBUG
-  Serial.printf("\nCreated Strings: T:%s C%s\n", (char*)tT.c_str(), (char*)cT.c_str());
+  Serial.printf("\nReceived Text: %s\n", (char*)TextIn.c_str());
+  Serial.printf("Created Strings: T:%s C:%s\n", (char*)tT.c_str(), (char*)cT.c_str());
 #endif
 
   // Enough Parameter given / Parameter Check
@@ -875,7 +969,7 @@ void usb2oled_clswithtransition() {
   c = cT.toInt();
 
 #ifdef XDEBUG
-  Serial.printf("\nValues: T:%i C:%i\n", t,c);
+  Serial.printf("Values: T:%i C:%i\n", t,c);
 #endif
 
   // Parameter check
@@ -994,11 +1088,11 @@ void usb2oled_drawlogo(uint8_t e) {
   //unsigned char logoByteValue;
   //int logoByte;
   uint8_t vArray[DispLineBytes1bpp]={0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31};
-
+  
 #ifdef XDEBUG
   Serial.println("Called Command CMDLOGO");
 #endif
-  
+
   switch (e) {
     case 1:                                  // Left to Right
       for (x=0; x<DispLineBytes1bpp; x++) {
@@ -1382,6 +1476,7 @@ void usb2oled_drawlogo(uint8_t e) {
       }    
     break;
   } // end switch (e)
+  ScreenSaverTimer=0;                        // Reset Screensaver-Timer
 }  // end sd2oled_drawlogo
 
 

@@ -40,9 +40,14 @@
    CMDPFRQ,[Frequency,Duration,Pause],[Frequency,Duration,Pause]... play Frequency using the Buzzer.
 
   2022-02-05
-  -Add Commdand CMDSAVER to enable the Screensaver
+  -Add Command CMDSAVER to enable Screensaver
    CMDSAVER,Mode/Color, Interval
    Mode/Color: 0=Off, 1..15=On/Color, Interval: 10..600 Seconds
+
+  2022-02-06
+  -Change Command CMDSAVER
+   CMDSAVER,Mode/Color, Interval, LogoTime
+   Mode/Color: 0=Off, 1..15=On/Color, Interval: 10..600 Seconds, LogoTime: 10..600 Seconds
    
   ToDo
   -Everything I forgot
@@ -50,7 +55,7 @@
 */
 
 // Set Version
-#define BuildVersion "220205T"                    // "T" for Testing
+#define BuildVersion "220206T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -214,11 +219,14 @@ bool timer30pos;                             // Positive Timer 30 sec Signal
 bool timer60pos;                             // Positive Timer 60 sec Signal
 
 // ScreenSaver
+bool ScreenSaverEnabled=false;
 bool ScreenSaverActive=false;
 int ScreenSaverTimer=0;                      // ScreenSaverTimer
 int ScreenSaverInterval=60;                  // Interval for ScreenSaverTimer
 bool ScreenSaverPos;                         // Positive Signal ScreenSaver
 int ScreenSaverColor=1;                      // ScreenSaver Drawing Color
+int ScreenSaverLogoTimer=0;                  // ScreenSaverLogo-Timer
+int ScreenSaverLogoTime=60;                  // ScreenSaverLogoTime
 
 // I2C Hardware
 bool micAvail=false;                          // Is the MIC184 Sensor available?
@@ -422,8 +430,12 @@ void loop(void) {
   timer60pos = (timer % interval60 == 0) && blinkpos;
   if (timer>=interval60) timer = 0;
   
-  // ScreenSaver Timer  
-  if (blinkpos) ScreenSaverTimer++;
+  // ScreenSaver Logo-Timer
+  if (ScreenSaverEnabled && !ScreenSaverActive && blinkpos) ScreenSaverLogoTimer++;
+  ScreenSaverActive = (ScreenSaverLogoTimer>=ScreenSaverLogoTime) && ScreenSaverEnabled;
+  
+  // ScreenSaver Timer
+  if (ScreenSaverActive && blinkpos) ScreenSaverTimer++;
   ScreenSaverPos = (ScreenSaverTimer == ScreenSaverInterval) && blinkpos;
   if (ScreenSaverTimer>=ScreenSaverInterval) ScreenSaverTimer=0;
 
@@ -433,6 +445,10 @@ void loop(void) {
   if (timer10pos) Serial.println("Blink-10s");
   if (timer30pos) Serial.println("Blink-30s");
   if (timer60pos) Serial.println("Blink-60s");
+  if (blinkpos) {
+    Serial.printf("ScreenSaverEnabled: %s, ScreenSaverActive: %s, ", ScreenSaverEnabled ? "true" : "false", ScreenSaverActive ? "true" : "false");
+    Serial.printf("ScreenSaverLogoTimer: %d, ScreenSaverTimer: %d\n", ScreenSaverLogoTimer, ScreenSaverTimer);
+  }  
   if (ScreenSaverPos) Serial.println("ScreenSaverTimer");
 #endif
 
@@ -696,11 +712,11 @@ void oled_showStartScreen(void) {
 
 
 // --------------------------------------------------------------
-// ------------------ Set Screensave Mode -----------------------
+// ----------------- Set ScreenSaver Mode -----------------------
 // --------------------------------------------------------------
 void usb2oled_readnsetscreensaver(void) {
-  String TextIn="",mT="",iT="";
-  int d1,m,i;
+  String TextIn="",mT="",iT="",lT="";
+  int d1,d2,m,i,l;
 #ifdef XDEBUG
   Serial.println("Called Command CMDSAVER");
 #endif
@@ -711,38 +727,54 @@ void usb2oled_readnsetscreensaver(void) {
  
   //Searching for the "," delimiter
   d1 = TextIn.indexOf(',');                 // Find location of first ","
-
+  d2 = TextIn.indexOf(',', d1+1 );          // Find location of second ","
   //Create Substrings
   mT = TextIn.substring(0, d1);             // Get String for Mode/Color
-  iT = TextIn.substring(d1+1);              // Get String for Interval
+  iT = TextIn.substring(d1+1, d2);          // Get String for Interval
+  lT = TextIn.substring(d2+1);              // Get String for Logo-Time
 
-  m=mT.toInt();                             // Convert Value
-  i=iT.toInt();                             // Convert Value
+  m=mT.toInt();                             // Convert Mode/Color
+  i=iT.toInt();                             // Convert Interval
+  l=lT.toInt();                             // Convert Logo-Time
 
   if (m<0) m=0;                             // Check & Set Mode/Color low
   if (m>15) m=15;                           // Check & Set Mode/Color high
-  if (i<10) i=10;                           // Check&Set Minimum    
-  if (i>600) i=600;                         // Check&Set Maximiun
+  if (i<10) i=10;                           // Check&Set Minimum Interval
+  if (i>600) i=600;                         // Check&Set Maximiun Interval
+  if (l<10) l=10;                           // Check&Set Minimum Logo-Time
+  if (l>600) l=600;                         // Check&Set Maximiun Logo-Time
+  
   
 #ifdef XDEBUG
-  Serial.printf("Created Strings: M:%s I:%s\n", (char*)mT.c_str(), (char*)iT.c_str());
-  Serial.printf("Values: M:%i T:%i\n", m, i);
+  Serial.printf("Created Strings: M:%s I:%s L:%s\n", (char*)mT.c_str(), (char*)iT.c_str(), (char*)lT.c_str());
+  Serial.printf("Values: M:%i T:%i L:%i\n", m, i, l);
 #endif
 
   if (m==0) {
-    ScreenSaverActive = false;
+#ifdef XDEBUG
+    Serial.println("ScreenSaver Disabled!");
+#endif
+    ScreenSaverEnabled = false;
+    ScreenSaverTimer=0;                       // Reset Screensaver-Timer
+    ScreenSaverLogoTimer=0;                   // Reset ScreenSaverLogo-Timer
   }
   else{
-    ScreenSaverActive = true;
+#ifdef XDEBUG
+    Serial.println("ScreenSaver Enabled!");
+#endif
+    ScreenSaverEnabled = true;
+    //ScreenSaverActive = false;
     ScreenSaverColor = m;                     // Set ScreenSaver Color
     ScreenSaverInterval=i;                    // Set ScreenSaverTimer Interval
     ScreenSaverTimer=0;                       // Reset Screensaver-Timer
+    ScreenSaverLogoTime=l;                    // Set ScreenSaverLogoTime
+    ScreenSaverLogoTimer=0;                   // Reset ScreenSaverLogo-Timer
   }
 }
 
 
 // --------------------------------------------------------------
-// ---------------- Show ScreesnSaver Picture  ------------------
+// ---------------- Show ScreesSaver Picture  -------------------
 // --------------------------------------------------------------
 void oled_showScreenSaverPicture(void) {
   int l,x,y;
@@ -1479,7 +1511,8 @@ void usb2oled_drawlogo(uint8_t e) {
       }    
     break;
   } // end switch (e)
-  ScreenSaverTimer=0;                        // Reset Screensaver-Timer
+  ScreenSaverTimer=0;                        // Reset ScreenSaver-Timer
+  ScreenSaverLogoTimer=0;                    // Reset ScreenSaverLogo-Timer
 }  // end sd2oled_drawlogo
 
 

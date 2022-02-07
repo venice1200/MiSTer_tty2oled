@@ -48,6 +48,10 @@
   -Change Command CMDSAVER
    CMDSAVER,Mode/Color, Interval, LogoTime
    Mode/Color: 0=Off, 1..15=On/Color, Interval: 10..600 Seconds, LogoTime: 10..600 Seconds
+
+  2022-02-07
+  -Modified Calculation ScreenSaverLogoTime
+   First Screensaver shown now after ScreenSaverLogoTime-ScreenSaverInterval+ScreenSaverInterval
    
   ToDo
   -Everything I forgot
@@ -55,7 +59,7 @@
 */
 
 // Set Version
-#define BuildVersion "220206T"                    // "T" for Testing
+#define BuildVersion "220207T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -741,7 +745,7 @@ void usb2oled_readnsetscreensaver(void) {
   if (m>15) m=15;                           // Check & Set Mode/Color high
   if (i<10) i=10;                           // Check&Set Minimum Interval
   if (i>600) i=600;                         // Check&Set Maximiun Interval
-  if (l<10) l=10;                           // Check&Set Minimum Logo-Time
+  if (l<20) l=20;                           // Check&Set Minimum Logo-Time
   if (l>600) l=600;                         // Check&Set Maximiun Logo-Time
   
   
@@ -767,7 +771,7 @@ void usb2oled_readnsetscreensaver(void) {
     ScreenSaverColor = m;                     // Set ScreenSaver Color
     ScreenSaverInterval=i;                    // Set ScreenSaverTimer Interval
     ScreenSaverTimer=0;                       // Reset Screensaver-Timer
-    ScreenSaverLogoTime=l;                    // Set ScreenSaverLogoTime
+    ScreenSaverLogoTime=l-i;                  // Set ScreenSaverLogoTime (First Screensaver shown after ScreenSaverLogoTime-ScreenSaverInterval+ScreenSaverInterval)
     ScreenSaverLogoTimer=0;                   // Reset ScreenSaverLogo-Timer
   }
 }

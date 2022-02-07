@@ -83,11 +83,11 @@ sendcontrast() {
 # Send Screensaver function
 sendscreensaver() {
   if [ "${SCREENSAVER}" = "yes" ]; then						# Check screensaver mode
-    dbug "Sending: CMDSAVER,${SCREENSAVER_LEVEL},${SCREENSAVER_IVAL}"
-    echo "CMDSAVER,${SCREENSAVER_LEVEL},${SCREENSAVER_IVAL}" > ${TTYDEV}	# Send Screensaver Command and Values
+    dbug "Sending: CMDSAVER,${SCREENSAVER_LEVEL},${SCREENSAVER_IVAL},${SCREENSAVER_START}"
+    echo "CMDSAVER,${SCREENSAVER_LEVEL},${SCREENSAVER_IVAL},${SCREENSAVER_START}" > ${TTYDEV}	# Send Screensaver Command and Values
   else
-    dbug "Sending: CMDSAVER,0,0}"
-    echo "CMDSAVER,0,0}" > ${TTYDEV}						# Send Screensaver Command and Values
+    dbug "Sending: CMDSAVER,0,0,0}"
+    echo "CMDSAVER,0,0,0}" > ${TTYDEV}						# Send Screensaver Command and Values
   fi
 }
 
@@ -186,6 +186,7 @@ if [ -c "${TTYDEV}" ]; then							# check for tty device
   sleep ${WAITSECS}
   sendcontrast									# Set Contrast
   sendrotation									# Set Display Rotation
+  sendscreensaver
   while true; do								# main loop
     if [ -r ${corenamefile} ]; then						# proceed if file exists and is readable (-r)
       newcore=$(cat ${corenamefile})						# get CORENAME
@@ -198,15 +199,15 @@ if [ -c "${TTYDEV}" ]; then							# check for tty device
         oldcore="${newcore}"							# update oldcore variable
       fi									# end if core check
 
-      if [ "${SCREENSAVER}" = "yes" ]; then
-	echo "inowait for ${SCREENSAVER_START} s"
-        inotifywait -t ${SCREENSAVER_START} -e modify "${corenamefile}"		# wait here for next change of corename
-        echo "start screensaver"
-	echo "CMDSAVER,0,0}" > ${TTYDEV} ; sleep 0.02
-        sendscreensaver
-      else
+#      if [ "${SCREENSAVER}" = "yes" ]; then
+#	echo "inowait for ${SCREENSAVER_START} s"
+#        inotifywait -t ${SCREENSAVER_START} -e modify "${corenamefile}"		# wait here for next change of corename
+#        echo "start screensaver"
+#	echo "CMDSAVER,0,0}" > ${TTYDEV} ; sleep 0.02
+#        sendscreensaver
+#      else
 	inotifywait -e modify "${corenamefile}"					# wait here for next change of corename
-      fi
+#      fi
 
     else									# CORENAME file not found
      echo "File ${corenamefile} not found!"

@@ -349,6 +349,50 @@
   2022-01-04
   ** Release to stable**
   
+  2022-01-04
+  -New Command CMDCLSWU
+   Clear Display Buffer without Display Update (like CMDCLS) 
+  -Send "ttyrdy;" after Display Start/Setup is done
+  
+  2022-01-05
+  -Cleanup unused vars, adding some cast operators
+  
+  2022-01-23
+  -Add Basic Support for d.ti Board Rev 1.2 and the included WS2812B LED, Buzzer, Power(off)LED
+  -Piezo Buzzer Tone Examples https://makeabilitylab.github.io/physcomp/esp32/tone.html
+  -FastLED https://github.com/FastLED/FastLED/wiki, https://www.youtube.com/watch?v=FQpXStjJ4Vc
+
+  2022-01-29..30
+  -Enhanced Support for d.ti Board Rev 1.2
+  -Modded Command CMDULED supporting d.ti Board v1.2
+   d.ti Board v1.1 CMDULED,[0,1] User LED Off/On
+   d.ti Board v1.2 CMDULED,[0,1..255] WS2812B User LED Off/On with Color (HSV Colors; Hue = Command Parameter, Saturation & Value = 255)
+  -Add Command CMDPLED for d.ti Board v1.2
+   CMDPLED,[0,1] Switch Power LED Off/On
+  -Add Command CMDPTONE for d.ti Board v1.2
+   CMDPTONE,[Note,Octave,Duration,Pause],[Note,Octave,Duration,Pause]... play Note/Tone using the Buzzer.
+   CMDPTONE,C,4,150,30,C,4,160,30,C,4,150,30,F,4,150,30,C,4,150,30
+  -Add Command CMDPFREQ for d.ti Board v1.2
+   CMDPFRQ,[Frequency,Duration,Pause],[Frequency,Duration,Pause]... play Frequency using the Buzzer.
+
+  2022-02-05
+  -Add Command CMDSAVER to enable Screensaver
+   CMDSAVER,Mode/Color, Interval
+   Mode/Color: 0=Off, 1..15=On/Color, Interval: 10..600 Seconds
+
+  2022-02-06
+  -Change Command CMDSAVER
+   CMDSAVER,Mode/Color, Interval, LogoTime
+   Mode/Color: 0=Off, 1..15=On/Color, Interval: 10..600 Seconds, LogoTime: 10..600 Seconds
+
+  2022-02-07
+  -Modified Calculation ScreenSaverLogoTime
+   First Screensaver shown now after ScreenSaverLogoTime-ScreenSaverInterval+ScreenSaverInterval
+
+  2022-02-09 
+  ** Release to Stable **
+  
+=====================================================================================
   
 ToDo
 -Everything I forgot
@@ -356,7 +400,7 @@ ToDo
 Effect List (2021/12)
 01 Fade In Left to Right
 02 Fade In Top to Bottom
-03 Fade In Right to Left
+03 Fade In Right to left
 04 Fade In Bottom to Top 
 05 Fade In Even Line Left to Right / Odd Line Right to Left
 06 Fade In Top Part Left to Right / Bottom Part Right to Left
@@ -364,15 +408,15 @@ Effect List (2021/12)
 08 Fade In 4 Parts, Top-Left => Bottom-Right => Top-Right => Bottom-Left
 09 Fade In Particle Effect
 10 Fade In Left to Right Diagonally
-11 Slide In left to Right
+11 Slide In left to right
 12 Slide In Top to Bottom
-13 Slide In Right to Left
+13 Slide In Right to left
 14 Slide In Bottom to Top
-15 Fade In Top and Bottom to Center
-16 Fade In Left and Right to Center
-17 Fade In Center to Top and Bottom
-18 Fade In Center to Left and Right
-19 Fade In Warp (Center to Left, Right, Top and Bottom)
+15 Fade In Top and Bottom to Middle
+16 Fade In Left and Right to Middle
+17 Fade In Middle to Top and Bottom
+18 Fade In Middle to Left and Right
+19 Fade In Warp, Middle to Left, Right, Top and Bottom
 20 Fade In Slightly Clockwise
 21 Fade In Shaft
 22 Fade In Waterfall

@@ -66,7 +66,7 @@ dbug() {
   fi
 }
 
-# Send-Contrast-Data function
+# Send Contrast-Data function
 sendcontrast() {
   if [ "${USBMODE}" = "yes" ]; then						# Check the tty2xxx mode
     dbug "Sending: CMDCON,${CONTRAST}"
@@ -77,6 +77,17 @@ sendcontrast() {
     echo "CONTRAST" > ${TTYDEV}							# Send "CONTRAST" annoucing the OLED Contrast Data as next
     sleep ${WAITSECS}								# sleep needed here ?!
     echo ${CONTRAST} > ${TTYDEV}						# Send Contrast Value
+  fi
+}
+
+# Send Screensaver function
+sendscreensaver() {
+  if [ "${SCREENSAVER}" = "yes" ]; then						# Check screensaver mode
+    dbug "Sending: CMDSAVER,${SCREENSAVER_LEVEL},${SCREENSAVER_IVAL},${SCREENSAVER_START}"
+    echo "CMDSAVER,${SCREENSAVER_LEVEL},${SCREENSAVER_IVAL},${SCREENSAVER_START}" > ${TTYDEV}	# Send Screensaver Command and Values
+  else
+    dbug "Sending: CMDSAVER,0,0,0}"
+    echo "CMDSAVER,0,0,0}" > ${TTYDEV}						# Send Screensaver Command and Values
   fi
 }
 
@@ -175,6 +186,7 @@ if [ -c "${TTYDEV}" ]; then							# check for tty device
   sleep ${WAITSECS}
   sendcontrast									# Set Contrast
   sendrotation									# Set Display Rotation
+  sendscreensaver								# Set Screensaver
   while true; do								# main loop
     if [ -r ${corenamefile} ]; then						# proceed if file exists and is readable (-r)
       newcore=$(cat ${corenamefile})						# get CORENAME

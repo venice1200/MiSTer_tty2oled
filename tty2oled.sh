@@ -49,6 +49,7 @@
 # 2021-10-02 Complete rework of senddata
 # 2021-10-05 USE_RANDOM_ALT to choose between _altX pictures
 # 2022-01-23 Bugfix: Comment the reload of INI Files in function "senddata" because command line parameter don't work
+# 2022-02-10 Added ScreenSaver functionality
 #
 #
 

@@ -18,40 +18,11 @@
   -ESP32 Dev Module
   -WEMOS LOLIN32
   -NodeMCU 1.0
+
+  2022-02-17
+  -Change minimum SceeenSaver Intervall from 10 to 5
   
   See changelog.md in Sketch folder for more details
-
-  2022-01-23
-  -Add Basic Support for d.ti Board Rev 1.2 and the included WS2812B LED, Buzzer, Power(off)LED
-  -Piezo Buzzer Tone Examples https://makeabilitylab.github.io/physcomp/esp32/tone.html
-  -FastLED https://github.com/FastLED/FastLED/wiki, https://www.youtube.com/watch?v=FQpXStjJ4Vc
-
-  2022-01-29..30
-  -Enhanced Support for d.ti Board Rev 1.2
-  -Modded Command CMDULED supporting d.ti Board v1.2
-   d.ti Board v1.1 CMDULED,[0,1] User LED Off/On
-   d.ti Board v1.2 CMDULED,[0,1..255] WS2812B User LED Off/On with Color (HSV Colors; Hue = Command Parameter, Saturation & Value = 255)
-  -Add Command CMDPLED for d.ti Board v1.2
-   CMDPLED,[0,1] Switch Power LED Off/On
-  -Add Command CMDPTONE for d.ti Board v1.2
-   CMDPTONE,[Note,Octave,Duration,Pause],[Note,Octave,Duration,Pause]... play Note/Tone using the Buzzer.
-   CMDPTONE,C,4,150,30,C,4,160,30,C,4,150,30,F,4,150,30,C,4,150,30
-  -Add Command CMDPFREQ for d.ti Board v1.2
-   CMDPFRQ,[Frequency,Duration,Pause],[Frequency,Duration,Pause]... play Frequency using the Buzzer.
-
-  2022-02-05
-  -Add Command CMDSAVER to enable Screensaver
-   CMDSAVER,Mode/Color, Interval
-   Mode/Color: 0=Off, 1..15=On/Color, Interval: 10..600 Seconds
-
-  2022-02-06
-  -Change Command CMDSAVER
-   CMDSAVER,Mode/Color, Interval, LogoTime
-   Mode/Color: 0=Off, 1..15=On/Color, Interval: 10..600 Seconds, LogoTime: 10..600 Seconds
-
-  2022-02-07
-  -Modified Calculation ScreenSaverLogoTime
-   First Screensaver shown now after ScreenSaverLogoTime-ScreenSaverInterval+ScreenSaverInterval
    
   ToDo
   -Everything I forgot
@@ -59,7 +30,7 @@
 */
 
 // Set Version
-#define BuildVersion "220207T"                    // "T" for Testing
+#define BuildVersion "220217T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -743,7 +714,7 @@ void usb2oled_readnsetscreensaver(void) {
 
   if (m<0) m=0;                             // Check & Set Mode/Color low
   if (m>15) m=15;                           // Check & Set Mode/Color high
-  if (i<10) i=10;                           // Check&Set Minimum Interval
+  if (i<5) i=5;                             // Check&Set Minimum Interval
   if (i>600) i=600;                         // Check&Set Maximiun Interval
   if (l<20) l=20;                           // Check&Set Minimum Logo-Time
   if (l>600) l=600;                         // Check&Set Maximiun Logo-Time
@@ -1129,7 +1100,7 @@ void usb2oled_drawlogo(uint8_t e) {
   uint8_t vArray[DispLineBytes1bpp]={0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31};
   
 #ifdef XDEBUG
-  Serial.println("Called Command CMDLOGO");
+  Serial.printf("Draw Logo with Transition Effect No. %d\n",e);
 #endif
 
   switch (e) {
@@ -1265,7 +1236,7 @@ void usb2oled_drawlogo(uint8_t e) {
           if ((w % 20)==0) oled.display();
         }
       }
-      // Finally overwrite the Screen with fill Size Picture
+      // Finally overwrite the Screen with full Size Picture
       oled.clearDisplay();
       if (actPicType==XBM) oled.drawXBitmap(0, 0, logoBin, DispWidth, DispHeight, SSD1322_WHITE);
       if (actPicType==GSC) oled.draw4bppBitmap(logoBin);

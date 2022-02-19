@@ -18,9 +18,6 @@
   -ESP32 Dev Module
   -WEMOS LOLIN32
   -NodeMCU 1.0
-
-  2022-02-17
-  -Change minimum SceeenSaver Intervall from 10 to 5
   
   See changelog.md in Sketch folder for more details
    
@@ -30,7 +27,7 @@
 */
 
 // Set Version
-#define BuildVersion "220217T"                    // "T" for Testing
+#define BuildVersion "220219T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>

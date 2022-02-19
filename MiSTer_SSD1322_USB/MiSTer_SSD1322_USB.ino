@@ -27,7 +27,7 @@
 */
 
 // Set Version
-#define BuildVersion "220209"                    // "T" for Testing
+#define BuildVersion "220219"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -713,7 +713,7 @@ void usb2oled_readnsetscreensaver(void) {
 
   if (m<0) m=0;                             // Check & Set Mode/Color low
   if (m>15) m=15;                           // Check & Set Mode/Color high
-  if (i<10) i=10;                           // Check&Set Minimum Interval
+  if (i<5) i=5;                             // Check&Set Minimum Interval
   if (i>600) i=600;                         // Check&Set Maximiun Interval
   if (l<20) l=20;                           // Check&Set Minimum Logo-Time
   if (l>600) l=600;                         // Check&Set Maximiun Logo-Time

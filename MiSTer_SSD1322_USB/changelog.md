@@ -392,6 +392,12 @@
   2022-02-09 
   ** Release to Stable **
   
+  2022-02-17
+  -Change minimum SceeenSaver Intervall from 10s to 5s
+  
+  2022-02-19
+  ** Release **
+  
 =====================================================================================
   
 ToDo

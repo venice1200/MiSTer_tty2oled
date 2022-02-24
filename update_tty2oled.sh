@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# v1.5 - Copyright (c) 2021 ojaksch, venice
+# v1.6 - Copyright (c) 2021/2022 ojaksch, venice
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 
 
 # Changelog:
+# v1.6 Merging of tty2oled-user.ini to tty2oled-system.ini to leave a user-managed tty2oled-user.ini
 # v1.5 Beautyfication
 # v1.4 Check downloadeds for errors, existence and filesize
 # v1.3 Moved from /etc/init.d to /media/fat/tty2oled
@@ -81,36 +82,25 @@ if [ "${?}" -gt "0" ]; then
     . "${TTY2OLED_PATH}/tty2oled-system.ini"
 fi
 
-wget ${NODEBUG} --no-cache "${REPOSITORY_URL}/tty2oled-user.ini" -O /tmp/tty2oled-user.ini
-check4error "${?}"
-if [ -s /tmp/tty2oled-user.ini ]; then
-  . /tmp/tty2oled-user.ini
-  if ! [ -f "${TTY2OLED_PATH}/tty2oled-user.ini" ]; then
-    echo -e "${fyellow}Creating tty2oled-user.ini File ${fmagenta}${PICNAME}${freset}"
-    cp /tmp/tty2oled-user.ini "${TTY2OLED_PATH}/tty2oled-user.ini"
-  fi
-  if ! [[ "$(head -n1 /tmp/tty2oled-user.ini)" = "$(head -n1 ${TTY2OLED_PATH}/tty2oled-user.ini)" ]]; then
-    echo -e "${fred}There is a newer version of ${fyellow}${TTY2OLED_PATH}/tty2oled-user.ini${fred} availble.${freset}"
-    echo -e "${fred}It is very likely that something will break if we continue. You should backup${freset}"
-    echo -e "${fred}your INI file and move or delete the original afterwards. After re-running${freset}"
-    echo -e "${fred}this updater and receiving the new INI file, compare both versions and edit${freset}"
-    echo -e "${fred}the new INI file, if necessary.${freset}"
-    echo -e "\n${fmagenta}If you would like that we continue and automagically doing the rest,"
-    echo -en "please answer YES. Use Cursor or Joystick for ${fgreen}YES=UP${freset} / ${fred}NO=DOWN${fyellow}. Countdown: 9${freset}"
-    yesno 9
-    if [ "${KEY}" = "y" ]; then
-      mv -f "${TTY2OLED_PATH}/tty2oled-user.ini" "${TTY2OLED_PATH}/tty2oled-user.ini.bak"
-      mv -f /tmp/tty2oled-user.ini "${TTY2OLED_PATH}/tty2oled-user.ini"
-      echo -e "\n${fyellow}These are the differences:${freset}\n"
-      diff -u "${TTY2OLED_PATH}/tty2oled-user.ini.bak" "${TTY2OLED_PATH}/tty2oled-user.ini"
-      echo -e "\n${fyellow}Please edit the new INI file and make necessary changes,"
-      echo -e "then re-run this updater.${freset}\n"
-    else
-      echo -e "\n${fyellow}Aborting.${freset}"
-    fi
-    exit 1
-  fi
+# The merge of the INI files (2022/02)
+if [ "$(head -n1 ${TTY2OLED_PATH}/tty2oled-user.ini | awk '{print $2}')" = "Version" ]; then
+  mv -f "${TTY2OLED_PATH}/tty2oled-user.ini" "${TTY2OLED_PATH}/tty2oled-user.ini.bak"
+  touch "${TTY2OLED_PATH}/tty2oled-user.ini"
+  echo -e "${fred} ${freset}"
+  echo -e "${fred}We made very important changes to the INI files and merged them"
+  echo -e "${fred}together. In case you missed the announcement, have a look at"
+  echo -e "${fyellow}https://misterfpga.org/viewtopic.php?p=44358#p44358${freset}\n"
+  echo -e "${fred}There is a copy of your old ${fyellow}${TTY2OLED_PATH}/tty2oled-user.ini"
+  echo -e "${fred}named ${fyellow}${TTY2OLED_PATH}/tty2oled-user.ini.bak${fred} in case you want"
+  echo -e "${fred}to review it. If you have edited some settings before this merge,"
+  echo -e "${fred}take these changes to the new ${fyellow}${TTY2OLED_PATH}/tty2oled-user.ini"
+  echo -e "${fred}and re-run this updater.${freset}\n"
+  echo -e "${fred}This newly created tty2oled-user.ini will never be touched by"
+  echo -e "${fred}tty2oled again. ${fwhite}You alone are responsible for this file in "
+  echo -e "the future!${freset}"
+  exit 1
 fi
+
 [ -f "${TTY2OLED_PATH}/tty2oled.ini" ] && mv "${TTY2OLED_PATH}/tty2oled.ini" "${TTY2OLED_PATH}/tty2oled.ini.bak"
 [ -f "/media/fat/Scripts/tty2oled.ini" ] && mv "/media/fat/Scripts/tty2oled.ini" "${TTY2OLED_PATH}/tty2oled-user.ini.bak"
 

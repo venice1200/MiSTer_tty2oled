@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# v1.5 - Copyright (c) 2021 ojaksch, venice
+# v1.6 - Copyright (c) 2021/2022 ojaksch, venice
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 
 
 # Changelog:
+# v1.6 Merging of tty2oled-user.ini to tty2oled-system.ini to leave a user-managed tty2oled-user.ini
 # v1.5 Beautyfication
 # v1.4 Check downloadeds for errors, existence and filesize
 # v1.3 Moved from /etc/init.d to /media/fat/tty2oled
@@ -31,8 +32,8 @@
 freset="\e[0m\033[0m"
 fblue="\e[1;34m"
 
-#REPOSITORY_URL="https://raw.githubusercontent.com/venice1200/MiSTer_tty2oled/main"
-REPOSITORY_URL="https://raw.githubusercontent.com/venice1200/MiSTer_tty2oled/main/Testing"    # Testing branch
+REPOSITORY_URL="https://raw.githubusercontent.com/venice1200/MiSTer_tty2oled/main"
+#REPOSITORY_URL="https://raw.githubusercontent.com/venice1200/MiSTer_tty2oled/main/Testing"    # Testing branch
 
 SCRIPTNAME="/tmp/update_tty2oled_script.sh"
 NODEBUG="-q -o /dev/null"

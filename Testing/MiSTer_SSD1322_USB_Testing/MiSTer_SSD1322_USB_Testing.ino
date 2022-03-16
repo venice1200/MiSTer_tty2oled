@@ -720,7 +720,7 @@ void usb2oled_readnsetscreensaver(void) {
   l=lT.toInt();                             // Convert Logo-Time
 
   if (m<0) m=0;                             // Check & Set Mode/Color low
-  if (m>50) m=50;                           // Check & Set Mode/Color high
+  if (m>15) m=15;                           // Check & Set Mode/Color high
   if (i<5) i=5;                             // Check&Set Minimum Interval
   if (i>600) i=600;                         // Check&Set Maximiun Interval
   if (l<20) l=20;                           // Check&Set Minimum Logo-Time

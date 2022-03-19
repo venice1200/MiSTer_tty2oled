@@ -87,8 +87,8 @@ sendscreensaver() {
     dbug "Sending: CMDSAVER,${SCREENSAVER_LEVEL},${SCREENSAVER_IVAL},${SCREENSAVER_START}"
     echo "CMDSAVER,${SCREENSAVER_LEVEL},${SCREENSAVER_IVAL},${SCREENSAVER_START}" > ${TTYDEV}	# Send Screensaver Command and Values
   else
-    dbug "Sending: CMDSAVER,0,0,0}"
-    echo "CMDSAVER,0,0,0}" > ${TTYDEV}						# Send Screensaver Command and Values
+    dbug "Sending: CMDSAVER,0,0,0"
+    echo "CMDSAVER,0,0,0" > ${TTYDEV}						# Send Screensaver Command and Values
   fi
 }
 

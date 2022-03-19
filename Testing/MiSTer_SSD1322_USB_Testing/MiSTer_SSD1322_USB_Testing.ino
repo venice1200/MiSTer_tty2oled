@@ -26,6 +26,10 @@
 
   2022-03-16
   -Screensaver Mod, use 1/4 size Core Picture for the ScreenSaver
+  -New Command CMDSSLPIC
+
+  2022-03-19
+  -Screensaver Mod, use avarage of 2x2 Pixels for the shrinked Picture
    
   ToDo
   -Everything I forgot
@@ -33,7 +37,7 @@
 */
 
 // Set Version
-#define BuildVersion "220316T"                    // "T" for Testing
+#define BuildVersion "220319T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -513,6 +517,10 @@ void loop(void) {
       oled_showSmallCorePicture(64,16);
     }
 
+    else if (newCommand=="CMDSSLPIC2") {                                    // Show actual loaded Core Picture but in 1/4 size
+      oled_showSmallCorePictureV2(64,16);
+    }
+
     else if (newCommand=="CMDDOFF") {                                       // Switch Display Off
       usb2oled_displayoff();
     }
@@ -756,6 +764,74 @@ void usb2oled_readnsetscreensaver(void) {
 
 
 // --------------------------------------------------------------
+// ------------- Show 1/4 Core Picture at Position V2 -----------
+// --------------------------------------------------------------
+// xpos & ypos = Offset
+void oled_showSmallCorePictureV2(int xpos, int ypos) {
+  int x=0,y=0,px=0,py=0,i=0;
+  unsigned char b1,b2,br;
+
+  //Serial.printf("Show 1/4 Pic\n",actPicType);
+  //actPicType = XBM;
+  //actPicType = GSC;
+  //Serial.printf("ActPicType: %d\n",actPicType);
+  
+  oled.clearDisplay();
+  switch (actPicType) {
+    case XBM:
+      x=0;y=0;
+      for (py=0; py<DispHeight; py=py+2) {
+        for (px=0; px<DispLineBytes1bpp; px++) {
+          b1=logoBin[px+py*DispLineBytes1bpp];                // Get Data Byte for 8 Pixels
+          for (i=0; i<8; i=i+2){
+            if (bitRead(b1, i)) {
+              oled.drawPixel(xpos+x, ypos+y, SSD1322_WHITE);         // Draw Pixel if "1"
+            }
+            else {
+              oled.drawPixel(xpos+x, ypos+y, SSD1322_BLACK);         // Clear Pixel if "0"
+            }
+            //Serial.printf("X: %d Y: %d\n",x,y);
+            x++;
+          }
+#ifdef USE_NODEMCU
+          yield();
+#endif
+        }
+        x=0;
+        y++;
+      }
+      oled.display();  
+    break;
+    case GSC:
+      x=0;y=0;
+      for (py=0; py<DispHeight; py=py+2) {
+        for (px=0; px<DispLineBytes1bpp; px++) {
+          for (i=0; i<4; i++) {
+            b1=logoBin[(px*4)+i+py*DispLineBytes4bpp];        // Get Data Byte 1 for 2 Pixels
+            b2=logoBin[(px*4)+i+(py+1)*DispLineBytes4bpp];    // Get Data Byte 2 for 2 Pixels
+            //br=(((0xF0 & b1) >> 4) + (0x0F & b1) + ((0xF0 & b2) >> 4) + (0x0F & b2)) / 4;
+            br=round((((0xF0 & b1) >> 4) + (0x0F & b1) + ((0xF0 & b2) >> 4) + (0x0F & b2)) / 4);
+            oled.drawPixel(xpos+x, ypos+y, br);   // Draw only Pixel 1, Left Nibble
+            //Serial.printf("X: %d Y: %d\n",x,y);
+            x++;
+          }
+#ifdef USE_NODEMCU
+          yield();
+#endif
+        }
+      x=0;
+      y++;
+      }
+      oled.display();  
+    break;
+    case NONE:
+      usb2oled_showcorename();
+    break;
+  }
+}
+
+
+// --------------------------------------------------------------
 // ------------- Show 1/4 Core Picture at Position --------------
 // --------------------------------------------------------------
 // xpos & ypos = Offset
@@ -846,7 +922,7 @@ void oled_showScreenSaverPicture(void) {
     case 2:
       x=random(DispWidth - DispWidth/2);
       y=random(DispHeight - DispHeight/2);
-      oled_showSmallCorePicture(x,y);
+      oled_showSmallCorePictureV2(x,y);
     break;
   }
 }

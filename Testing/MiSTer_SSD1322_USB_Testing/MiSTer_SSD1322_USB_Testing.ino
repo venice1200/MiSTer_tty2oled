@@ -26,10 +26,10 @@
 
   2022-03-16
   -Screensaver Mod, use 1/4 size Core Picture for the ScreenSaver
-  -New Command CMDSSLPIC
+  -New Command CMDSSCP
 
   2022-03-19
-  -Screensaver Mod, use avarage of 2x2 Pixels for the shrinked Picture
+  -Screensaver Mod, use avarage of 2x2 Pixels for the small GSC Picture
    
   ToDo
   -Everything I forgot
@@ -513,11 +513,11 @@ void loop(void) {
       }
     }
 
-    else if (newCommand=="CMDSSLPIC") {                                     // Show actual loaded Core Picture but in 1/4 size
+    else if (newCommand=="CMDSSCP") {                                     // Show actual loaded Core Picture but in 1/4 size
       oled_showSmallCorePicture(64,16);
     }
 
-    else if (newCommand=="CMDSSLPIC2") {                                    // Show actual loaded Core Picture but in 1/4 size
+    else if (newCommand=="CMDSSCP2") {                                    // Show actual loaded Core Picture but in 1/4 size
       oled_showSmallCorePictureV2(64,16);
     }
 
@@ -922,6 +922,7 @@ void oled_showScreenSaverPicture(void) {
     case 2:
       x=random(DispWidth - DispWidth/2);
       y=random(DispHeight - DispHeight/2);
+      //oled_showSmallCorePicture(x,y);
       oled_showSmallCorePictureV2(x,y);
     break;
   }

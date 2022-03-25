@@ -30,6 +30,10 @@
 
   2022-03-19
   -Screensaver Mod, use avarage of 2x2 Pixels for the small GSC Picture
+
+  2022-03-23
+  -Change cDelay from Variable to MCU dependent #define Value
+   Fixes a response issue using "waitforack" and MiSTer_SAM with NodeMCU 8266
    
   ToDo
   -Everything I forgot
@@ -37,7 +41,7 @@
 */
 
 // Set Version
-#define BuildVersion "220319T"                    // "T" for Testing
+#define BuildVersion "220325T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -97,6 +101,7 @@
 // OLED Pins, Tilt Pin, I2C, User-LED for d.ti Board
 // using VSPI SCLK = 18, MISO = 19, MOSI = 23 and...
 #ifdef USE_ESP32DEV
+  #define cDelay 25                // Command Delay in ms for Handshake
   #define OLED_CS 26               // OLED Chip Select Pin
   #define OLED_DC 25               // OLED Data/Command Pin
   #define OLED_RESET 27            // OLED Reset Pin
@@ -117,6 +122,7 @@
 
 // WEMOS LOLIN32/Devkit_V4 using VSPI SCLK = 18, MISO = 19, MOSI = 23, SS = 5 and...
 #ifdef USE_LOLIN32
+  #define cDelay 25                // Command Delay in ms for Handshake
   #define OLED_CS 5
   #define OLED_DC 16
   #define OLED_RESET 17
@@ -125,6 +131,7 @@
 
 // ESP8266-Board (NodeMCU v3)
 #ifdef USE_NODEMCU
+  #define cDelay 100                // Command Delay in ms for Handshake
   #define OLED_CS 15
   #define OLED_DC 4
   #define OLED_RESET 5
@@ -174,7 +181,6 @@ int logoBytes1bpp=0;
 int logoBytes4bpp=0;
 //unsigned int logoBytes1bpp=0;
 //unsigned int logoBytes4bpp=0;
-const int cDelay=25;                          // Command Delay in ms for Handshake
 const int hwDelay=100;                        // Delay for HWINFO Request
 size_t bytesReadCount=0;
 uint8_t *logoBin;                             // <<== For malloc in Setup
@@ -807,10 +813,11 @@ void oled_showSmallCorePictureV2(int xpos, int ypos) {
       for (py=0; py<DispHeight; py=py+2) {
         for (px=0; px<DispLineBytes1bpp; px++) {
           for (i=0; i<4; i++) {
-            b1=logoBin[(px*4)+i+py*DispLineBytes4bpp];        // Get Data Byte 1 for 2 Pixels
-            b2=logoBin[(px*4)+i+(py+1)*DispLineBytes4bpp];    // Get Data Byte 2 for 2 Pixels
-            //br=(((0xF0 & b1) >> 4) + (0x0F & b1) + ((0xF0 & b2) >> 4) + (0x0F & b2)) / 4;
-            br=round((((0xF0 & b1) >> 4) + (0x0F & b1) + ((0xF0 & b2) >> 4) + (0x0F & b2)) / 4);
+            b1=logoBin[(px*4)+i+py*DispLineBytes4bpp];                                                  // Get Data Byte 1 for 2 Pixels
+            b2=logoBin[(px*4)+i+(py+1)*DispLineBytes4bpp];                                              // Get Data Byte 2 for 2 Pixels
+            //br=(((0xF0 & b1) >> 4) + (0x0F & b1) + ((0xF0 & b2) >> 4) + (0x0F & b2)) / 4;               // cutting
+            br=round((((0xF0 & b1) >> 4) + (0x0F & b1) + ((0xF0 & b2) >> 4) + (0x0F & b2)) / 4);        // rounding
+            //br=(round(((0xF0 & b1) >> 4) + (0x0F & b1) + ((0xF0 & b2) >> 4) + (0x0F & b2)) /8)*2;       // /8*2 = more Contrast ?
             oled.drawPixel(xpos+x, ypos+y, br);   // Draw only Pixel 1, Left Nibble
             //Serial.printf("X: %d Y: %d\n",x,y);
             x++;

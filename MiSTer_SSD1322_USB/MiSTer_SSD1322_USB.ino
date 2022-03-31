@@ -27,7 +27,7 @@
 */
 
 // Set Version
-#define BuildVersion "220219"                    // "T" for Testing
+#define BuildVersion "220331"                     // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -87,6 +87,7 @@
 // OLED Pins, Tilt Pin, I2C, User-LED for d.ti Board
 // using VSPI SCLK = 18, MISO = 19, MOSI = 23 and...
 #ifdef USE_ESP32DEV
+  #define cDelay 25                // Command Delay in ms for Handshake
   #define OLED_CS 26               // OLED Chip Select Pin
   #define OLED_DC 25               // OLED Data/Command Pin
   #define OLED_RESET 27            // OLED Reset Pin
@@ -107,6 +108,7 @@
 
 // WEMOS LOLIN32/Devkit_V4 using VSPI SCLK = 18, MISO = 19, MOSI = 23, SS = 5 and...
 #ifdef USE_LOLIN32
+  #define cDelay 25                // Command Delay in ms for Handshake
   #define OLED_CS 5
   #define OLED_DC 16
   #define OLED_RESET 17
@@ -115,6 +117,7 @@
 
 // ESP8266-Board (NodeMCU v3)
 #ifdef USE_NODEMCU
+  #define cDelay 100                // Command Delay in ms for Handshake
   #define OLED_CS 15
   #define OLED_DC 4
   #define OLED_RESET 5
@@ -164,12 +167,11 @@ int logoBytes1bpp=0;
 int logoBytes4bpp=0;
 //unsigned int logoBytes1bpp=0;
 //unsigned int logoBytes4bpp=0;
-const int cDelay=25;                          // Command Delay in ms for Handshake
 const int hwDelay=100;                        // Delay for HWINFO Request
 size_t bytesReadCount=0;
 uint8_t *logoBin;                             // <<== For malloc in Setup
-enum picType {NONE, XBM, GSC};                // Enum Picture Type
-int actPicType=0;
+enum picType {NONE, XBM, GSC, TXT};           // Enum Picture Type
+int actPicType=NONE;
 int16_t xs, ys;
 uint16_t ws, hs;
 const uint8_t minEffect=1, maxEffect=23;      // Min/Max Effects for Random
@@ -503,6 +505,14 @@ void loop(void) {
       }
     }
 
+    else if (newCommand=="CMDSSCP") {                                     // Show actual loaded Core Picture but in 1/4 size
+      oled_showSmallCorePicture(64,16);
+    }
+
+    else if (newCommand=="CMDSSCP2") {                                    // Show actual loaded Core Picture but in 1/4 size
+      oled_showSmallCorePictureV2(64,16);
+    }
+
     else if (newCommand=="CMDDOFF") {                                       // Switch Display Off
       usb2oled_displayoff();
     }
@@ -590,7 +600,7 @@ void loop(void) {
     // -- Unidentified Core Name, just write it on screen
     else {
       actCorename=newCommand;
-      actPicType=0;
+      actPicType=NONE;
       usb2oled_showcorename();
     }  // end ifs
 
@@ -663,8 +673,8 @@ void oled_showStartScreen(void) {
   u8g2.setCursor(0,63);
   u8g2.print(BuildVersion);
   /*
-  if (micAvail) u8g2.print("M");             // Only for testing
-  if (pcaAvail) u8g2.print("P");             // Only for testing
+  if (micAvail) u8g2.print("M");
+  if (pcaAvail) u8g2.print("P");
   */
   oled.drawXBitmap(DispWidth-usb_icon_width, DispHeight-usb_icon_height, usb_icon, usb_icon_width, usb_icon_height, SSD1322_WHITE);
 
@@ -748,23 +758,169 @@ void usb2oled_readnsetscreensaver(void) {
 
 
 // --------------------------------------------------------------
-// ---------------- Show ScreesSaver Picture  -------------------
+// ------------- Show 1/4 Core Picture at Position V2 -----------
+// --------------------------------------------------------------
+// xpos & ypos = Offset
+void oled_showSmallCorePictureV2(int xpos, int ypos) {
+  int x=0,y=0,px=0,py=0,i=0;
+  unsigned char b1,b2,br;
+
+  //Serial.printf("Show 1/4 Pic\n",actPicType);
+  //actPicType = XBM;
+  //actPicType = GSC;
+  //Serial.printf("ActPicType: %d\n",actPicType);
+  
+  oled.clearDisplay();
+  switch (actPicType) {
+    case XBM:
+      x=0;y=0;
+      for (py=0; py<DispHeight; py=py+2) {
+        for (px=0; px<DispLineBytes1bpp; px++) {
+          b1=logoBin[px+py*DispLineBytes1bpp];                // Get Data Byte for 8 Pixels
+          for (i=0; i<8; i=i+2){
+            if (bitRead(b1, i)) {
+              oled.drawPixel(xpos+x, ypos+y, SSD1322_WHITE);         // Draw Pixel if "1"
+            }
+            else {
+              oled.drawPixel(xpos+x, ypos+y, SSD1322_BLACK);         // Clear Pixel if "0"
+            }
+            //Serial.printf("X: %d Y: %d\n",x,y);
+            x++;
+          }
+#ifdef USE_NODEMCU
+          yield();
+#endif
+        }
+        x=0;
+        y++;
+      }
+      oled.display();  
+    break;
+    case GSC:
+      x=0;y=0;
+      for (py=0; py<DispHeight; py=py+2) {
+        for (px=0; px<DispLineBytes1bpp; px++) {
+          for (i=0; i<4; i++) {
+            b1=logoBin[(px*4)+i+py*DispLineBytes4bpp];                                                  // Get Data Byte 1 for 2 Pixels
+            b2=logoBin[(px*4)+i+(py+1)*DispLineBytes4bpp];                                              // Get Data Byte 2 for 2 Pixels
+            //br=(((0xF0 & b1) >> 4) + (0x0F & b1) + ((0xF0 & b2) >> 4) + (0x0F & b2)) / 4;               // cutting
+            br=round((((0xF0 & b1) >> 4) + (0x0F & b1) + ((0xF0 & b2) >> 4) + (0x0F & b2)) / 4);        // rounding
+            //br=(round(((0xF0 & b1) >> 4) + (0x0F & b1) + ((0xF0 & b2) >> 4) + (0x0F & b2)) /8)*2;       // /8*2 = more Contrast ?
+            oled.drawPixel(xpos+x, ypos+y, br);   // Draw only Pixel 1, Left Nibble
+            //Serial.printf("X: %d Y: %d\n",x,y);
+            x++;
+          }
+#ifdef USE_NODEMCU
+          yield();
+#endif
+        }
+      x=0;
+      y++;
+      }
+      oled.display();  
+    break;
+    case NONE:
+      usb2oled_showcorename();
+    break;
+  }
+}
+
+
+// --------------------------------------------------------------
+// ------------- Show 1/4 Core Picture at Position --------------
+// --------------------------------------------------------------
+// xpos & ypos = Offset
+void oled_showSmallCorePicture(int xpos, int ypos) {
+  int x=0,y=0,px=0,py=0,i=0;
+  unsigned char b;
+
+  //Serial.printf("Show 1/4 Pic\n",actPicType);
+  //actPicType = XBM;
+  //actPicType = GSC;
+  //Serial.printf("ActPicType: %d\n",actPicType);
+  
+  oled.clearDisplay();
+  switch (actPicType) {
+    case XBM:
+      x=0;y=0;
+      for (py=0; py<DispHeight; py=py+2) {
+        for (px=0; px<DispLineBytes1bpp; px++) {
+          b=logoBin[px+py*DispLineBytes1bpp];                // Get Data Byte for 8 Pixels
+          for (i=0; i<8; i=i+2){
+            if (bitRead(b, i)) {
+              oled.drawPixel(xpos+x, ypos+y, SSD1322_WHITE);         // Draw Pixel if "1"
+            }
+            else {
+              oled.drawPixel(xpos+x, ypos+y, SSD1322_BLACK);         // Clear Pixel if "0"
+            }
+            //Serial.printf("X: %d Y: %d\n",x,y);
+            x++;
+          }
+#ifdef USE_NODEMCU
+          yield();
+#endif
+        }
+        x=0;
+        y++;
+      }
+      oled.display();  
+    break;
+    case GSC:
+      x=0;y=0;
+      for (py=0; py<DispHeight; py=py+2) {
+        for (px=0; px<DispLineBytes1bpp; px++) {
+          for (i=0; i<4; i++) {
+            b=logoBin[(px*4)+i+py*DispLineBytes4bpp];        // Get Data Byte for 2 Pixels
+            oled.drawPixel(xpos+x, ypos+y, (0xF0 & b) >> 4);   // Draw only Pixel 1, Left Nibble
+            //Serial.printf("X: %d Y: %d\n",x,y);
+            x++;
+          }
+#ifdef USE_NODEMCU
+          yield();
+#endif
+        }
+      x=0;
+      y++;
+      }
+      oled.display();  
+    break;
+    case NONE:
+      usb2oled_showcorename();
+    break;
+  }
+}
+
+// --------------------------------------------------------------
+// ---------------- Show ScreenSaver Picture  -------------------
 // --------------------------------------------------------------
 void oled_showScreenSaverPicture(void) {
   int l,x,y;
-  l=random(1+1);
-  oled.clearDisplay();
-  if (l==0) {
-    x=random(DispWidth - mister_logo32_width);
-    y=random(DispHeight - mister_logo32_height);
-    oled.drawXBitmap(x, y, mister_logo32, mister_logo32_width, mister_logo32_height, ScreenSaverColor);
+  oled.setContrast(ScreenSaverColor);  // Test
+  l=random(1+2);
+  switch (l) {
+    case 0:
+      oled.clearDisplay();
+      x=random(DispWidth - mister_logo32_width);
+      y=random(DispHeight - mister_logo32_height);
+      oled.drawXBitmap(x, y, mister_logo32, mister_logo32_width, mister_logo32_height, SSD1322_WHITE);
+      //oled.drawXBitmap(x, y, mister_logo32, mister_logo32_width, mister_logo32_height, ScreenSaverColor);
+      oled.display();
+    break;
+    case 1:
+      oled.clearDisplay();
+      x=random(DispWidth - tty2oled_logo32_width);
+      y=random(DispHeight - tty2oled_logo32_height);
+      oled.drawXBitmap(x, y , tty2oled_logo32, tty2oled_logo32_width, tty2oled_logo32_height, SSD1322_WHITE);
+      //oled.drawXBitmap(x, y , tty2oled_logo32, tty2oled_logo32_width, tty2oled_logo32_height, ScreenSaverColor);
+      oled.display();
+    break;
+    case 2:
+      x=random(DispWidth - DispWidth/2);
+      y=random(DispHeight - DispHeight/2);
+      //oled_showSmallCorePicture(x,y);
+      oled_showSmallCorePictureV2(x,y);
+    break;
   }
-  else {
-    x=random(DispWidth - tty2oled_logo32_width);
-    y=random(DispHeight - tty2oled_logo32_height);
-    oled.drawXBitmap(x, y , tty2oled_logo32, tty2oled_logo32_width, tty2oled_logo32_height, ScreenSaverColor);
-  }
-  oled.display();
 }
 
 
@@ -832,6 +988,11 @@ void usb2oled_showcorename() {
 #ifdef XDEBUG
   Serial.println("Called Command CMDSNAM");
 #endif
+
+  ScreenSaverTimer=0;                        // Reset ScreenSaver-Timer
+  ScreenSaverLogoTimer=0;                    // Reset ScreenSaverLogo-Timer
+  oled.setContrast(contrast);
+
   oled.clearDisplay();
   u8g2.setFont(u8g2_font_tenfatguys_tr);     // 10 Pixel Font
   u8g2.setCursor(DispWidth/2-(u8g2.getUTF8Width(actCorename.c_str())/2), DispHeight/2 + ( u8g2.getFontAscent()/2 ) );
@@ -1010,10 +1171,14 @@ void usb2oled_clswithtransition() {
 // ------------------------- Showpic ----------------------------
 // --------------------------------------------------------------
 void usb2oled_showpic(void) {
-  
 #ifdef XDEBUG
   Serial.println("Called Command CMDSPIC");
 #endif
+
+  ScreenSaverTimer=0;                        // Reset ScreenSaver-Timer
+  ScreenSaverLogoTimer=0;                    // Reset ScreenSaverLogo-Timer
+  oled.setContrast(contrast);
+
   if (newCommand.length()>7) {                       // Parameter added?
     tEffect=newCommand.substring(8).toInt();         // Get Effect from Command String (is set to 0 if not convertable)
     if (tEffect<-1) tEffect=-1;                      // Check Effect minimum
@@ -1099,8 +1264,12 @@ void usb2oled_drawlogo(uint8_t e) {
   uint8_t vArray[DispLineBytes1bpp]={0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31};
   
 #ifdef XDEBUG
-  Serial.println("Called Command CMDLOGO");
+  Serial.printf("Draw Logo with Transition Effect No. %d\n",e);
 #endif
+
+  ScreenSaverTimer=0;                        // Reset ScreenSaver-Timer
+  ScreenSaverLogoTimer=0;                    // Reset ScreenSaverLogo-Timer
+  oled.setContrast(contrast);
 
   switch (e) {
     case 1:                                  // Left to Right
@@ -1235,7 +1404,7 @@ void usb2oled_drawlogo(uint8_t e) {
           if ((w % 20)==0) oled.display();
         }
       }
-      // Finally overwrite the Screen with fill Size Picture
+      // Finally overwrite the Screen with full Size Picture
       oled.clearDisplay();
       if (actPicType==XBM) oled.drawXBitmap(0, 0, logoBin, DispWidth, DispHeight, SSD1322_WHITE);
       if (actPicType==GSC) oled.draw4bppBitmap(logoBin);
@@ -1485,8 +1654,6 @@ void usb2oled_drawlogo(uint8_t e) {
       }    
     break;
   } // end switch (e)
-  ScreenSaverTimer=0;                        // Reset ScreenSaver-Timer
-  ScreenSaverLogoTimer=0;                    // Reset ScreenSaverLogo-Timer
 }  // end sd2oled_drawlogo
 
 

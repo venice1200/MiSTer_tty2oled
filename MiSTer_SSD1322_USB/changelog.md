@@ -391,12 +391,31 @@
 
   2022-02-09 
   ** Release to Stable **
-  
+
   2022-02-17
   -Change minimum SceeenSaver Intervall from 10s to 5s
   
   2022-02-19
   ** Release **
+  
+  2022-03-02
+  -Use more PicType "NONE" (Cosmetics)
+
+  2022-03-16
+  -Screensaver Mod, use 1/4 size Core Picture for the ScreenSaver
+  -New Command CMDSSCP
+
+  2022-03-19
+  -Screensaver Mod, use avarage of 2x2 Pixels for the small GSC Picture
+
+  2022-03-23
+  -Change cDelay from Variable to MCU dependent #define Value
+   Fixes a response issue using "waitforack" and MiSTer_SAM with NodeMCU 8266
+   
+  2022-03-31
+  ** Release **
+
+
   
 =====================================================================================
   

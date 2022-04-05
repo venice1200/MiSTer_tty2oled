@@ -23,6 +23,9 @@
 
   2022-04-01
   -Consolidate CMDSSCP/CMDSSCP2 and oled_showSmallCorePicture/oled_showSmallCorePictureV2
+
+  2022-04-05
+  -Testing Wemos Lolin 32: #define cDelay 100
    
   ToDo
   -Everything I forgot
@@ -30,7 +33,7 @@
 */
 
 // Set Version
-#define BuildVersion "220401T"                    // "T" for Testing
+#define BuildVersion "220405T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -111,7 +114,7 @@
 
 // WEMOS LOLIN32/Devkit_V4 using VSPI SCLK = 18, MISO = 19, MOSI = 23, SS = 5 and...
 #ifdef USE_LOLIN32
-  #define cDelay 25                // Command Delay in ms for Handshake
+  #define cDelay 100                // Command Delay in ms for Handshake
   #define OLED_CS 5
   #define OLED_DC 16
   #define OLED_RESET 17

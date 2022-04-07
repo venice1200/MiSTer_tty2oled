@@ -9,7 +9,7 @@
   - Adafruit GFX (*)
   - U8G2 for Adafruit GFX (*)
   - Bounce2 (*) optional, needed for the tilt-sensor
-  - eHaJo_LM75 (*) optional, needed for the MIC145 sensor on d.ti's tty2oled board
+  - MIC184 (*) optional, needed for the MIC145 sensor on d.ti's tty2oled board, get from: https://github.com/venice1200/MIC184_Temperature_Sensor/releases
   - SSD1322 for Adafruit GFX, download and extract from here: https://github.com/venice1200/SSD1322_for_Adafruit_GFX/releases/latest
   (*) These Libraries can be installed using Arduino's library manager.
   See also https://github.com/venice1200/MiSTer_tty2oled/wiki/Arduino-HowTo-%28Windows%29
@@ -18,22 +18,19 @@
   -ESP32 Dev Module
   -WEMOS LOLIN32
   -NodeMCU 1.0
+
+  2022-04-07
+  -Testing without "serial.flush" after "ttyack;"
   
   See changelog.md in Sketch folder for more details
 
-  2022-04-01
-  -Consolidate CMDSSCP/CMDSSCP2 and oled_showSmallCorePicture/oled_showSmallCorePictureV2
-
-  2022-04-05
-  -Testing Wemos Lolin 32: #define cDelay 100
-   
   ToDo
   -Everything I forgot
    
 */
 
 // Set Version
-#define BuildVersion "220405T"                    // "T" for Testing
+#define BuildVersion "220407T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -579,12 +576,12 @@ void loop(void) {
     usb2oled_settempzone();
     }
 
-    else if (newCommand.startsWith("CMDPTONE")) {                           // Play Tone
-    usb2oled_playtone();
+    else if (newCommand.startsWith("CMDPNOTE")) {                           // Play Note
+    usb2oled_playnote();
     }
 
-    else if (newCommand.startsWith("CMDPFREQ")) {                           // Play Frequency
-    usb2oled_playfrequency();
+    else if (newCommand.startsWith("CMDPTONE")) {                           // Play Tone/Frequency
+    usb2oled_playtone();
     }
 #endif  // USE_ESP32DEV
 
@@ -609,7 +606,7 @@ void loop(void) {
 #ifdef XSENDACK
     delay(cDelay);                           // Command Response Delay
     Serial.print("ttyack;");                 // Handshake with delimiter; MiSTer: "read -d ";" ttyresponse < ${TTYDEVICE}"
-    Serial.flush();                          // Wait for sendbuffer is clear
+    // Serial.flush();                          // Wait for sendbuffer is clear
 #endif
 
     updateDisplay=false;                              // Clear Update-Display Flag
@@ -674,8 +671,10 @@ void oled_showStartScreen(void) {
   u8g2.setFont(u8g2_font_5x7_mf);            // 6 Pixel Font
   u8g2.setCursor(0,63);
   u8g2.print(BuildVersion);
+#ifdef XDEBUG	
   if (micAvail) u8g2.print("M");
   if (pcaAvail) u8g2.print("P");
+#endif	
   oled.drawXBitmap(DispWidth-usb_icon_width, DispHeight-usb_icon_height, usb_icon, usb_icon_width, usb_icon_height, SSD1322_WHITE);
 
 #ifdef USE_ESP32DEV
@@ -1966,15 +1965,15 @@ void usb2oled_readnsetpowerled(void) {
 }
 
 // --------------------------------------------------------------
-// ------------ Play Tone using Piezo Beeper --------------------
+// --------- Play Note/Tone using Piezo Beeper ------------------
 // --------------------------------------------------------------
-void usb2oled_playtone(void) {
+void usb2oled_playnote(void) {
   int d0=0,d1=0,d2=0,d3=0,d4=0,o=0,d=0,p=0;
   String TextIn="",nT="",oT="",dT="",pT="";
   note_t n;
   
 #ifdef XDEBUG
-  Serial.println("Called Command CMDPTONE");
+  Serial.println("Called Command CMDPNOTE");
 #endif  
   TextIn=newCommand.substring(8);               // Start to find the first "," after the command
 #ifdef XDEBUG
@@ -2040,14 +2039,14 @@ void usb2oled_playtone(void) {
 }
 
 // --------------------------------------------------------------
-// --------- Play Frequency using Piezo Beeper ------------------
+// -------- Play Tone/Frequency using Piezo Beeper --------------
 // --------------------------------------------------------------
-void usb2oled_playfrequency(void) {
+void usb2oled_playtone(void) {
   int d0=0,d1=0,d2=0,d3=0,f=0,d=0,p=0;
   String TextIn="",fT="",dT="",pT="";
   
 #ifdef XDEBUG
-  Serial.println("Called Command CMDPFREQ");
+  Serial.println("Called Command CMDPTONE");
 #endif  
   TextIn=newCommand.substring(8);               // Start to find the first "," after the command
 #ifdef XDEBUG

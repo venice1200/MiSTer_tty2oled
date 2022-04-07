@@ -414,6 +414,18 @@
    
   2022-03-31
   ** Release **
+  
+  2022-04-01
+  -Consolidate CMDSSCP/CMDSSCP2 and oled_showSmallCorePicture/oled_showSmallCorePictureV2
+
+  2022-04-05
+  -Wemos Lolin 32 Profile: #define cDelay 100 fixes MiSTer SAM issues with waitforack
+  
+  2022-04-07
+  -Renamed Command CMDPTONE to CMDPNOTE
+   >> CMDPNOTE,C,4,150,30,C,4,160,30,C,4,150,30,F,4,150,30,C,4,150,30  
+  -Renamed Command CMDPFREQ to CMDPTONE
+   
 
 
   

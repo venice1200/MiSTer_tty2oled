@@ -2,6 +2,8 @@
 
 A Display Add-on For The **[MiSTer FPGA]**.
 
+<br>
+
 <div align = center>
 
 ![Showcase]  
@@ -17,6 +19,8 @@ A Display Add-on For The **[MiSTer FPGA]**.
 </div>
 
 ---
+
+<br>
 
 <div align = center>
 

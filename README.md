@@ -15,7 +15,7 @@ A Display Add-on For The **[MiSTer FPGA]**.
   
 This project provides both the **Hardware** as well as the <br>
 **Software** to drive an **OLED** display with your Arduino <br>
-by simple **USB** connection to your **MiSTer** system.
+with simple **USB** connection to your **MiSTer** system.
   
   </div>
 </div>

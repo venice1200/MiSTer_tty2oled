@@ -1,6 +1,6 @@
 ## 👾 ![Logo] 👾                     [![Badge License]][License]
 
-A Display Add-on For The **[MiSTer FPGA]**.
+*A Display Add-on For The **[MiSTer FPGA]**.*
 
 <br>
 

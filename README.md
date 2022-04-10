@@ -1,8 +1,22 @@
 ## 👾 ![Logo] 👾  [![Badge License]][License]
 
-**tty2oled** is a Soft & Hardware Add-On for the [MiSTer FPGA][FPGA] showing Text or Pictures, based on the running core, on a (OLED) Display driven by an Arduino which is connected via USB to the MiSTer.    
-  
+A Display Add-on For The **[MiSTer FPGA]**.
+
+<div align = center>
+
 ![Showcase]  
+
+</div>
+
+---
+
+<div align = center>
+
+This project provides both the **Hardware** as well as the <br>
+**Software** to drive an **OLED** display with your Arduino <br>
+by simple **USB** connection to your **MiSTer** system.
+  
+</div>
   
 Jump to the [WIKI] 😃 for more Information.  
   
@@ -17,7 +31,7 @@ Jump to the [WIKI] 😃 for more Information.
 [Showcase]: https://github.com/venice1200/MiSTer_tty2oled/blob/main/Pictures/tty2oled_video.gif?raw=true
 [Logo]: https://github.com/venice1200/MiSTer_tty2oled/blob/main/Pictures/tty2oled_logo_120x46_blue_black.png?raw=true
 
-[FPGA]: https://github.com/MiSTer-devel
+[MiSTer FPGA]: https://github.com/MiSTer-devel
 
 [Wiki]: https://github.com/venice1200/MiSTer_tty2oled/wiki
 [License]: LICENSE

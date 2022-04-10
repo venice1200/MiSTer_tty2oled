@@ -10,6 +10,14 @@ A Display Add-on For The **[MiSTer FPGA]**.
 
 ---
 
+<div align = 'center'>
+
+  **⸢ [Documentation] ⸥**
+  
+</div>
+
+---
+
 <div align = center>
 
 This project provides both the **Hardware** as well as the <br>
@@ -17,12 +25,6 @@ This project provides both the **Hardware** as well as the <br>
 by simple **USB** connection to your **MiSTer** system.
   
 </div>
-  
-Jump to the [WIKI] 😃 for more Information.  
-  
-
-
-
 
 <!----------------------------------------------------------------------------->
 
@@ -33,5 +35,5 @@ Jump to the [WIKI] 😃 for more Information.
 
 [MiSTer FPGA]: https://github.com/MiSTer-devel
 
-[Wiki]: https://github.com/venice1200/MiSTer_tty2oled/wiki
+[Documentation]: https://github.com/venice1200/MiSTer_tty2oled/wiki
 [License]: LICENSE

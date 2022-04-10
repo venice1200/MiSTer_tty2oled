@@ -1,4 +1,4 @@
-## 👾 ![Logo] 👾  [![Badge License]][License]
+## 👾 ![Logo] 👾                   [![Badge License]][License]
 
 A Display Add-on For The **[MiSTer FPGA]**.
 
@@ -37,10 +37,9 @@ with simple **USB** connection to your **MiSTer** system.
 
 <!----------------------------------------------------------------------------->
 
-[Badge License]: https://img.shields.io/badge/License-GPLv3-blue.svg
+[Badge License]: https://img.shields.io/badge/License-GPLv3-blue.svg?style=for-the-badge
 
-[Showcase]: https://github.com/venice1200/MiSTer_tty2oled/blob/main/Pictures/tty2oled_video.gif?raw=true
-[Logo]: https://github.com/venice1200/MiSTer_tty2oled/blob/main/Pictures/tty2oled_logo_120x46_blue_black.png?raw=true
+[Logo]: Pictures/tty2oled_logo_120x46_blue_black.png?raw=true
 
 [MiSTer FPGA]: https://github.com/MiSTer-devel
 

@@ -4,31 +4,35 @@ A Display Add-on For The **[MiSTer FPGA]**.
 
 <br>
 
-<div align = center>
+<img src = Pictures/tty2oled_video.gif align = left>
 
-![Showcase]  
+<br>
+<br>
+<br>
 
+<div align = right>
+  <div align = center>
+  
+This project provides both the **Hardware** as well as the <br>
+**Software** to drive an **OLED** display with your Arduino <br>
+by simple **USB** connection to your **MiSTer** system.
+  
+  </div>
 </div>
+
+<br>
+<br>
+<br>
 
 ---
 
-<div align = 'center'>
+<div align = center>
 
   **⸢ [Documentation] ⸥**
   
 </div>
 
 ---
-
-<br>
-
-<div align = center>
-
-This project provides both the **Hardware** as well as the <br>
-**Software** to drive an **OLED** display with your Arduino <br>
-by simple **USB** connection to your **MiSTer** system.
-  
-</div>
 
 <!----------------------------------------------------------------------------->
 

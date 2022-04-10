@@ -29,6 +29,7 @@ with simple **USB** connection to your **MiSTer** system.
 <div align = center>
 
   **⸢ [Documentation] ⸥**
+  **⸢ [Creating Graphics] ⸥**
   
 </div>
 
@@ -43,5 +44,6 @@ with simple **USB** connection to your **MiSTer** system.
 
 [MiSTer FPGA]: https://github.com/MiSTer-devel
 
+[Creating Graphics]: GSC%20-%20HowTo%20with%20Gimp.md
 [Documentation]: https://github.com/venice1200/MiSTer_tty2oled/wiki
 [License]: LICENSE

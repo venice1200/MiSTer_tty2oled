@@ -1,8 +1,48 @@
-## 👾 ![tty2oled logo](https://github.com/venice1200/MiSTer_tty2oled/blob/main/Pictures/tty2oled_logo_120x46_blue_black.png?raw=true) 👾     
-**tty2oled** is a Soft & Hardware Add-On for the [MiSTer FPGA](https://github.com/MiSTer-devel) showing Text or Pictures, based on the running core, on a (OLED) Display driven by an Arduino which is connected via USB to the MiSTer.    
+## 👾 ![Logo] 👾                     [![Badge License]][License]
+
+*A Display Add-on For The **[MiSTer FPGA]**.*
+
+<br>
+
+<img src = Pictures/tty2oled_video.gif align = left>
+
+<br>
+<br>
+<br>
+
+<div align = right>
+  <div align = center>
   
-![Case with OLED](https://github.com/venice1200/MiSTer_tty2oled/blob/main/Pictures/tty2oled_video.gif?raw=true)  
+This project provides both the **Hardware** as well as the <br>
+**Software** to drive an **OLED** display with your Arduino <br>
+with simple **USB** connection to your **MiSTer** system.
   
-Jump to the WIKI 😃 https://github.com/venice1200/MiSTer_tty2oled/wiki for more Information.  
+  </div>
+</div>
+
+<br>
+<br>
+<br>
+
+---
+
+<div align = center>
+
+  **⸢ [Documentation] ⸥**
+  **⸢ [Creating Graphics] ⸥**
   
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+</div>
+
+---
+
+<!----------------------------------------------------------------------------->
+
+[Badge License]: https://img.shields.io/badge/License-GPLv3-blue.svg?style=for-the-badge
+
+[Logo]: Pictures/tty2oled_logo_120x46_blue_black.png?raw=true
+
+[MiSTer FPGA]: https://github.com/MiSTer-devel
+
+[Creating Graphics]: GSC%20-%20HowTo%20with%20Gimp.md
+[Documentation]: https://github.com/venice1200/MiSTer_tty2oled/wiki
+[License]: LICENSE

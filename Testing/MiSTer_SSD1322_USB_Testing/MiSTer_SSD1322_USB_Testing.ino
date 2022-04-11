@@ -21,6 +21,11 @@
 
   2022-04-07
   -Testing without "serial.flush" after "ttyack;"
+
+  2022-04-10/11
+  -Add Command "CMDSECD,[value]" to set the Command Delay
+  -Add Command "CMDSHCD" to show the actual Command Delay "On Screen" (for Debugging)
+  -Set cDelay for ESPDEV=25, Lolin32=60, 8266=60 after some manual tests.
   
   See changelog.md in Sketch folder for more details
 
@@ -30,7 +35,7 @@
 */
 
 // Set Version
-#define BuildVersion "220407T"                    // "T" for Testing
+#define BuildVersion "220411T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -90,7 +95,7 @@
 // OLED Pins, Tilt Pin, I2C, User-LED for d.ti Board
 // using VSPI SCLK = 18, MISO = 19, MOSI = 23 and...
 #ifdef USE_ESP32DEV
-  #define cDelay 25                // Command Delay in ms for Handshake
+  int cDelay = 10;                 // Command Delay in ms for Handshake
   #define OLED_CS 26               // OLED Chip Select Pin
   #define OLED_DC 25               // OLED Data/Command Pin
   #define OLED_RESET 27            // OLED Reset Pin
@@ -111,7 +116,7 @@
 
 // WEMOS LOLIN32/Devkit_V4 using VSPI SCLK = 18, MISO = 19, MOSI = 23, SS = 5 and...
 #ifdef USE_LOLIN32
-  #define cDelay 100                // Command Delay in ms for Handshake
+  int cDelay = 60;                 // Command Delay in ms for Handshake
   #define OLED_CS 5
   #define OLED_DC 16
   #define OLED_RESET 17
@@ -120,7 +125,7 @@
 
 // ESP8266-Board (NodeMCU v3)
 #ifdef USE_NODEMCU
-  #define cDelay 100                // Command Delay in ms for Handshake
+  int cDelay = 60;                 // Command Delay in ms for Handshake
   #define OLED_CS 15
   #define OLED_DC 4
   #define OLED_RESET 5
@@ -178,7 +183,7 @@ int actPicType=NONE;
 int16_t xs, ys;
 uint16_t ws, hs;
 const uint8_t minEffect=1, maxEffect=23;      // Min/Max Effects for Random
-//const uint8_t minEffect=22, maxEffect=23;      // Min/Max Effects for TESTING
+//const uint8_t minEffect=22, maxEffect=23;   // Min/Max Effects for TESTING
 
 // Blinker 500ms Interval
 const long interval = 500;                    // Interval for Blink (milliseconds)
@@ -486,6 +491,14 @@ void loop(void) {
       oled_drawlogo64h(sorgelig_icon64_width, sorgelig_icon64);
     }
 
+    else if (newCommand.startsWith("CMDSECD")) {                            // Set Command Delay
+      oled_setcdelay();
+    }
+
+    else if (newCommand=="CMDSHCD") {                                       // Show Command Delay
+      oled_showcdelay();
+    }
+
     else if (newCommand=="CMDHWINF") {                                      // Send HW Info
       oled_sendHardwareInfo();
     }
@@ -693,6 +706,42 @@ void oled_showStartScreen(void) {
   startScreenActive=true;
 } // end mistertext
 
+// --------------------------------------------------------------
+// ------------ Read and Set Command Delay ----------------------
+// --------------------------------------------------------------
+void oled_setcdelay(void) {
+  String dT="";
+#ifdef XDEBUG
+  Serial.println("Called Command CMDSECD");
+#endif
+  
+  dT=newCommand.substring(8);           // CMD-Length+1
+
+#ifdef XDEBUG
+  Serial.printf("\nReceived Text: %s\n", (char*)dT.c_str());
+#endif
+  cDelay=dT.toInt();                   // Convert Value
+#ifdef XDEBUG
+  Serial.printf("\nSet cDelay to: %d\n", cDelay);
+#endif
+}
+
+// --------------------------------------------------------------
+// ------------- Show Command Delay on Screen -------------------
+// --------------------------------------------------------------
+void oled_showcdelay(void) {
+#ifdef XDEBUG
+  Serial.println("Called Command CMDGECD");
+#endif
+  
+  oled.clearDisplay();
+  u8g2.setFont(u8g2_font_tenfatguys_tr);
+  u8g2.setCursor(20,32);
+  u8g2.print("cDelay: ");
+  u8g2.print(cDelay);
+  oled.display();
+
+}
 
 // --------------------------------------------------------------
 // ----------------- Set ScreenSaver Mode -----------------------
@@ -720,8 +769,8 @@ void usb2oled_readnsetscreensaver(void) {
   i=iT.toInt();                             // Convert Interval
   l=lT.toInt();                             // Convert Logo-Time
 
-  if (m<0) m=0;                             // Check & Set Mode/Color low
-  if (m>15) m=15;                           // Check & Set Mode/Color high
+  if (m<0) m=0;                             // Check & Set Mode/Color low range
+  if (m>15) m=15;                           // Check & Set Mode/Color high range
   if (i<5) i=5;                             // Check&Set Minimum Interval
   if (i>600) i=600;                         // Check&Set Maximiun Interval
   if (l<20) l=20;                           // Check&Set Minimum Logo-Time
@@ -1971,6 +2020,7 @@ void usb2oled_playnote(void) {
   int d0=0,d1=0,d2=0,d3=0,d4=0,o=0,d=0,p=0;
   String TextIn="",nT="",oT="",dT="",pT="";
   note_t n;
+  bool pError=false;
   
 #ifdef XDEBUG
   Serial.println("Called Command CMDPNOTE");
@@ -2025,14 +2075,21 @@ void usb2oled_playnote(void) {
     o = oT.toInt();                           // Octave
     d = dT.toInt();                           // Duration
     p = pT.toInt();                           // Pause after playing tone
+
+    if (o == 0 || d == 0 || p == 0) pError=true;
+    
 #ifdef XDEBUG
     Serial.printf("Values to Play: %s %d %d %d\n", (char*)nT.c_str(), o, d, p);
 #endif  
-    ledcWriteNote(TONE_PWM_CHANNEL, n, o);    // Play Note
-    delay(d);                                 // Duration
-    ledcWriteTone(TONE_PWM_CHANNEL, 0);       // Buzzer off
-    delay(p);                                 // Pause
-    
+    if (!pError) {
+      ledcWriteNote(TONE_PWM_CHANNEL, n, o);    // Play Note
+      delay(d);                                 // Duration
+      ledcWriteTone(TONE_PWM_CHANNEL, 0);       // Buzzer off
+      delay(p);                                 // Pause
+    }
+    else {
+      usb2oled_showperror(); 
+    }
   } while (d4 != -1);                         // Repeat as long a fourth "," is found
 
   ledcDetachPin(BUZZER);
@@ -2044,6 +2101,7 @@ void usb2oled_playnote(void) {
 void usb2oled_playtone(void) {
   int d0=0,d1=0,d2=0,d3=0,f=0,d=0,p=0;
   String TextIn="",fT="",dT="",pT="";
+  bool pError=false;
   
 #ifdef XDEBUG
   Serial.println("Called Command CMDPTONE");
@@ -2079,14 +2137,21 @@ void usb2oled_playtone(void) {
     f = fT.toInt();                           // Octave
     d = dT.toInt();                           // Duration
     p = pT.toInt();                           // Pause after playing tone
+
+    if (f == 0 || d == 0 || p == 0) pError=true;
+    
 #ifdef XDEBUG
     Serial.printf("Values to Play: %d %d %d\n", f, d, p);
 #endif  
-    ledcWriteTone(TONE_PWM_CHANNEL, f);       // Play Frequency
-    delay(d);                                 // Duration
-    ledcWriteTone(TONE_PWM_CHANNEL, 0);       // Buzzer off
-    delay(p);                                 // Pause
-   
+    if (!pError) {
+      ledcWriteTone(TONE_PWM_CHANNEL, f);       // Play Frequency
+      delay(d);                                 // Duration
+      ledcWriteTone(TONE_PWM_CHANNEL, 0);       // Buzzer off
+      delay(p);                                 // Pause
+    }
+    else {
+      usb2oled_showperror();      
+    }
   } while (d3 != -1);                         // Repeat as long a third "," is found
 
   ledcDetachPin(BUZZER);

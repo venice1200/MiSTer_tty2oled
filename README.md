@@ -1,4 +1,4 @@
-## 👾 ![Logo] 👾                     [![Badge License]][License]
+## 👾 ![Logo] 👾
 
 *A Display Add-on For The **[MiSTer FPGA]**.*
 
@@ -34,7 +34,7 @@ with simple **USB** connection to your **MiSTer** system.
 </div>
 
 ---
-
+[![Badge License]][License]
 <!----------------------------------------------------------------------------->
 
 [Badge License]: https://img.shields.io/badge/License-GPLv3-blue.svg?style=for-the-badge

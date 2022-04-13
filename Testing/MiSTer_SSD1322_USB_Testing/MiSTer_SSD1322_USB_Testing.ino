@@ -19,13 +19,6 @@
   -WEMOS LOLIN32
   -NodeMCU 1.0
 
-  2022-04-07
-  -Testing without "serial.flush" after "ttyack;"
-
-  2022-04-10/11
-  -Add Command "CMDSECD,[value]" to set the Command Delay
-  -Add Command "CMDSHCD" to show the actual Command Delay "On Screen" (for Debugging)
-  -Set cDelay for ESPDEV=25, Lolin32=60, 8266=60 after some manual tests.
   
   See changelog.md in Sketch folder for more details
 
@@ -35,7 +28,7 @@
 */
 
 // Set Version
-#define BuildVersion "220411T"                    // "T" for Testing
+#define BuildVersion "220413T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>

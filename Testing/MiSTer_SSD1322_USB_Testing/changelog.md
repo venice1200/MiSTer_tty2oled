@@ -425,9 +425,14 @@
   -Renamed Command CMDPTONE to CMDPNOTE
    >> CMDPNOTE,C,4,150,30,C,4,160,30,C,4,150,30,F,4,150,30,C,4,150,30  
   -Renamed Command CMDPFREQ to CMDPTONE
-   
+  
+  2022-04-07
+  -Testing without "serial.flush" after "ttyack;"
 
-
+  2022-04-10..13
+  -Add Command "CMDSECD,[value]" to set the Command Delay
+  -Add Command "CMDSHCD" to show the actual Command Delay "On Screen" (for Debugging)
+  -Set cDelay for ESPDEV=15, Lolin32=60, 8266=60 after some manual tests with MiSTer SAM
   
 =====================================================================================
   

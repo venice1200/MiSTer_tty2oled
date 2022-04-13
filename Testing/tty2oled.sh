@@ -190,7 +190,7 @@ if [ -c "${TTYDEV}" ]; then							# check for tty device
   sendscreensaver								# Set Screensaver
   while true; do								# main loop
     if [ -r ${corenamefile} ]; then						# proceed if file exists and is readable (-r)
-      newcore=$(cat ${corenamefile})					# get CORENAME
+      newcore=$(cat ${corenamefile})						# get CORENAME
       #echo "Read CORENAME: -${newcore}-"
       dbug "Read CORENAME: -${newcore}-"
       if [ "${newcore}" != "${oldcore}" ]; then					# proceed only if Core has changed
@@ -198,9 +198,9 @@ if [ -c "${TTYDEV}" ]; then							# check for tty device
         dbug "Send -${newcore}- to ${TTYDEV}."
         senddata "${newcore}"							# The "Magic"
         oldcore="${newcore}"							# update oldcore variable
-      fi															# end if core check
-      inotifywait -q -e modify "${corenamefile}" 					# wait here for next change of corename, -q for quiet
-    else															# CORENAME file not found
+      fi									# end if core check
+      inotifywait -q -e modify "${corenamefile}" 				# wait here for next change of corename, -q for quiet
+    else									# CORENAME file not found
      #echo "File ${corenamefile} not found!"
      dbug "File ${corenamefile} not found!"
     fi										# end if /tmp/CORENAME check

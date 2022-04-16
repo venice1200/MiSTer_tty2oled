@@ -50,6 +50,7 @@
 # 2021-10-05 USE_RANDOM_ALT to choose between _altX pictures
 # 2022-01-23 Bugfix: Comment the reload of INI Files in function "senddata" because command line parameter don't work
 # 2022-02-10 Added ScreenSaver functionality
+# 2022-04-09 Make the Daemon more quiet
 #
 #
 
@@ -60,6 +61,7 @@ cd /tmp
 # Debug function
 dbug() {
   if [ "${debug}" = "true" ]; then
+  echo "${1}"
     if [ ! -e ${debugfile} ]; then						# log file not (!) exists (-e) create it
       echo "---------- tty2oled Debuglog ----------" > ${debugfile}
     fi 
@@ -102,7 +104,7 @@ sendrotation() {
       echo "CMDSORG" > ${TTYDEV}						# Show Start Screen rotated
       sleep 4
     #else
-    #  ebug "Sending: CMDROT,1" > ${TTYDEV}
+    #  dbug "Sending: CMDROT,1" > ${TTYDEV}
     #  echo "CMDROT,0" > ${TTYDEV}						# No Rotation
     fi
   fi
@@ -110,8 +112,6 @@ sendrotation() {
 
 # USB Send-Picture-Data function
 senddata() {
-  #. /media/fat/tty2oled/tty2oled-system.ini					# ReRead INI for changes
-  #. /media/fat/tty2oled/tty2oled-user.ini					# ReRead INI for changes
   newcore="${1}"
   unset picfnam
   if [ "${USBMODE}" = "yes" ]; then						# Check the tty2xxx mode
@@ -158,7 +158,8 @@ senddata() {
 # ** Main **
 # Check for Command Line Parameter
 if [ "${#}" -ge 1 ]; then							# Command Line Parameter given, override Parameter
-  echo -e "\nUsing Command Line Parameter"
+  #echo -e "\nUsing Command Line Parameter"
+  dbug "\nUsing Command Line Parameter"
   TTYDEV=${1}									# Set TTYDEV with Parameter 1
   if [ -n "${2}" ]; then							# Parameter 2 Baudrate
     BAUDRATE=${2}								# Set Baudrate
@@ -177,36 +178,35 @@ if [ "${#}" -ge 1 ]; then							# Command Line Parameter given, override Paramet
 fi										# end if command line Parameter 
 
 # Let's go
-if [ -c "${TTYDEV}" ]; then							# check for tty device
-  [ "${debug}" = "true" ] && echo -e "\n${TTYDEV} detected, setting Parameter: ${BAUDRATE} ${TTYPARAM}."
+if [ -c "${TTYDEV}" ]; then								# check for tty device
   dbug "${TTYDEV} detected, setting Parameter: ${BAUDRATE} ${TTYPARAM}."
-  stty -F ${TTYDEV} ${BAUDRATE} ${TTYPARAM}					# set tty parameter
+  stty -F ${TTYDEV} ${BAUDRATE} ${TTYPARAM}				# set tty parameter
   sleep ${WAITSECS}
-  echo "QWERTZ" > ${TTYDEV}							# First Transmission to clear serial send buffer
+  echo "QWERTZ" > ${TTYDEV}								# First Transmission to clear serial send buffer
   dbug "Send QWERTZ as first transmission"
   sleep ${WAITSECS}
-  sendcontrast									# Set Contrast
-  sendrotation									# Set Display Rotation
-  sendscreensaver								# Set Screensaver
-  while true; do								# main loop
+  sendcontrast											# Set Contrast
+  sendrotation											# Set Display Rotation
+  sendscreensaver										# Set Screensaver
+  while true; do										# main loop
     if [ -r ${corenamefile} ]; then						# proceed if file exists and is readable (-r)
-      newcore=$(cat ${corenamefile})						# get CORENAME
-      echo "Read CORENAME: -${newcore}-"
+      newcore=$(cat ${corenamefile})					# get CORENAME
+      #echo "Read CORENAME: -${newcore}-"
       dbug "Read CORENAME: -${newcore}-"
-      if [ "${newcore}" != "${oldcore}" ]; then					# proceed only if Core has changed
-        echo "Send -${newcore}- to ${TTYDEV}."
+      if [ "${newcore}" != "${oldcore}" ]; then			# proceed only if Core has changed
+        #echo "Send -${newcore}- to ${TTYDEV}."
         dbug "Send -${newcore}- to ${TTYDEV}."
         senddata "${newcore}"							# The "Magic"
         oldcore="${newcore}"							# update oldcore variable
-      fi									# end if core check
-      inotifywait -e modify "${corenamefile}"					# wait here for next change of corename
-    else									# CORENAME file not found
-     echo "File ${corenamefile} not found!"
+      fi												# end if core check
+      inotifywait -qq -e modify "${corenamefile}" 		# wait here for next change of corename, -qq for quietness
+    else												# CORENAME file not found
+     #echo "File ${corenamefile} not found!"
      dbug "File ${corenamefile} not found!"
-    fi										# end if /tmp/CORENAME check
-  done										# end while
-else										# no tty detected
+    fi													# end if /tmp/CORENAME check
+  done													# end while
+else													# no tty detected
   echo "No ${TTYDEV} Device detected, abort."
   dbug "No ${TTYDEV} Device detected, abort."
-fi										# end if tty check
+fi														# end if tty check
 # ** End Main **

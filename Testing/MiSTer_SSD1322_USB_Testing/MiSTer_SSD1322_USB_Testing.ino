@@ -19,16 +19,28 @@
   -WEMOS LOLIN32
   -NodeMCU 1.0
 
+  2022-04-16
+  -Fix CMDPNOTE/CMDPTONE Bug if Parameter is missing
+
+  2022-04-17
+  -Add Code for new Commadn CMDSETIME (stolen from tty2tft)
+  -Add CMDNULL Command to test cDelay
   
   See changelog.md in Sketch folder for more details
 
   ToDo
+   writetext(rtc.getTime(), x + 9, y + 10, "", 0, z, "");
+   sendtime() {
+   timeoffset=$(date +%:::z)
+   localtime=$(date '-d now '${timeoffset}' hour' +%s)
+   echo "CMDSETTIME,${localtime}" > ${TTYDEV}
+
   -Everything I forgot
    
 */
 
 // Set Version
-#define BuildVersion "220413T"                    // "T" for Testing
+#define BuildVersion "220417T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -51,8 +63,9 @@
 // Uncomment for 180° StartUp Rotation (Display Connector up)
 //#define XROTATE
 
-// Uncomment for "Send Acknowledge" from tty2oled to MiSTer
-#define XSENDACK
+// No longer needed as ACK is now permanent
+// Uncomment for "Send Acknowledge" from tty2oled to MiSTer 
+//#define XSENDACK
 
 // ---------------------------------------------------------------------------------------------------------------------
 // ---------------------------------- Auto-Board-Config via Arduino IDE Board Selection --------------------------------
@@ -134,10 +147,8 @@ U8G2_FOR_ADAFRUIT_GFX u8g2;
 #define DEBOUNCE_TIME 25                 // Debounce Time
 Bounce RotationDebouncer = Bounce();     // Create Bounce class
 
-#ifdef USE_ESP32DEV
-#endif
 
-// OTA and Reset only for ESP32
+// OTA, Reset and RTC only for ESP32
 #ifdef ESP32
   #include "cred.h"                               // Load your WLAN Credentials for OTA
   #include <WiFi.h>
@@ -145,6 +156,8 @@ Bounce RotationDebouncer = Bounce();     // Create Bounce class
   #include <WiFiUdp.h>
   #include <ArduinoOTA.h>
   bool OTAEN=false;                               // Will be set to "true" by Command "CMDENOTA"
+  #include <ESP32Time.h>                          // Time-Library
+  ESP32Time rtc;                                  // Create Real-Time-Clock Device
 #endif
 
 // -------------------------------------------------------------
@@ -230,7 +243,11 @@ void setup(void) {
   Serial.setTimeout(500);                    // Set max. Serial "Waiting Time", default = 1000ms
 
   randomSeed(analogRead(34));                // Init Random Generator with empty Port Analog value
-
+  
+#ifdef ESP32  
+  rtc.setTime(1640995200);                   // Set Time (2022-01-01) only for ESP32
+#endif
+  
   // Init Display SSD1322
   oled.begin();
   oled.clearDisplay();
@@ -463,6 +480,9 @@ void loop(void) {
     // ---------------------------------------------------
 
     // -- Test Commands --
+    else if (newCommand=="CMDNULL") {                                       // NULL-Command
+    }                                                                       // Do nothing 
+
     else if (newCommand=="CMDCLS") {                                        // Clear Screen with Display Update
       oled.clearDisplay();
       oled.display();
@@ -600,6 +620,11 @@ void loop(void) {
     else if (newCommand=="CMDRESET") {                                      // Command from Serial for Resetting the ESP
       ESP.restart();                                                        // Reset ESP
     }
+
+    else if (newCommand.startsWith("CMDSETIME,")) {                         // Set date and time only for ESP32
+      int timestamp = (newCommand.substring(11)).toInt();
+      rtc.setTime(timestamp);
+    }
 #endif  // ESP32
 
     // -- Unidentified Core Name, just write it on screen
@@ -609,11 +634,9 @@ void loop(void) {
       usb2oled_showcorename();
     }  // end ifs
 
-#ifdef XSENDACK
-    delay(cDelay);                           // Command Response Delay
-    Serial.print("ttyack;");                 // Handshake with delimiter; MiSTer: "read -d ";" ttyresponse < ${TTYDEVICE}"
-    // Serial.flush();                          // Wait for sendbuffer is clear
-#endif
+    delay(cDelay);                                    // Command Response Delay
+    Serial.print("ttyack;");                          // Handshake with delimiter; MiSTer: "read -d ";" ttyresponse < ${TTYDEVICE}"
+    // Serial.flush();                                // Wait for sendbuffer is clear
 
     updateDisplay=false;                              // Clear Update-Display Flag
   } // endif updateDisplay
@@ -2024,6 +2047,10 @@ void usb2oled_playnote(void) {
 #endif
   
   d0 = TextIn.indexOf(',');                 // Find location of the Starting ","
+
+#ifdef XDEBUG
+    Serial.printf("Find first delimeter at: %d\n", d0);
+#endif  
  
   ledcAttachPin(BUZZER, TONE_PWM_CHANNEL);
  
@@ -2034,19 +2061,30 @@ void usb2oled_playnote(void) {
     d1 = TextIn.indexOf(',', d0+1 );          // Find location of first ","
     d2 = TextIn.indexOf(',', d1+1 );          // Find location of second ","
     d3 = TextIn.indexOf(',', d2+1 );          // Find location of third ","
-    d4 = TextIn.indexOf(',', d3+1 );          // Find location of fouth "," - Value = "-1" if not found = no more Notes available
+    d4 = TextIn.indexOf(',', d3+1 );          // Find location of fourth "," - Value = "-1" if not found = no more Notes available
+
+#ifdef XDEBUG
+    Serial.printf("Find delimeters at: %d %d %d %d\n", d1,d2,d3,d4);
+#endif  
 
     //Create Substrings
     nT = TextIn.substring(d0+1, d1);          // Get String for Note
     oT = TextIn.substring(d1+1, d2);          // Get String for Octave
     dT = TextIn.substring(d2+1, d3);          // Get String for Duration
-    if (d4 != -1) {
+    if (d4 == -1) {                           // String finished
+      pT = TextIn.substring(d3+1);            // Get String for Pause
+    }
+    else if (d3 == -1 || d2 == -1 || d1 == -1) {  // Parameter missing = pError
+      pError=true;
+    }
+    else {                                    // String not finished
       pT = TextIn.substring(d3+1, d4);        // Get String for Pause
       d0=d4;                                  // Set Index for next Note
     }
-    else {
-      pT = TextIn.substring(d3+1);            // Get String for Pause
-    }
+
+#ifdef XDEBUG
+    Serial.printf("Found strings: %s %s %s %s\n", (char*)nT.c_str(), (char*)oT.c_str(), (char*)dT.c_str(), (char*)pT.c_str());
+#endif  
 
     // Build Note and convert Substrings to Integers
     // See https://github.com/espressif/arduino-esp32/blob/6a7bcabd6b7a33f074f93ed60e5cc4378d350b81/cores/esp32/esp32-hal-ledc.c#L141
@@ -2074,6 +2112,7 @@ void usb2oled_playnote(void) {
 #ifdef XDEBUG
     Serial.printf("Values to Play: %s %d %d %d\n", (char*)nT.c_str(), o, d, p);
 #endif  
+
     if (!pError) {
       ledcWriteNote(TONE_PWM_CHANNEL, n, o);    // Play Note
       delay(d);                                 // Duration
@@ -2082,8 +2121,11 @@ void usb2oled_playnote(void) {
     }
     else {
       usb2oled_showperror(); 
+#ifdef XDEBUG
+      Serial.printf("Parameter Error!\n");
+#endif  
     }
-  } while (d4 != -1);                         // Repeat as long a fourth "," is found
+  } while (d4 != -1 && !pError);                         // Repeat as long a fourth "," is found
 
   ledcDetachPin(BUZZER);
 }
@@ -2119,13 +2161,17 @@ void usb2oled_playtone(void) {
     //Create Substrings
     fT = TextIn.substring(d0+1, d1);          // Get String for Frequency
     dT = TextIn.substring(d1+1, d2);          // Get String for Duration
-    if (d3 != -1) {
-      pT = TextIn.substring(d2+1, d3);        // Get String for Pause
-      d0=d3;                                  // Set Index in String for next Note
-    }
-    else {
+    if (d3 == -1) {                           // String finished
       pT = TextIn.substring(d2+1);            // Get String for Pause
     }
+    else if (d2 == -1 || d1 == -1) {          // Parameter missing = pError
+      pError=true;
+    }
+    else {                                    // String not finished
+      pT = TextIn.substring(d2+1, d3);        // Get String for Pause
+      d0=d3;                                  // Set Index for next Tone
+    }
+
 
     f = fT.toInt();                           // Octave
     d = dT.toInt();                           // Duration
@@ -2145,7 +2191,7 @@ void usb2oled_playtone(void) {
     else {
       usb2oled_showperror();      
     }
-  } while (d3 != -1);                         // Repeat as long a third "," is found
+  } while (d3 != -1 && !pError);                         // Repeat as long a third "," is found
 
   ledcDetachPin(BUZZER);
 }

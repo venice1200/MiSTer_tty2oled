@@ -50,45 +50,21 @@ sleep ${nextwait}
 
 
 # Loop
-while [[ ${cDelay} -gt 0 ]]; do
+while [[ ${cDelay} -ge 0 ]]; do
   echo -e "${fyellow}Set cDelay to: ${fblue}${cDelay}${freset}"
   echo "CMDSECD,${cDelay}" > ${TTYDEV}
-  clearbuffer
-  sleep ${nextwait}
-  #echo "Buffer cleared, empty ?"
-  #waitforttyack  #Test to see buffer is empty
-  
-  echo -e "${fblue}Clear Display${freset}"
-  echo "CMDCLS" > ${TTYDEV}
   waitforttyack
-  echo -e "${fgreen}Show cDelay on Screen${freset}"
-  #echo "CMDTXT,3,15,0,40,32, cDelay: ${cDelay}" > ${TTYDEV}
+
+  echo -e "${fyellow}Show cDelay${freset}"
   echo "CMDSHCD" > ${TTYDEV}
   waitforttyack
-  sleep ${nextwait}
 
-  echo -e -n "${fgreen}Showing GSC Picture ${fblue}${gscpic}${freset}"
-  echo "CMDCOR,${gscpic}" > ${TTYDEV}
-  tail -n +4 ${gscpath}${gscpic} | xxd -r -p > ${TTYDEV}
+  echo -e "${fyellow}Send NullCommand${freset}"
+  echo "CMDNULL" > ${TTYDEV}
   waitforttyack
-  echo -e " ${fgreen}...done${freset}"
-  #sleep ${nextwait}
   
-  echo -e -n "${ffgreen}Showing XBM Picture ${fblue}${xbmpic}${freset}"
-  echo "CMDCOR,${xbmpic}" > ${TTYDEV}
-  tail -n +4 ${xbmpath}${xbmpic} | xxd -r -p > ${TTYDEV}
-  waitforttyack
-  echo -e " ${fgreen}...done${freset}"
-  #sleep ${nextwait}
-  echo ""
-  
-  if [[ ${cDelay} -gt 50 ]]; then
-    cDelay=$((cDelay-10))
-  #elif [[ ${cDelay} -gt 20 ]]; then
-  #  cDelay=$((cDelay-5))
-  else
-    cDelay=$((cDelay-1))
-  fi
+  echo -e "${fyellow}Next Round${freset}"
+  cDelay=$((cDelay-1))
 done
 
 exit 0

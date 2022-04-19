@@ -9,7 +9,8 @@
   - Adafruit GFX (*)
   - U8G2 for Adafruit GFX (*)
   - Bounce2 (*) optional, needed for the tilt-sensor
-  - MIC184 (*) optional, needed for the MIC145 sensor on d.ti's tty2oled board, get from: https://github.com/venice1200/MIC184_Temperature_Sensor/releases
+  - ESP32Time needed for all ESP32 Boards 
+  - MIC184 needed for the MIC145 sensor on d.ti's tty2oled board, get from: https://github.com/venice1200/MIC184_Temperature_Sensor/releases
   - SSD1322 for Adafruit GFX, download and extract from here: https://github.com/venice1200/SSD1322_for_Adafruit_GFX/releases/latest
   (*) These Libraries can be installed using Arduino's library manager.
   See also https://github.com/venice1200/MiSTer_tty2oled/wiki/Arduino-HowTo-%28Windows%29
@@ -25,22 +26,21 @@
   2022-04-17
   -Add Code for new Commadn CMDSETIME (stolen from tty2tft)
   -Add CMDNULL Command to test cDelay
+
+  2022-04-18
+  -Add Time to ScreenSaver but only if Time was set before
   
   See changelog.md in Sketch folder for more details
 
   ToDo
-   writetext(rtc.getTime(), x + 9, y + 10, "", 0, z, "");
-   sendtime() {
-   timeoffset=$(date +%:::z)
-   localtime=$(date '-d now '${timeoffset}' hour' +%s)
-   echo "CMDSETTIME,${localtime}" > ${TTYDEV}
-
+   -CMDSHTIME
+   
   -Everything I forgot
    
 */
 
 // Set Version
-#define BuildVersion "220417T"                    // "T" for Testing
+#define BuildVersion "220418T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -174,6 +174,7 @@ int tEffect = 0;                       // Run this Effect
 
 bool updateDisplay = false;
 bool startScreenActive = false;
+bool timeIsSet = false;
 
 // Display Vars
 uint16_t DispWidth, DispHeight, DispLineBytes1bpp, DispLineBytes4bpp;
@@ -622,8 +623,7 @@ void loop(void) {
     }
 
     else if (newCommand.startsWith("CMDSETIME,")) {                         // Set date and time only for ESP32
-      int timestamp = (newCommand.substring(11)).toInt();
-      rtc.setTime(timestamp);
+      oled_setTime();
     }
 #endif  // ESP32
 
@@ -756,8 +756,22 @@ void oled_showcdelay(void) {
   u8g2.print("cDelay: ");
   u8g2.print(cDelay);
   oled.display();
-
 }
+
+
+// --------------------------------------------------------------
+// ---------------- Read and set RTC Time -----------------------
+// --------------------------------------------------------------
+void oled_setTime(void) {
+#ifdef XDEBUG
+  Serial.println("Called Command CMDSETIME");
+#endif
+
+  int timestamp = (newCommand.substring(10)).toInt();
+  rtc.setTime(timestamp);
+  timeIsSet = true;                                                     // Time is set!
+}
+
 
 // --------------------------------------------------------------
 // ----------------- Set ScreenSaver Mode -----------------------
@@ -817,6 +831,63 @@ void usb2oled_readnsetscreensaver(void) {
     ScreenSaverTimer=0;                       // Reset Screensaver-Timer
     ScreenSaverLogoTime=l-i;                  // Set ScreenSaverLogoTime (First Screensaver shown after ScreenSaverLogoTime-ScreenSaverInterval+ScreenSaverInterval)
     ScreenSaverLogoTimer=0;                   // Reset ScreenSaverLogo-Timer
+  }
+}
+
+
+// --------------------------------------------------------------
+// ------------ Show ScreenSaver Pictures/Time  -----------------
+// --------------------------------------------------------------
+void oled_showScreenSaverPicture(void) {
+  int l,x,y;
+  String actTime="";
+  oled.setContrast(ScreenSaverColor);  // Set Contrast
+  if (!timeIsSet) {                    // If Time was Set show the Time will be Part of the Screensaver.
+    l=random(1+2);
+  }
+  else {
+    l=random(1+4);
+  }
+  switch (l) {
+    case 0:                             // MiSTer Logo
+      oled.clearDisplay();
+      x=random(DispWidth - mister_logo32_width);
+      y=random(DispHeight - mister_logo32_height);
+      oled.drawXBitmap(x, y, mister_logo32, mister_logo32_width, mister_logo32_height, SSD1322_WHITE);
+      oled.display();
+    break;
+    case 1:                             // tty2oled Logo
+      oled.clearDisplay();
+      x=random(DispWidth - tty2oled_logo32_width);
+      y=random(DispHeight - tty2oled_logo32_height);
+      oled.drawXBitmap(x, y, tty2oled_logo32, tty2oled_logo32_width, tty2oled_logo32_height, SSD1322_WHITE);
+      oled.display();
+    break;
+    case 2:                             // Tiny Version of the actual Core
+      x=random(DispWidth - DispWidth/2);
+      y=random(DispHeight - DispHeight/2);
+      oled_showSmallCorePicture(x,y);
+    break;
+    case 3:                             // Show Time if ESP32 and Time was set before
+      oled.clearDisplay();
+      u8g2.setFont(u8g2_font_luBS14_tf);
+      actTime=rtc.getTime("%H:%M");
+      x=random(DispWidth - u8g2.getUTF8Width(actTime.c_str()));
+      y=random(u8g2.getFontAscent(), DispHeight);
+      u8g2.setCursor(x,y);
+      u8g2.print(actTime);
+      oled.display();
+    break;
+    case 4:                             // Show Date if ESP32 and Time was set before
+      oled.clearDisplay();
+      u8g2.setFont(u8g2_font_luBS14_tf);
+      actTime=rtc.getTime("%d. %B %Y");
+      x=random(DispWidth - u8g2.getUTF8Width(actTime.c_str()));
+      y=random(u8g2.getFontAscent(), DispHeight);
+      u8g2.setCursor(x,y);
+      u8g2.print(actTime);
+      oled.display();
+    break;
   }
 }
 
@@ -894,39 +965,6 @@ void oled_showSmallCorePicture(int xpos, int ypos) {
 
 
 // --------------------------------------------------------------
-// ---------------- Show ScreenSaver Picture  -------------------
-// --------------------------------------------------------------
-void oled_showScreenSaverPicture(void) {
-  int l,x,y;
-  oled.setContrast(ScreenSaverColor);  // Test
-  l=random(1+2);
-  switch (l) {
-    case 0:
-      oled.clearDisplay();
-      x=random(DispWidth - mister_logo32_width);
-      y=random(DispHeight - mister_logo32_height);
-      oled.drawXBitmap(x, y, mister_logo32, mister_logo32_width, mister_logo32_height, SSD1322_WHITE);
-      //oled.drawXBitmap(x, y, mister_logo32, mister_logo32_width, mister_logo32_height, ScreenSaverColor);
-      oled.display();
-    break;
-    case 1:
-      oled.clearDisplay();
-      x=random(DispWidth - tty2oled_logo32_width);
-      y=random(DispHeight - tty2oled_logo32_height);
-      oled.drawXBitmap(x, y , tty2oled_logo32, tty2oled_logo32_width, tty2oled_logo32_height, SSD1322_WHITE);
-      //oled.drawXBitmap(x, y , tty2oled_logo32, tty2oled_logo32_width, tty2oled_logo32_height, ScreenSaverColor);
-      oled.display();
-    break;
-    case 2:
-      x=random(DispWidth - DispWidth/2);
-      y=random(DispHeight - DispHeight/2);
-      oled_showSmallCorePicture(x,y);
-    break;
-  }
-}
-
-
-// --------------------------------------------------------------
 // ----------- Send Hardware Info Back to the MiSTer ------------
 // --------------------------------------------------------------
 void oled_sendHardwareInfo(void) {
@@ -997,7 +1035,7 @@ void usb2oled_showcorename() {
 
   oled.clearDisplay();
   u8g2.setFont(u8g2_font_tenfatguys_tr);     // 10 Pixel Font
-  u8g2.setCursor(DispWidth/2-(u8g2.getUTF8Width(actCorename.c_str())/2), DispHeight/2 + ( u8g2.getFontAscent()/2 ) );
+  u8g2.setCursor(DispWidth/2-(u8g2.getUTF8Width(actCorename.c_str())/2), DispHeight/2 + (u8g2.getFontAscent()/2));
   u8g2.print(actCorename);
   oled.display();
 }

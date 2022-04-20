@@ -585,7 +585,9 @@ void loop(void) {
       usb2oled_readnsetscreensaver();                                      // Enable/Disable Screensaver
     }
 
-    // The following Commands are only for the d.ti Board
+// ---------------------------------------------------
+// The following Commands are only for the d.ti Board
+// ---------------------------------------------------
 #ifdef USE_ESP32DEV
     else if (newCommand.startsWith("CMDULED")) {                           // User LED
       usb2oled_readnsetuserled();                                           // Set LED                                   
@@ -611,8 +613,11 @@ void loop(void) {
     usb2oled_playtone();
     }
 #endif  // USE_ESP32DEV
+// ---------------------------------------------------
 
-    // The following Commands are only for ESP32
+// ---------------------------------------------------
+// The following Commands are only for ESP32 Boards
+// ---------------------------------------------------
 #ifdef ESP32  // OTA and Reset only for ESP32
     else if (newCommand=="CMDENOTA") {                                      // Command from Serial to enable OTA on the ESP
       enableOTA();                                                          // Setup Wireless and enable OTA
@@ -626,6 +631,7 @@ void loop(void) {
       oled_setTime();
     }
 #endif  // ESP32
+// ---------------------------------------------------
 
     // -- Unidentified Core Name, just write it on screen
     else {
@@ -1960,30 +1966,6 @@ void usb2oled_readndrawgeo(void) {
 // ------------------ D.TI Board Funtions -----------------------
 #ifdef USE_ESP32DEV
 
-
-// --------------------------------------------------------------
-// ---------------- Read and set RTC Time -----------------------
-// --------------------------------------------------------------
-void oled_setTime(void) {
-  String tT="";
-  
-#ifdef XDEBUG
-  Serial.println("Called Command CMDSETTIME");
-#endif
-
-  tT=newCommand.substring(newCommand.indexOf(',')+1);             // Get Command Parameter out of the string
-  
-#ifdef XDEBUG
-  Serial.printf("\nReceived Text: %s\n", (char*)newCommand.c_str());
-  Serial.printf("Received Value: %s\n", (char*)tT.c_str());
-#endif
-
-  //int timestamp = (tT.toInt());
-  rtc.setTime(tT.toInt());
-  timeIsSet = true;                                               // Time is set!
-}
-
-
 // --------------------------------------------------------------
 // ---------------- Just show the Temperature -------------------
 // --------------------------------------------------------------
@@ -2257,8 +2239,32 @@ void usb2oled_playtone(void) {
 #endif  // ----------- d.ti functions---------------
 
 
-// -------------- ESP32 Funtions -------------------- 
-#ifdef ESP32  // OTA and Reset only for ESP32
+// -------------- ESP32 Functions -------------------- 
+#ifdef ESP32  // OTA, Reset and Time only for ESP32
+
+// --------------------------------------------------------------
+// ---------------- Read and set RTC Time -----------------------
+// --------------------------------------------------------------
+void oled_setTime(void) {
+  String tT="";
+  
+#ifdef XDEBUG
+  Serial.println("Called Command CMDSETTIME");
+#endif
+
+  tT=newCommand.substring(newCommand.indexOf(',')+1);             // Get Command Parameter out of the string
+  
+#ifdef XDEBUG
+  Serial.printf("\nReceived Text: %s\n", (char*)newCommand.c_str());
+  Serial.printf("Received Value: %s\n", (char*)tT.c_str());
+#endif
+
+  //int timestamp = (tT.toInt());
+  rtc.setTime(tT.toInt());
+  timeIsSet = true;                                               // Time is set!
+}
+
+
 // --------------------------------------------------
 // ---------------- Enable OTA ---------------------- 
 // --------------------------------------------------

@@ -40,7 +40,7 @@
 */
 
 // Set Version
-#define BuildVersion "220418T"                    // "T" for Testing
+#define BuildVersion "220419T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -760,20 +760,6 @@ void oled_showcdelay(void) {
 
 
 // --------------------------------------------------------------
-// ---------------- Read and set RTC Time -----------------------
-// --------------------------------------------------------------
-void oled_setTime(void) {
-#ifdef XDEBUG
-  Serial.println("Called Command CMDSETIME");
-#endif
-
-  int timestamp = (newCommand.substring(10)).toInt();
-  rtc.setTime(timestamp);
-  timeIsSet = true;                                                     // Time is set!
-}
-
-
-// --------------------------------------------------------------
 // ----------------- Set ScreenSaver Mode -----------------------
 // --------------------------------------------------------------
 void usb2oled_readnsetscreensaver(void) {
@@ -842,12 +828,18 @@ void oled_showScreenSaverPicture(void) {
   int l,x,y;
   String actTime="";
   oled.setContrast(ScreenSaverColor);  // Set Contrast
+
+#ifdef ESP32                           // Only ESP32
   if (!timeIsSet) {                    // If Time was Set show the Time will be Part of the Screensaver.
-    l=random(1+2);
+    l=random(3);                       // 0-2
   }
   else {
-    l=random(1+4);
+    l=random(5);                       // 0-4
   }
+#else                                  // All others like the 8266
+  l=random(3);                         // 0-2
+#endif
+
   switch (l) {
     case 0:                             // MiSTer Logo
       oled.clearDisplay();
@@ -868,6 +860,8 @@ void oled_showScreenSaverPicture(void) {
       y=random(DispHeight - DispHeight/2);
       oled_showSmallCorePicture(x,y);
     break;
+    
+#ifdef ESP32
     case 3:                             // Show Time if ESP32 and Time was set before
       oled.clearDisplay();
       u8g2.setFont(u8g2_font_luBS14_tf);
@@ -888,6 +882,8 @@ void oled_showScreenSaverPicture(void) {
       u8g2.print(actTime);
       oled.display();
     break;
+#endif
+
   }
 }
 
@@ -1963,6 +1959,21 @@ void usb2oled_readndrawgeo(void) {
 
 // ------------------ D.TI Board Funtions -----------------------
 #ifdef USE_ESP32DEV
+
+
+// --------------------------------------------------------------
+// ---------------- Read and set RTC Time -----------------------
+// --------------------------------------------------------------
+void oled_setTime(void) {
+#ifdef XDEBUG
+  Serial.println("Called Command CMDSETIME");
+#endif
+
+  int timestamp = (newCommand.substring(10)).toInt();
+  rtc.setTime(timestamp);
+  timeIsSet = true;                                                     // Time is set!
+}
+
 
 // --------------------------------------------------------------
 // ---------------- Just show the Temperature -------------------

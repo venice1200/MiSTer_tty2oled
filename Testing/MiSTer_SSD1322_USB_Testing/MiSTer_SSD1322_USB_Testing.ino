@@ -63,9 +63,6 @@
 // Uncomment for 180° StartUp Rotation (Display Connector up)
 //#define XROTATE
 
-// No longer needed as ACK is now permanent
-// Uncomment for "Send Acknowledge" from tty2oled to MiSTer 
-//#define XSENDACK
 
 // ---------------------------------------------------------------------------------------------------------------------
 // ---------------------------------- Auto-Board-Config via Arduino IDE Board Selection --------------------------------
@@ -647,12 +644,13 @@ void loop(void) {
     updateDisplay=false;                              // Clear Update-Display Flag
   } // endif updateDisplay
 
-  // ScreenSaver if Active
+  // ---------- ScreenSaver if Active -----------------
   if (ScreenSaverActive && ScreenSaverPos) {              // Screensaver each 60secs
     oled_showScreenSaverPicture();
   }
 
-// Show Temperature ESP32DEV only
+  // ------------- Show Temperature -------------------------------
+  // Show Temperature ESP32DEV only
 #ifdef USE_ESP32DEV
   // Update Temp each Timer Interval only if MIC184 is available and..
   // ..if just the plain Boot Screen is shown..
@@ -837,13 +835,13 @@ void oled_showScreenSaverPicture(void) {
 
 #ifdef ESP32                           // Only ESP32
   if (!timeIsSet) {                    // If Time was Set show the Time will be Part of the Screensaver.
-    l=random(3);                       // 0-2
+    l=random(3);                       // random(3) = 0..2
   }
   else {
-    l=random(5);                       // 0-4
+    l=random(5);                       // 0..4
   }
 #else                                  // All others like the 8266
-  l=random(3);                         // 0-2
+  l=random(3);                         // 0..2
 #endif
 
   switch (l) {
@@ -870,8 +868,10 @@ void oled_showScreenSaverPicture(void) {
 #ifdef ESP32
     case 3:                             // Show Time if ESP32 and Time was set before
       oled.clearDisplay();
-      u8g2.setFont(u8g2_font_luBS14_tf);
-      actTime=rtc.getTime("Time: %H:%M");
+      //u8g2.setFont(u8g2_font_luBS14_tf);
+      //actTime=rtc.getTime("Time: %H:%M");
+      u8g2.setFont(u8g2_font_luBS24_tf);
+      actTime=rtc.getTime("%H:%M");
       x=random(DispWidth - u8g2.getUTF8Width(actTime.c_str()));
       y=random(u8g2.getFontAscent(), DispHeight);
       u8g2.setCursor(x,y);

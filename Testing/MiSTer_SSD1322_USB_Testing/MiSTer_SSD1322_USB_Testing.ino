@@ -24,11 +24,11 @@
   -Fix CMDPNOTE/CMDPTONE Bug if Parameter is missing
 
   2022-04-17
-  -Add Code for new Commadn CMDSETIME (stolen from tty2tft)
+  -Add Code for new Commadn CMDSETTIME (stolen from tty2tft)
   -Add CMDNULL Command to test cDelay
 
   2022-04-18
-  -Add Time to ScreenSaver but only if Time was set before
+  -Add Time to ScreenSaver but only if Time was set before and only for ESP32
   
   See changelog.md in Sketch folder for more details
 
@@ -622,7 +622,7 @@ void loop(void) {
       ESP.restart();                                                        // Reset ESP
     }
 
-    else if (newCommand.startsWith("CMDSETIME,")) {                         // Set date and time only for ESP32
+    else if (newCommand.startsWith("CMDSETTIME,")) {                        // Set date and time but only for ESP32 RTC
       oled_setTime();
     }
 #endif  // ESP32
@@ -865,7 +865,7 @@ void oled_showScreenSaverPicture(void) {
     case 3:                             // Show Time if ESP32 and Time was set before
       oled.clearDisplay();
       u8g2.setFont(u8g2_font_luBS14_tf);
-      actTime=rtc.getTime("%H:%M");
+      actTime=rtc.getTime("Time: %H:%M");
       x=random(DispWidth - u8g2.getUTF8Width(actTime.c_str()));
       y=random(u8g2.getFontAscent(), DispHeight);
       u8g2.setCursor(x,y);
@@ -979,14 +979,14 @@ void oled_sendHardwareInfo(void) {
 #endif
 
  
-  delay(hwDelay);                            // Small Delay
+  delay(hwDelay);                          // Small Delay
 
   switch (hwinfo) {
     case 0:
       Serial.println("HWNONEXXX;" BuildVersion ";");              // No known Hardware in use
     break;
     case 1:
-      Serial.println("HWESP32DE;" BuildVersion ";");              // ESP32-DEV, TTGO, DTI-Board without active Options
+      Serial.println("HWESP32DE;" BuildVersion ";");              // ESP32-DEV, TTGO, DTI-Board
     break;
     case 2:
       Serial.println("HWLOLIN32;" BuildVersion ";");              // Wemos,Lolin,DevKit_V4
@@ -995,10 +995,10 @@ void oled_sendHardwareInfo(void) {
       Serial.println("HWESP8266;" BuildVersion ";");              // ESP8266
     break;
     case 4:
-      Serial.println("HWDTIPCB0;" BuildVersion ";");              // DTI Board v1.0
+      Serial.println("HWDTIPCB0;" BuildVersion ";");              // Unused
     break;
     case 5:
-      Serial.println("HWDTIPCB1;" BuildVersion ";");              // Currently unused
+      Serial.println("HWDTIPCB1;" BuildVersion ";");              // Unused
     break;
     default:
       Serial.println("HWNONEXXX;" BuildVersion ";");              // Default
@@ -1965,13 +1965,22 @@ void usb2oled_readndrawgeo(void) {
 // ---------------- Read and set RTC Time -----------------------
 // --------------------------------------------------------------
 void oled_setTime(void) {
+  String tT="";
+  
 #ifdef XDEBUG
-  Serial.println("Called Command CMDSETIME");
+  Serial.println("Called Command CMDSETTIME");
 #endif
 
-  int timestamp = (newCommand.substring(10)).toInt();
-  rtc.setTime(timestamp);
-  timeIsSet = true;                                                     // Time is set!
+  tT=newCommand.substring(newCommand.indexOf(',')+1);             // Get Command Parameter out of the string
+  
+#ifdef XDEBUG
+  Serial.printf("\nReceived Text: %s\n", (char*)newCommand.c_str());
+  Serial.printf("Received Value: %s\n", (char*)tT.c_str());
+#endif
+
+  //int timestamp = (tT.toInt());
+  rtc.setTime(tT.toInt());
+  timeIsSet = true;                                               // Time is set!
 }
 
 

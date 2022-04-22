@@ -9,7 +9,7 @@
   - Adafruit GFX (*)
   - U8G2 for Adafruit GFX (*)
   - Bounce2 (*) optional, needed for the tilt-sensor
-  - ESP32Time needed for all ESP32 Boards 
+  - ESP32Time (*) needed for all ESP32 Boards 
   - MIC184 needed for the MIC145 sensor on d.ti's tty2oled board, get from: https://github.com/venice1200/MIC184_Temperature_Sensor/releases
   - SSD1322 for Adafruit GFX, download and extract from here: https://github.com/venice1200/SSD1322_for_Adafruit_GFX/releases/latest
   (*) These Libraries can be installed using Arduino's library manager.
@@ -29,6 +29,9 @@
 
   2022-04-18
   -Add Time to ScreenSaver but only if Time was set before and only for ESP32
+
+  2022-04-22
+  -Command CMDSETTIME can be called by all MCU's but only the ESP32 is setting the RTC
   
   See changelog.md in Sketch folder for more details
 
@@ -40,7 +43,7 @@
 */
 
 // Set Version
-#define BuildVersion "220419T"                    // "T" for Testing
+#define BuildVersion "220422T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -571,6 +574,10 @@ void loop(void) {
       }
     }
 
+    else if (newCommand.startsWith("CMDSETTIME,")) {                        // Set date and time but only for ESP32 RTC
+      oled_setTime();
+    }
+
     else if (newCommand.startsWith("CMDCON")) {                            // Command from Serial to receive Contrast-Level Data from the MiSTer
       usb2oled_readnsetcontrast();                                          // Read and Set contrast                                   
     }
@@ -622,10 +629,6 @@ void loop(void) {
 
     else if (newCommand=="CMDRESET") {                                      // Command from Serial for Resetting the ESP
       ESP.restart();                                                        // Reset ESP
-    }
-
-    else if (newCommand.startsWith("CMDSETTIME,")) {                        // Set date and time but only for ESP32 RTC
-      oled_setTime();
     }
 #endif  // ESP32
 // ---------------------------------------------------
@@ -725,6 +728,31 @@ void oled_showStartScreen(void) {
   oled.display();
   startScreenActive=true;
 } // end mistertext
+
+
+// --------------------------------------------------------------
+// ---------------- Read and set RTC Time -----------------------
+// --------------------------------------------------------------
+void oled_setTime(void) {
+  String tT="";
+  
+#ifdef XDEBUG
+  Serial.println("Called Command CMDSETTIME");
+#endif
+
+  tT=newCommand.substring(newCommand.indexOf(',')+1);             // Get Command Parameter out of the string
+  
+#ifdef XDEBUG
+  Serial.printf("\nReceived Text: %s\n", (char*)newCommand.c_str());
+  Serial.printf("Received Value: %s\n", (char*)tT.c_str());
+#endif
+
+#ifdef ESP32                                                      // Set Time only for ESP32 MCU's
+  rtc.setTime(tT.toInt());                                        // Read and set RTC
+  timeIsSet = true;                                               // Time is set!
+#endif
+}
+
 
 // --------------------------------------------------------------
 // ------------ Read and Set Command Delay ----------------------
@@ -868,8 +896,6 @@ void oled_showScreenSaverPicture(void) {
 #ifdef ESP32
     case 3:                             // Show Time if ESP32 and Time was set before
       oled.clearDisplay();
-      //u8g2.setFont(u8g2_font_luBS14_tf);
-      //actTime=rtc.getTime("Time: %H:%M");
       u8g2.setFont(u8g2_font_luBS24_tf);
       actTime=rtc.getTime("%H:%M");
       x=random(DispWidth - u8g2.getUTF8Width(actTime.c_str()));
@@ -1792,7 +1818,7 @@ void usb2oled_readnwritetext(void) {
     f=f-100;
   }
 
-#ifdef USE_ESP32DEV
+#ifdef USE_ESP32DEV             // Only for d.ti Boards
   if (TextOut=="TEP184") {      // If Text is "TEP184" replace Text with Temperature Value
     if (micAvail) {
       TextOut=String(tSensor.getTemp())+"\xb0"+"C";
@@ -1842,7 +1868,7 @@ void usb2oled_readnwritetext(void) {
     u8g2.setBackgroundColor(b);                           // Set Backgrounf Color
     u8g2.setCursor(x,y);                                  // Set Cursor Position
     u8g2.print(TextOut);                                  // Write Text to Buffer
-    if (!bufferMode) oled.display();                       // Update Screen only if not Clear Mode (Font>100)
+    if (!bufferMode) oled.display();                      // Update Screen only if not "Clear Mode" (Font>100)
     u8g2.setForegroundColor(SSD1322_WHITE);               // Set Color back
     u8g2.setBackgroundColor(SSD1322_BLACK);
   }
@@ -2241,29 +2267,6 @@ void usb2oled_playtone(void) {
 
 // -------------- ESP32 Functions -------------------- 
 #ifdef ESP32  // OTA, Reset and Time only for ESP32
-
-// --------------------------------------------------------------
-// ---------------- Read and set RTC Time -----------------------
-// --------------------------------------------------------------
-void oled_setTime(void) {
-  String tT="";
-  
-#ifdef XDEBUG
-  Serial.println("Called Command CMDSETTIME");
-#endif
-
-  tT=newCommand.substring(newCommand.indexOf(',')+1);             // Get Command Parameter out of the string
-  
-#ifdef XDEBUG
-  Serial.printf("\nReceived Text: %s\n", (char*)newCommand.c_str());
-  Serial.printf("Received Value: %s\n", (char*)tT.c_str());
-#endif
-
-  //int timestamp = (tT.toInt());
-  rtc.setTime(tT.toInt());
-  timeIsSet = true;                                               // Time is set!
-}
-
 
 // --------------------------------------------------
 // ---------------- Enable OTA ---------------------- 

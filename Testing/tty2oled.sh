@@ -206,8 +206,8 @@ if [ -c "${TTYDEV}" ]; then							# check for tty device
         senddata "${newcore}"							# The "Magic"
         oldcore="${newcore}"							# update oldcore variable
       fi									# end if core check
-      [ "${debug" = "false" ] && inotifywait -qq -e modify "${corenamefile}"	# wait here for next change of corename, -qq for quietness
-      [ "${debug" = "true" ] && inotifywait -e modify "${corenamefile}"		# but not -qq when debugging
+      [ "${debug}" = "false" ] && inotifywait -qq -e modify "${corenamefile}"	# wait here for next change of corename, -qq for quietness
+      [ "${debug}" = "true" ] && inotifywait -e modify "${corenamefile}"		# but not -qq when debugging
     else									# CORENAME file not found
      #echo "File ${corenamefile} not found!"
      dbug "File ${corenamefile} not found!"

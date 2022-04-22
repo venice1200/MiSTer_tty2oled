@@ -5,6 +5,7 @@ REPOSITORY_URL2="https://www.tty2tft.de//MiSTer_tty2oled-installer"
 DBAUD="921600"
 DSTD="--before default_reset --after hard_reset write_flash --compress --flash_size detect"
 TMPDIR=$(mktemp -d)
+MCUtype="${2}"
 cd ${TMPDIR}
 
 flash() {
@@ -29,9 +30,6 @@ flash() {
     echo -e "\n${fgreen}Flash progress completed. Have fun!${freset}"
 }
 
-# When started with parameter "T" use testing sketch
-[ "${1}" = "T" ] && BUILDVER=$(wget -q ${REPOSITORY_URL2}/buildverT -O -) || BUILDVER=$(wget -q ${REPOSITORY_URL2}/buildver -O -)
-
 # If there's an existing ini, use it
 if [ -r /media/fat/tty2oled/tty2oled-system.ini ]; then
     . /media/fat/tty2oled/tty2oled-system.ini
@@ -45,6 +43,9 @@ else
     wget -q ${REPOSITORY_URL1}/tty2oled-user.ini -O ${TMPDIR}/tty2oled-user.ini
     . ${TMPDIR}/tty2oled-user.ini
 fi
+
+# When started with parameter "T" use testing sketch
+[ "${TTY2OLED_FW_TESTING}" = "yes" ] && BUILDVER=$(wget -q ${REPOSITORY_URL2}/buildverT -O -) || BUILDVER=$(wget -q ${REPOSITORY_URL2}/buildver -O -)
 
 # Clear the display by setting this as CORENAME, which keeps the display while updating
 echo "cls" > /tmp/CORENAME
@@ -69,33 +70,35 @@ if ! [ -f ${TMPDIR}/esptool.py ]; then
 fi
 
 #Check if interface ttyUSB0 is present
-echo -en "${freset}Checking for device at ${TTYDEV}${freset}: "
-if [[ -c ${TTYDEV} ]]; then
-    stty -F ${TTYDEV} ${BAUDRATE} ${TTYPARAM}
-    echo -e "${fgreen}available${freset}"
-    echo -en "${freset}Trying to identify device... ${freset}"
-    echo "CMDHWINF" > ${TTYDEV} ; read -t5 BLA < ${TTYDEV}
-    MCUtype=${BLA:0:9}
-    SWver=${BLA%;*} && SWver=${SWver:10}
-    if [ "${MCUtype:0:2}" = "HW" ]; then
-	echo -e "${fgreen}${MCUtype} with sketch version ${SWver}${freset}"
+if [ "${2}" = "" ]; then
+    echo -en "${freset}Checking for device at ${TTYDEV}${freset}: "
+    if [[ -c ${TTYDEV} ]]; then
+	stty -F ${TTYDEV} ${BAUDRATE} ${TTYPARAM}
+	echo -e "${fgreen}available${freset}"
+	echo -en "${freset}Trying to identify device... ${freset}"
+	echo "CMDHWINF" > ${TTYDEV} ; read -t5 BLA < ${TTYDEV}
+	MCUtype=${BLA:0:9}
+	SWver=${BLA%;*} && SWver=${SWver:10}
+	if [ "${MCUtype:0:2}" = "HW" ]; then
+	    echo -e "${fgreen}${MCUtype} with sketch version ${SWver}${freset}"
+	else
+	    echo -e "${fred}Unknown MCU and/or not a tty2oled sketch. Please select.${freset}" ; sleep 3
+	    exec 3>&1
+	    MCUtype=$(dialog --clear --no-cancel --ascii-lines --no-tags \
+	    --backtitle "tty2oled" --title "[ Flash tool for ESP devices ]" \
+	    --menu "Use the arrow keys and enter \nor the d-pad and A button" 0 0 0 \
+	    HWESP32DE "TTGO/DTI (ESP32)" \
+	    HWLOLIN32 "Wemos/Lolin/DevKit_V4 (ESP32)" \
+	    HWESP8266 "NodeMCU v3 (ESP8266)" \
+	    Exit "Exit now" 2>&1 1>&3)
+	    exec 3>&-;
+	    clear
+	    SWver="0"
+	fi
     else
-	echo -e "${fred}Unknown MCU and/or not a tty2oled sketch. Please select.${freset}" ; sleep 3
-	exec 3>&1
-	MCUtype=$(dialog --clear --no-cancel --ascii-lines --no-tags \
-	--backtitle "tty2oled" --title "[ Flash tool for ESP devices ]" \
-	--menu "Use the arrow keys and enter \nor the d-pad and A button" 0 0 0 \
-	HWESP32DE "TTGO/DTI (ESP32)" \
-	HWLOLIN32 "Wemos/Lolin/DevKit_V4 (ESP32)" \
-	HWESP8266 "NodeMCU v3 (ESP8266)" \
-	Exit "Exit now" 2>&1 1>&3)
-	exec 3>&-;
-	clear
-	SWver="0"
+	echo -e "${fred}Could not connect to interface. Please check USB connection and run script again.${freset}"
+	exit 1
     fi
-else
-    echo -e "${fred}Could not connect to interface. Please check USB connection and run script again.${freset}"
-    exit 1
 fi
 
 #Check for MCU
@@ -109,9 +112,10 @@ case "${MCUtype}" in
     HWESP8266)	echo -e "${fyellow}ESP8266 selected/detected.${freset}" ;;
 esac
 
-if [ "${2}" = "FORCE" ]; then
+if [ "${1}" = "FORCE" ]; then
     echo -e "${fred}FORCED UPDATE${freset}"
     echo -e "${fyellow}Version of your tty2oled device is ${fblue}${SWver}${fyellow}, forced BUILDVER is ${fgreen}${BUILDVER}${fyellow}.${freset}"
+    echo -e "${fyellow}MCUtype is set to ${fblue}${MCUtype}${freset}"
     flash
     [ "${INITSTOPPED}" = "yes" ] && ${INITSCRIPT} start
 else
@@ -133,10 +137,10 @@ else
 		flash
 	    fi
 	fi
-	[ "${INITSTOPPED}" = "yes" ] && ! [ "${2}" = "UPDATER" ] && ${INITSCRIPT} start
+	[ "${INITSTOPPED}" = "yes" ] && ! [ "${1}" = "UPDATER" ] && ${INITSCRIPT} start
     elif [[ "${SWver}" = "${BUILDVER}" ]]; then
 	echo -e "${fyellow}Good boy, your hardware is up-to-date!${freset}"
-	[ "${INITSTOPPED}" = "yes" ] && ! [ "${2}" = "UPDATER" ] && ${INITSCRIPT} start
+	[ "${INITSTOPPED}" = "yes" ] && ! [ "${1}" = "UPDATER" ] && ${INITSCRIPT} start
     fi
 fi
 echo "MENU" > /tmp/CORENAME

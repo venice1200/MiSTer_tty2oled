@@ -155,6 +155,12 @@ senddata() {
   fi
 }
 
+sendtime() {
+  timeoffset=$(date +%:::z)
+  localtime=$(date '-d now '${timeoffset}' hour' +%s)
+  echo "CMDSETTIME,${localtime}" > ${TTYDEV}
+}
+
 # ** Main **
 # Check for Command Line Parameter
 if [ "${#}" -ge 1 ]; then							# Command Line Parameter given, override Parameter
@@ -178,35 +184,37 @@ if [ "${#}" -ge 1 ]; then							# Command Line Parameter given, override Paramet
 fi										# end if command line Parameter 
 
 # Let's go
-if [ -c "${TTYDEV}" ]; then								# check for tty device
+if [ -c "${TTYDEV}" ]; then							# check for tty device
   dbug "${TTYDEV} detected, setting Parameter: ${BAUDRATE} ${TTYPARAM}."
-  stty -F ${TTYDEV} ${BAUDRATE} ${TTYPARAM}				# set tty parameter
+  stty -F ${TTYDEV} ${BAUDRATE} ${TTYPARAM}					# set tty parameter
   sleep ${WAITSECS}
-  echo "QWERTZ" > ${TTYDEV}								# First Transmission to clear serial send buffer
+  echo "QWERTZ" > ${TTYDEV}							# First Transmission to clear serial send buffer
   dbug "Send QWERTZ as first transmission"
   sleep ${WAITSECS}
-  sendcontrast											# Set Contrast
-  sendrotation											# Set Display Rotation
-  sendscreensaver										# Set Screensaver
-  while true; do										# main loop
+  sendcontrast									# Set Contrast
+  sendrotation									# Set Display Rotation
+  sendtime									# Set time and date
+  sendscreensaver								# Set Screensaver
+  while true; do								# main loop
     if [ -r ${corenamefile} ]; then						# proceed if file exists and is readable (-r)
-      newcore=$(cat ${corenamefile})					# get CORENAME
+      newcore=$(cat ${corenamefile})						# get CORENAME
       #echo "Read CORENAME: -${newcore}-"
       dbug "Read CORENAME: -${newcore}-"
-      if [ "${newcore}" != "${oldcore}" ]; then			# proceed only if Core has changed
+      if [ "${newcore}" != "${oldcore}" ]; then					# proceed only if Core has changed
         #echo "Send -${newcore}- to ${TTYDEV}."
         dbug "Send -${newcore}- to ${TTYDEV}."
         senddata "${newcore}"							# The "Magic"
         oldcore="${newcore}"							# update oldcore variable
-      fi												# end if core check
-      inotifywait -qq -e modify "${corenamefile}" 		# wait here for next change of corename, -qq for quietness
-    else												# CORENAME file not found
+      fi									# end if core check
+      [ "${debug}" = "false" ] && inotifywait -qq -e modify "${corenamefile}"	# wait here for next change of corename, -qq for quietness
+      [ "${debug}" = "true" ] && inotifywait -e modify "${corenamefile}"		# but not -qq when debugging
+    else									# CORENAME file not found
      #echo "File ${corenamefile} not found!"
      dbug "File ${corenamefile} not found!"
-    fi													# end if /tmp/CORENAME check
-  done													# end while
-else													# no tty detected
+    fi										# end if /tmp/CORENAME check
+  done										# end while
+else										# no tty detected
   echo "No ${TTYDEV} Device detected, abort."
   dbug "No ${TTYDEV} Device detected, abort."
-fi														# end if tty check
+fi										# end if tty check
 # ** End Main **

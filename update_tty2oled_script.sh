@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# v1.9 - Copyright (c) 2021 ojaksch, venice
+# v1.8 - Copyright (c) 2021 ojaksch, venice
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,7 +21,6 @@
 
 
 # Changelog:
-# v1.9 Create tty2oled-user.ini if it's missing to avoid ugly errors
 # v1.8 Beautyfication and Installer
 # v1.7 Grayscale pictures and new download technics
 # v1.6 Move from Init based Startup to /media/fat/linux/user-startup.sh
@@ -34,7 +33,6 @@
 # v1.0 Main updater script which completes all tasks.
 
 
-! [ -e /media/fat/tty2oled/tty2oled-user.ini ] && touch /media/fat/tty2oled/tty2oled-user.ini
 . /media/fat/tty2oled/tty2oled-system.ini
 . /media/fat/tty2oled/tty2oled-user.ini
 
@@ -164,10 +162,7 @@ fi
 
 # Download the installer to check esp firmware
 cd /tmp
-if [ "${TTY2OLED_UPDATE}" = "yes" ]; then
-    [ "${TTY2OLED_FW_TESTING}" = "yes" ] && FWTESTING="T" || FWTESTING="-"
-    bash <(wget -qO- ${REPOSITORY_URL}/installer.sh) ${FWTESTING} UPDATER
-fi
+[ "${TTY2OLED_UPDATE}" = "yes" ] && bash <(wget -qO- ${REPOSITORY_URL}/installer.sh) UPDATER
 
 # Check and remount root non-writable if neccessary
 [ "${MOUNTRO}" = "true" ] && /bin/mount -o remount,ro /

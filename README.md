@@ -1,6 +1,6 @@
 ## 👾 ![Logo] 👾
 
-*A Display Add-on For The **[MiSTer FPGA]**.*
+*A Display Add-on for the **[MiSTer FPGA]**.*
 
 <br>
 

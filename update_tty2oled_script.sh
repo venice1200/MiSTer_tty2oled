@@ -21,7 +21,7 @@
 
 
 # Changelog:
-# v1.9 - Copyright (c) 2021 ojaksch, venice
+# v1.9 Create tty2oled-user.ini if it's missing to avoid ugly errors
 # v1.8 Beautyfication and Installer
 # v1.7 Grayscale pictures and new download technics
 # v1.6 Move from Init based Startup to /media/fat/linux/user-startup.sh

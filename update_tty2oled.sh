@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# v1.6 - Copyright (c) 2021/2022 ojaksch, venice
+# v1.8 - Copyright (c) 2021/2022 ojaksch, venice
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,7 +21,8 @@
 
 
 # Changelog:
-# v1.6 Merging of tty2oled-user.ini to tty2oled-system.ini to leave a user-managed tty2oled-user.ini
+# v1.8 Create tty2oled-user.ini if it's missing to avoid ugly errors
+# v1.7 Merging of tty2oled-user.ini to tty2oled-system.ini to leave a user-managed tty2oled-user.ini
 # v1.5 Beautyfication
 # v1.4 Check downloadeds for errors, existence and filesize
 # v1.3 Moved from /etc/init.d to /media/fat/tty2oled
@@ -83,6 +84,7 @@ if [ "${?}" -gt "0" ]; then
 fi
 
 # The merge of the INI files (2022/02)
+! [ -e /media/fat/tty2oled/tty2oled-user.ini ] && touch /media/fat/tty2oled/tty2oled-user.ini
 if [ "$(head -n1 ${TTY2OLED_PATH}/tty2oled-user.ini | awk '{print $2}')" = "Version" ]; then
   mv -f "${TTY2OLED_PATH}/tty2oled-user.ini" "${TTY2OLED_PATH}/tty2oled-user.ini.bak"
   touch "${TTY2OLED_PATH}/tty2oled-user.ini"

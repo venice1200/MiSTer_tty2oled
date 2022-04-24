@@ -207,14 +207,15 @@ function slideshow() {
       else
         counter=$((counter+1))
         echo -e "Showing ${ppri}-Picture ${counter}: ${fblue}${slidepic}${freset} (Folder ${pfolder})"
-        echo "CMDAPD,${slidepic}" > ${TTYDEV}
+        #echo "CMDAPD,${slidepic}" > ${TTYDEV}
+        echo "CMDCOR,${slidepic}" > ${TTYDEV}
         tail -n +4 "${slidepic}" | xxd -r -p > ${TTYDEV}
-        waitforttyack
-        echo "CMDSNAM" > ${TTYDEV}
-        waitforttyack
-        sleep ${slidewait}
-        echo "CMDSPIC" > ${TTYDEV}
-        waitforttyack
+        waitfortty
+        #echo "CMDSNAM" > ${TTYDEV}
+        #waitfortty
+        #sleep ${slidewait}
+        #echo "CMDSPIC" > ${TTYDEV}
+        #waitfortty
         sleep ${slidewait}
       fi
     done
@@ -228,7 +229,7 @@ function showpic() {
   if [ -f "${1}" ]; then
     echo "CMDCOR,${basepic}" > ${TTYDEV}
     tail -n +4 ${1} | xxd -r -p > ${TTYDEV}
-    waitforttyack
+    waitfortty
   else
     echo -e "${fred}No Picture ${basepic} found${freset}"
   fi
@@ -242,13 +243,13 @@ function tty_update() {
   #exit 0
 }
 
-function waitforttyack() {
-  echo -n "Waiting for tty2oled Acknowledge... "
+function waitfortty() {
+  #echo -n "Waiting for tty2oled Acknowledge... "
   read -d ";" ttyresponse < ${TTYDEV}                # The "read" command at this position simulates an "do..while" loop
   while [ "${ttyresponse}" != "ttyack" ]; do
     read -d ";" ttyresponse < ${TTYDEV}              # Read Serial Line until delimiter ";"
   done
-  echo -e "${fgreen}${ttyresponse}${freset}"
+  #echo -e "${fgreen}${ttyresponse}${freset}"
   ttyresponse=""
 }
 

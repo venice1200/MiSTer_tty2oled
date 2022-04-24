@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# v1.8 - Copyright (c) 2021 ojaksch, venice
+# v1.9 - Copyright (c) 2022 ojaksch, venice
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 
 
 # Changelog:
+# v1.9 - Copyright (c) 2021 ojaksch, venice
 # v1.8 Beautyfication and Installer
 # v1.7 Grayscale pictures and new download technics
 # v1.6 Move from Init based Startup to /media/fat/linux/user-startup.sh
@@ -33,6 +34,7 @@
 # v1.0 Main updater script which completes all tasks.
 
 
+! [ -e /media/fat/tty2oled/tty2oled-user.ini ] && touch /media/fat/tty2oled/tty2oled-user.ini
 . /media/fat/tty2oled/tty2oled-system.ini
 . /media/fat/tty2oled/tty2oled-user.ini
 

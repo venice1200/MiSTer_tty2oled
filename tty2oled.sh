@@ -51,6 +51,7 @@
 # 2022-01-23 Bugfix: Comment the reload of INI Files in function "senddata" because command line parameter don't work
 # 2022-02-10 Added ScreenSaver functionality
 # 2022-04-09 Make the Daemon more quiet
+# 2022-04-24 Add "settime"
 #
 #
 
@@ -74,6 +75,7 @@ sendcontrast() {
   if [ "${USBMODE}" = "yes" ]; then						# Check the tty2xxx mode
     dbug "Sending: CMDCON,${CONTRAST}"
     echo "CMDCON,${CONTRAST}" > ${TTYDEV}					# Send Contrast Command and Value
+	sleep ${WAITSECS}
   else
     echo "att" > ${TTYDEV}							# Send an "att" to the MiSTer annoucing another Command
     sleep ${WAITSECS}								# sleep needed here ?!
@@ -92,6 +94,7 @@ sendscreensaver() {
     dbug "Sending: CMDSAVER,0,0,0"
     echo "CMDSAVER,0,0,0" > ${TTYDEV}						# Send Screensaver Command and Values
   fi
+  sleep ${WAITSECS}
 }
 
 # Rotate Display function
@@ -104,8 +107,11 @@ sendrotation() {
       echo "CMDSORG" > ${TTYDEV}						# Show Start Screen rotated
       sleep 4
     #else
-    #  dbug "Sending: CMDROT,1" > ${TTYDEV}
+    #  dbug "Sending: CMDROT,0" > ${TTYDEV}
     #  echo "CMDROT,0" > ${TTYDEV}						# No Rotation
+    #  sleep ${WAITSECS}
+    #  echo "CMDSORG" > ${TTYDEV}						# Show Start Screen rotated
+    #  sleep 4
     fi
   fi
 }
@@ -159,6 +165,7 @@ sendtime() {
   timeoffset=$(date +%:::z)
   localtime=$(date '-d now '${timeoffset}' hour' +%s)
   echo "CMDSETTIME,${localtime}" > ${TTYDEV}
+  sleep ${WAITSECS}
 }
 
 # ** Main **

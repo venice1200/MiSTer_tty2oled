@@ -200,7 +200,7 @@ if [ -c "${TTYDEV}" ]; then							# check for tty device
   sleep ${WAITSECS}
   sendcontrast									# Set Contrast
   sendrotation									# Set Display Rotation
-  sendtime									# Set time and date
+  #sendtime										# Set time and date
   sendscreensaver								# Set Screensaver
   while true; do								# main loop
     if [ -r ${corenamefile} ]; then						# proceed if file exists and is readable (-r)

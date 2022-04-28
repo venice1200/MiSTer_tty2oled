@@ -32,6 +32,10 @@
 
   2022-04-22
   -Command CMDSETTIME can be called by all MCU's but only the ESP32 is setting the RTC
+
+  2033-04-28
+  -Remove CMDSTEMP loop
+  -Add CMDSHTEMP Command, show once the actual MIC184 Temperature, DTI Boards only
   
   See changelog.md in Sketch folder for more details
 
@@ -43,7 +47,7 @@
 */
 
 // Set Version
-#define BuildVersion "220422T"                    // "T" for Testing
+#define BuildVersion "220428T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -601,7 +605,7 @@ void loop(void) {
       usb2oled_readnsetpowerled();                                          // Set LED
     }
 
-    else if (newCommand=="CMDSTEMP") {                                      // Enable to show Temperature Big Picture
+    else if (newCommand=="CMDSHTEMP") {                                      // Enable to show Temperature Big Picture
     usb2oled_showtemperature();
     }
 
@@ -652,26 +656,6 @@ void loop(void) {
     oled_showScreenSaverPicture();
   }
 
-  // ------------- Show Temperature -------------------------------
-  // Show Temperature ESP32DEV only
-#ifdef USE_ESP32DEV
-  // Update Temp each Timer Interval only if MIC184 is available and..
-  // ..if just the plain Boot Screen is shown..
-  if (micAvail) {
-    if (startScreenActive && timer30pos) {
-      u8g2.setCursor(111,63);
-      u8g2.print(tSensor.getTemp());                  // Show Temperature if Sensor available
-      u8g2.print("\xb0");
-      u8g2.print("C");
-      oled.display();
-    }
-    // ..or CMDSTEMP was called
-    if (newCommand=="CMDSTEMP" && timer30pos) {          // Show Temperature
-      usb2oled_showtemperature();
-    }
-  }  // endif micAvail
-#endif
-  
 } // End Main Loop
 
 // =============================================================================================================
@@ -1998,7 +1982,7 @@ void usb2oled_readndrawgeo(void) {
 void usb2oled_showtemperature() {
   String myTemp="";
 #ifdef XDEBUG
-  Serial.println("Called Command CMDSTEMP");
+  Serial.println("Called Command CMDSHTEMP");
 #endif
   if (micAvail) {
     myTemp=String(tSensor.getTemp())+"\xb0"+"C";

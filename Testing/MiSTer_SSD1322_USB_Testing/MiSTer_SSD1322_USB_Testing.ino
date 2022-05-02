@@ -19,24 +19,7 @@
   -ESP32 Dev Module
   -WEMOS LOLIN32
   -NodeMCU 1.0
-
-  2022-04-16
-  -Fix CMDPNOTE/CMDPTONE Bug if Parameter is missing
-
-  2022-04-17
-  -Add Code for new Commadn CMDSETTIME (stolen from tty2tft)
-  -Add CMDNULL Command to test cDelay
-
-  2022-04-18
-  -Add Time to ScreenSaver but only if Time was set before and only for ESP32
-
-  2022-04-22
-  -Command CMDSETTIME can be called by all MCU's but only the ESP32 is setting the RTC
-
-  2033-04-28
-  -Remove CMDSTEMP loop
-  -Add CMDSHTEMP Command, show once the actual MIC184 Temperature, DTI Boards only
-  
+   
   See changelog.md in Sketch folder for more details
 
   ToDo
@@ -47,7 +30,7 @@
 */
 
 // Set Version
-#define BuildVersion "220428T"                    // "T" for Testing
+#define BuildVersion "220502T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -850,28 +833,29 @@ void oled_showScreenSaverPicture(void) {
     l=random(3);                       // random(3) = 0..2
   }
   else {
-    l=random(5);                       // 0..4
+    //l=random(4);                       // 0..3 (without Date)
+    l=random(5);                       // 0..4 (with Date)
   }
 #else                                  // All others like the 8266
   l=random(3);                         // 0..2
 #endif
 
   switch (l) {
-    case 0:                             // MiSTer Logo
-      oled.clearDisplay();
-      x=random(DispWidth - mister_logo32_width);
-      y=random(DispHeight - mister_logo32_height);
-      oled.drawXBitmap(x, y, mister_logo32, mister_logo32_width, mister_logo32_height, SSD1322_WHITE);
-      oled.display();
-    break;
-    case 1:                             // tty2oled Logo
+    case 0:                             // tty2oled Logo
       oled.clearDisplay();
       x=random(DispWidth - tty2oled_logo32_width);
       y=random(DispHeight - tty2oled_logo32_height);
       oled.drawXBitmap(x, y, tty2oled_logo32, tty2oled_logo32_width, tty2oled_logo32_height, SSD1322_WHITE);
       oled.display();
     break;
-    case 2:                             // Tiny Version of the actual Core
+    case 1:                             // MiSTer Logo
+      oled.clearDisplay();
+      x=random(DispWidth - mister_logo32_width);
+      y=random(DispHeight - mister_logo32_height);
+      oled.drawXBitmap(x, y, mister_logo32, mister_logo32_width, mister_logo32_height, SSD1322_WHITE);
+      oled.display();
+    break;
+    case 2:                             // 1/4 Version of the actual Core
       x=random(DispWidth - DispWidth/2);
       y=random(DispHeight - DispHeight/2);
       oled_showSmallCorePicture(x,y);

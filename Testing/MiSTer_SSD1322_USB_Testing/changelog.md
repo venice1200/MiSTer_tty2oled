@@ -434,6 +434,25 @@
   -Add Command "CMDSHCD" to show the actual Command Delay "On Screen" (for Debugging)
   -Set cDelay for ESPDEV=15, Lolin32=60, 8266=60 after some manual tests with MiSTer SAM
   
+  2022-04-16
+  -Fix CMDPNOTE/CMDPTONE Bug if Parameter is missing
+
+  2022-04-17
+  -Add Code for new Commadn CMDSETTIME (stolen from tty2tft)
+  -Add CMDNULL Command, it is for Troubleshooting and ACK Testing.
+
+  2022-04-18
+  -Add Time to ScreenSaver but only if Time was set before, and only for ESP32
+
+  2022-04-22
+  -Command CMDSETTIME can be called by all MCU's but only the ESP32 is setting the internal RTC
+
+  2022-04-28
+  -Remove CMDSTEMP command and loop
+  -Add CMDSHTEMP Command, show once the actual MIC184 Temperature, for DTI Boards only
+
+
+  
 =====================================================================================
   
 ToDo

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# v1.9 - Copyright (c) 2022 ojaksch, venice
+# v2.0 - Copyright (c) 2022 ojaksch, venice
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 
 
 # Changelog:
+# v2.0 Bugfixes, new daemon for feedback from ESP
 # v1.9 Create tty2oled-user.ini if it's missing to avoid ugly errors
 # v1.8 Beautyfication and Installer
 # v1.7 Grayscale pictures and new download technics
@@ -38,14 +39,14 @@
 . /media/fat/tty2oled/tty2oled-system.ini
 . /media/fat/tty2oled/tty2oled-user.ini
 
+# Check for and create tty2oled script folder
+[[ -d ${TTY2OLED_PATH} ]] && cd ${TTY2OLED_PATH} || mkdir ${TTY2OLED_PATH}
+
 # Check and remount root writable if neccessary
 if [ $(/bin/mount | head -n1 | grep -c "(ro,") = 1 ]; then
   /bin/mount -o remount,rw /
   MOUNTRO="true"
 fi
-
-# Check for and create tty2oled script folder
-[[ -d ${TTY2OLED_PATH} ]] || mkdir ${TTY2OLED_PATH}
 
 # Check for and delete old fashioned scripts to prefer /media/fat/linux/user-startup.sh
 # (https://misterfpga.org/viewtopic.php?p=32159#p32159)
@@ -82,13 +83,11 @@ if [ -d /media/fat/tty2oledpics ]; then
 fi
 
 # Get pv (Pipe Viewer) / rsyncy (progress bar for rsync)
-#wget ${NODEBUG} -Nq "${PICTURE_REPOSITORY_URL}/MiSTer_tty2oled-installer/pv" -O ${TTY2OLED_PATH}/pv
-wget ${NODEBUG} -Nq "${PICTURE_REPOSITORY_URL}/MiSTer_tty2oled-installer/rsyncy.py" -O ${TTY2OLED_PATH}/rsyncy.py
-
+#wget ${NODEBUG} -Nq "${PICTURE_REPOSITORY_URL}/MiSTer_tty2oled-installer/pv"
+wget ${NODEBUG} -Nq "${PICTURE_REPOSITORY_URL}/MiSTer_tty2oled-installer/rsyncy.py"
 
 echo -e "${fgreen}tty2oled update script"
 echo -e "----------------------${freset}"
-
 echo -e "${fgreen}Checking for available tty2oled updates...${freset}"
 
 
@@ -161,6 +160,9 @@ if ! cmp -s /tmp/tty2oled_cc.sh ${CCSCRIPT}; then
     echo -e "${fblink}Skipping${fyellow} available tools script update because of the ${fcyan}SCRIPT_UPDATE${fyellow} INI-Option${freset}"
   fi
 fi
+
+# Download Read/Buffer Daemon
+wget ${NODEBUG} -Nq "${REPOSITORY_URL}/tty2oled-read.sh"
 
 # Download the installer to check esp firmware
 cd /tmp

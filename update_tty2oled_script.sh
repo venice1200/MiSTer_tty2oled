@@ -162,7 +162,7 @@ if ! cmp -s /tmp/tty2oled_cc.sh ${CCSCRIPT}; then
 fi
 
 # Download Read/Buffer Daemon
-wget ${NODEBUG} -Nq "${REPOSITORY_URL}/${READSCRIPT}"
+wget ${NODEBUG} -Nq "${REPOSITORY_URL}/tty2oled-read.sh"
 
 # Download the installer to check esp firmware
 cd /tmp

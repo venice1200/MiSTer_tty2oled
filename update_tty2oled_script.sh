@@ -160,7 +160,9 @@ if ! cmp -s /tmp/tty2oled_cc.sh ${CCSCRIPT}; then
     echo -e "${fblink}Skipping${fyellow} available tools script update because of the ${fcyan}SCRIPT_UPDATE${fyellow} INI-Option${freset}"
   fi
 fi
-wget ${NODEBUG} -Nq "${REPOSITORY_URL}/tty2oled-read.sh"
+
+# Download Read/Buffer Daemon
+wget ${NODEBUG} -Nq "${REPOSITORY_URL}/${READSCRIPT}"
 
 # Download the installer to check esp firmware
 cd /tmp

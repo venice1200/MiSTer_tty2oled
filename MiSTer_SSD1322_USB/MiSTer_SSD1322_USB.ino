@@ -9,7 +9,8 @@
   - Adafruit GFX (*)
   - U8G2 for Adafruit GFX (*)
   - Bounce2 (*) optional, needed for the tilt-sensor
-  - eHaJo_LM75 (*) optional, needed for the MIC145 sensor on d.ti's tty2oled board
+  - ESP32Time (*) needed for all ESP32 Boards 
+  - MIC184 needed for the MIC145 sensor on d.ti's tty2oled board, get from: https://github.com/venice1200/MIC184_Temperature_Sensor/releases
   - SSD1322 for Adafruit GFX, download and extract from here: https://github.com/venice1200/SSD1322_for_Adafruit_GFX/releases/latest
   (*) These Libraries can be installed using Arduino's library manager.
   See also https://github.com/venice1200/MiSTer_tty2oled/wiki/Arduino-HowTo-%28Windows%29
@@ -18,16 +19,18 @@
   -ESP32 Dev Module
   -WEMOS LOLIN32
   -NodeMCU 1.0
-  
-  See changelog.md in Sketch folder for more details
    
+  See changelog.md in Sketch folder for more details
+
   ToDo
+   -CMDSHTIME
+   
   -Everything I forgot
    
 */
 
 // Set Version
-#define BuildVersion "220331"                     // "T" for Testing
+#define BuildVersion "220507"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -50,8 +53,6 @@
 // Uncomment for 180° StartUp Rotation (Display Connector up)
 //#define XROTATE
 
-// Uncomment for "Send Acknowledge" from tty2oled to MiSTer
-#define XSENDACK
 
 // ---------------------------------------------------------------------------------------------------------------------
 // ---------------------------------- Auto-Board-Config via Arduino IDE Board Selection --------------------------------
@@ -87,7 +88,7 @@
 // OLED Pins, Tilt Pin, I2C, User-LED for d.ti Board
 // using VSPI SCLK = 18, MISO = 19, MOSI = 23 and...
 #ifdef USE_ESP32DEV
-  #define cDelay 25                // Command Delay in ms for Handshake
+  int cDelay = 15;                 // Command Delay in ms for ACK-Handshake
   #define OLED_CS 26               // OLED Chip Select Pin
   #define OLED_DC 25               // OLED Data/Command Pin
   #define OLED_RESET 27            // OLED Reset Pin
@@ -95,7 +96,7 @@
   #define I2C1_SCL 16              // I2C_1-SCL
   #define TILT_PIN 32              // Using internal PullUp
   #define USER_LED 19              // USER_LED/WS2812B
-  #define PWRLED 5                 // Set Pin to "1" = LED's off
+  #define POWER_LED 5              // Set Pin to "1" = LED's off
   #define BUZZER 4                 // Piezo Buzzer
   #define TONE_PWM_CHANNEL 0       // See: https://makeabilitylab.github.io/physcomp/esp32/tone.html
   #include <MIC184.h>              // MIC184 Library, get from https://github.com/venice1200/MIC184_Temperature_Sensor
@@ -108,7 +109,7 @@
 
 // WEMOS LOLIN32/Devkit_V4 using VSPI SCLK = 18, MISO = 19, MOSI = 23, SS = 5 and...
 #ifdef USE_LOLIN32
-  #define cDelay 25                // Command Delay in ms for Handshake
+  int cDelay = 60;                 // Command Delay in ms for ACK-Handshake
   #define OLED_CS 5
   #define OLED_DC 16
   #define OLED_RESET 17
@@ -117,7 +118,7 @@
 
 // ESP8266-Board (NodeMCU v3)
 #ifdef USE_NODEMCU
-  #define cDelay 100                // Command Delay in ms for Handshake
+  int cDelay = 60;                 // Command Delay in ms for ACK-Handshake
   #define OLED_CS 15
   #define OLED_DC 4
   #define OLED_RESET 5
@@ -133,10 +134,8 @@ U8G2_FOR_ADAFRUIT_GFX u8g2;
 #define DEBOUNCE_TIME 25                 // Debounce Time
 Bounce RotationDebouncer = Bounce();     // Create Bounce class
 
-#ifdef USE_ESP32DEV
-#endif
 
-// OTA and Reset only for ESP32
+// OTA, Reset and RTC only for ESP32
 #ifdef ESP32
   #include "cred.h"                               // Load your WLAN Credentials for OTA
   #include <WiFi.h>
@@ -144,6 +143,8 @@ Bounce RotationDebouncer = Bounce();     // Create Bounce class
   #include <WiFiUdp.h>
   #include <ArduinoOTA.h>
   bool OTAEN=false;                               // Will be set to "true" by Command "CMDENOTA"
+  #include <ESP32Time.h>                          // Time-Library
+  ESP32Time rtc;                                  // Create Real-Time-Clock Device
 #endif
 
 // -------------------------------------------------------------
@@ -160,6 +161,7 @@ int tEffect = 0;                       // Run this Effect
 
 bool updateDisplay = false;
 bool startScreenActive = false;
+bool timeIsSet = false;
 
 // Display Vars
 uint16_t DispWidth, DispHeight, DispLineBytes1bpp, DispLineBytes4bpp;
@@ -175,7 +177,7 @@ int actPicType=NONE;
 int16_t xs, ys;
 uint16_t ws, hs;
 const uint8_t minEffect=1, maxEffect=23;      // Min/Max Effects for Random
-//const uint8_t minEffect=22, maxEffect=23;      // Min/Max Effects for TESTING
+//const uint8_t minEffect=22, maxEffect=23;   // Min/Max Effects for TESTING
 
 // Blinker 500ms Interval
 const long interval = 500;                    // Interval for Blink (milliseconds)
@@ -229,7 +231,11 @@ void setup(void) {
   Serial.setTimeout(500);                    // Set max. Serial "Waiting Time", default = 1000ms
 
   randomSeed(analogRead(34));                // Init Random Generator with empty Port Analog value
-
+  
+#ifdef ESP32  
+  rtc.setTime(1640995200);                   // Set Time (2022-01-01) only for ESP32
+#endif
+  
   // Init Display SSD1322
   oled.begin();
   oled.clearDisplay();
@@ -260,7 +266,7 @@ void setup(void) {
 
   // Setup d.ti Board (Temp.Sensor/USER_LED/PCA9536)
 #ifdef USE_ESP32DEV                                             // Only for ESP-DEV (TTGO-T8/d.ti)
-  pinMode(PWRLED, OUTPUT);                                      // Setup Power LED
+  pinMode(POWER_LED, OUTPUT);                                      // Setup Power LED
   //ledcAttachPin(BUZZER, TONE_PWM_CHANNEL);                      // Buzzer Setup Move to playtone function
   
   Wire.begin(int(I2C1_SDA), int(I2C1_SCL), uint32_t(100000));   // Setup I2C-1 Port
@@ -450,18 +456,24 @@ void loop(void) {
     // ---------------- C O M M A N D 's -----------------
     // ---------------------------------------------------
 
+    // -- Test Commands --
+    else if (newCommand=="CMDNULL") {                                    // NULL-Command, RunTime Test Command
+        // Do nothing
+    }
+
     else if (newCommand=="cls") {                                        // Clear Screen
       oled.clearDisplay();
       oled.display();
     }
-    else if (newCommand=="sorg")         oled_showStartScreen();
-    else if (newCommand=="bye")          oled_drawlogo64h(sorgelig_icon64_width, sorgelig_icon64);
     
-    // ---------------------------------------------------
-    // -------------- Command Mode V2 --------------------
-    // ---------------------------------------------------
-
-    // -- Test Commands --
+    else if (newCommand=="sorg") {                                       // Start Screen
+      oled_showStartScreen();
+    }
+    
+    else if (newCommand=="bye")  {                                        // Cat Screen
+      oled_drawlogo64h(sorgelig_icon64_width, sorgelig_icon64);
+    }
+    
     else if (newCommand=="CMDCLS") {                                        // Clear Screen with Display Update
       oled.clearDisplay();
       oled.display();
@@ -481,6 +493,14 @@ void loop(void) {
     
     else if (newCommand=="CMDBYE") {                                        // Show Sorgelig's Icon
       oled_drawlogo64h(sorgelig_icon64_width, sorgelig_icon64);
+    }
+
+    else if (newCommand.startsWith("CMDSECD")) {                            // Set Command Delay
+      oled_setcdelay();
+    }
+
+    else if (newCommand=="CMDSHCD") {                                       // Show Command Delay
+      oled_showcdelay();
     }
 
     else if (newCommand=="CMDHWINF") {                                      // Send HW Info
@@ -507,10 +527,6 @@ void loop(void) {
 
     else if (newCommand=="CMDSSCP") {                                     // Show actual loaded Core Picture but in 1/4 size
       oled_showSmallCorePicture(64,16);
-    }
-
-    else if (newCommand=="CMDSSCP2") {                                    // Show actual loaded Core Picture but in 1/4 size
-      oled_showSmallCorePictureV2(64,16);
     }
 
     else if (newCommand=="CMDDOFF") {                                       // Switch Display Off
@@ -548,6 +564,10 @@ void loop(void) {
       }
     }
 
+    else if (newCommand.startsWith("CMDSETTIME,")) {                        // Set date and time but only for ESP32 RTC
+      oled_setTime();
+    }
+
     else if (newCommand.startsWith("CMDCON")) {                            // Command from Serial to receive Contrast-Level Data from the MiSTer
       usb2oled_readnsetcontrast();                                          // Read and Set contrast                                   
     }
@@ -559,7 +579,9 @@ void loop(void) {
       usb2oled_readnsetscreensaver();                                      // Enable/Disable Screensaver
     }
 
-    // The following Commands are only for the d.ti Board
+// ---------------------------------------------------
+// The following Commands are only for the d.ti Board
+// ---------------------------------------------------
 #ifdef USE_ESP32DEV
     else if (newCommand.startsWith("CMDULED")) {                           // User LED
       usb2oled_readnsetuserled();                                           // Set LED                                   
@@ -569,7 +591,7 @@ void loop(void) {
       usb2oled_readnsetpowerled();                                          // Set LED
     }
 
-    else if (newCommand=="CMDSTEMP") {                                      // Enable to show Temperature Big Picture
+    else if (newCommand=="CMDSHTEMP") {                                      // Enable to show Temperature Big Picture
     usb2oled_showtemperature();
     }
 
@@ -577,16 +599,19 @@ void loop(void) {
     usb2oled_settempzone();
     }
 
-    else if (newCommand.startsWith("CMDPTONE")) {                           // Play Tone
+    else if (newCommand.startsWith("CMDPNOTE")) {                           // Play Note
+    usb2oled_playnote();
+    }
+
+    else if (newCommand.startsWith("CMDPTONE")) {                           // Play Tone/Frequency
     usb2oled_playtone();
     }
-
-    else if (newCommand.startsWith("CMDPFREQ")) {                           // Play Frequency
-    usb2oled_playfrequency();
-    }
 #endif  // USE_ESP32DEV
+// ---------------------------------------------------
 
-    // The following Commands are only for ESP32
+// ---------------------------------------------------
+// The following Commands are only for ESP32 Boards
+// ---------------------------------------------------
 #ifdef ESP32  // OTA and Reset only for ESP32
     else if (newCommand=="CMDENOTA") {                                      // Command from Serial to enable OTA on the ESP
       enableOTA();                                                          // Setup Wireless and enable OTA
@@ -596,6 +621,7 @@ void loop(void) {
       ESP.restart();                                                        // Reset ESP
     }
 #endif  // ESP32
+// ---------------------------------------------------
 
     // -- Unidentified Core Name, just write it on screen
     else {
@@ -604,39 +630,18 @@ void loop(void) {
       usb2oled_showcorename();
     }  // end ifs
 
-#ifdef XSENDACK
-    delay(cDelay);                           // Command Response Delay
-    Serial.print("ttyack;");                 // Handshake with delimiter; MiSTer: "read -d ";" ttyresponse < ${TTYDEVICE}"
-    Serial.flush();                          // Wait for sendbuffer is clear
-#endif
+    delay(cDelay);                                    // Command Response Delay
+    Serial.print("ttyack;");                          // Handshake with delimiter; MiSTer: "read -d ";" ttyresponse < ${TTYDEVICE}"
+    // Serial.flush();                                // Wait for sendbuffer is clear
 
     updateDisplay=false;                              // Clear Update-Display Flag
   } // endif updateDisplay
 
-  // ScreenSaver if Active
+  // ---------- ScreenSaver if Active -----------------
   if (ScreenSaverActive && ScreenSaverPos) {              // Screensaver each 60secs
     oled_showScreenSaverPicture();
   }
 
-// Show Temperature ESP32DEV only
-#ifdef USE_ESP32DEV
-  // Update Temp each Timer Interval only if MIC184 is available and..
-  // ..if just the plain Boot Screen is shown..
-  if (micAvail) {
-    if (startScreenActive && timer30pos) {
-      u8g2.setCursor(111,63);
-      u8g2.print(tSensor.getTemp());                  // Show Temperature if Sensor available
-      u8g2.print("\xb0");
-      u8g2.print("C");
-      oled.display();
-    }
-    // ..or CMDSTEMP was called
-    if (newCommand=="CMDSTEMP" && timer30pos) {          // Show Temperature
-      usb2oled_showtemperature();
-    }
-  }  // endif micAvail
-#endif
-  
 } // End Main Loop
 
 // =============================================================================================================
@@ -672,10 +677,10 @@ void oled_showStartScreen(void) {
   u8g2.setFont(u8g2_font_5x7_mf);            // 6 Pixel Font
   u8g2.setCursor(0,63);
   u8g2.print(BuildVersion);
-  /*
+#ifdef XDEBUG	
   if (micAvail) u8g2.print("M");
   if (pcaAvail) u8g2.print("P");
-  */
+#endif	
   oled.drawXBitmap(DispWidth-usb_icon_width, DispHeight-usb_icon_height, usb_icon, usb_icon_width, usb_icon_height, SSD1322_WHITE);
 
 #ifdef USE_ESP32DEV
@@ -686,13 +691,74 @@ void oled_showStartScreen(void) {
     u8g2.print("C");
   }
   if (pcaAvail) {
-    digitalWrite(PWRLED,1);           // Power off Power LED's D2 & D3
+    digitalWrite(POWER_LED,1);           // Power off Power LED's D2 & D3
   }
 #endif
 
   oled.display();
   startScreenActive=true;
 } // end mistertext
+
+
+// --------------------------------------------------------------
+// ---------------- Read and set RTC Time -----------------------
+// --------------------------------------------------------------
+void oled_setTime(void) {
+  String tT="";
+  
+#ifdef XDEBUG
+  Serial.println("Called Command CMDSETTIME");
+#endif
+
+  tT=newCommand.substring(newCommand.indexOf(',')+1);             // Get Command Parameter out of the string
+  
+#ifdef XDEBUG
+  Serial.printf("\nReceived Text: %s\n", (char*)newCommand.c_str());
+  Serial.printf("Received Value: %s\n", (char*)tT.c_str());
+#endif
+
+#ifdef ESP32                                                      // Set Time only for ESP32 MCU's
+  rtc.setTime(tT.toInt());                                        // Read and set RTC
+  timeIsSet = true;                                               // Time is set!
+#endif
+}
+
+
+// --------------------------------------------------------------
+// ------------ Read and Set Command Delay ----------------------
+// --------------------------------------------------------------
+void oled_setcdelay(void) {
+  String dT="";
+#ifdef XDEBUG
+  Serial.println("Called Command CMDSECD");
+#endif
+  
+  dT=newCommand.substring(8);           // CMD-Length+1
+
+#ifdef XDEBUG
+  Serial.printf("\nReceived Text: %s\n", (char*)dT.c_str());
+#endif
+  cDelay=dT.toInt();                   // Convert Value
+#ifdef XDEBUG
+  Serial.printf("\nSet cDelay to: %d\n", cDelay);
+#endif
+}
+
+// --------------------------------------------------------------
+// ------------- Show Command Delay on Screen -------------------
+// --------------------------------------------------------------
+void oled_showcdelay(void) {
+#ifdef XDEBUG
+  Serial.println("Called Command CMDGECD");
+#endif
+  
+  oled.clearDisplay();
+  u8g2.setFont(u8g2_font_tenfatguys_tr);
+  u8g2.setCursor(20,32);
+  u8g2.print("cDelay: ");
+  u8g2.print(cDelay);
+  oled.display();
+}
 
 
 // --------------------------------------------------------------
@@ -721,8 +787,8 @@ void usb2oled_readnsetscreensaver(void) {
   i=iT.toInt();                             // Convert Interval
   l=lT.toInt();                             // Convert Logo-Time
 
-  if (m<0) m=0;                             // Check & Set Mode/Color low
-  if (m>15) m=15;                           // Check & Set Mode/Color high
+  if (m<0) m=0;                             // Check & Set Mode/Color low range
+  if (m>15) m=15;                           // Check & Set Mode/Color high range
   if (i<5) i=5;                             // Check&Set Minimum Interval
   if (i>600) i=600;                         // Check&Set Maximiun Interval
   if (l<20) l=20;                           // Check&Set Minimum Logo-Time
@@ -758,17 +824,87 @@ void usb2oled_readnsetscreensaver(void) {
 
 
 // --------------------------------------------------------------
+// ------------ Show ScreenSaver Pictures/Time  -----------------
+// --------------------------------------------------------------
+void oled_showScreenSaverPicture(void) {
+  int l,x,y;
+  String actTime="";
+  oled.setContrast(ScreenSaverColor);  // Set Contrast
+
+#ifdef ESP32                           // Only ESP32
+  if (!timeIsSet) {                    // If Time was Set show the Time will be Part of the Screensaver.
+    l=random(3);                       // random(3) = 0..2
+  }
+  else {
+    //l=random(4);                       // 0..3 (without Date)
+    l=random(5);                       // 0..4 (with Date)
+  }
+#else                                  // All others like the 8266
+  l=random(3);                         // 0..2
+#endif
+
+  switch (l) {
+    case 0:                             // tty2oled Logo
+      oled.clearDisplay();
+      x=random(DispWidth - tty2oled_logo32_width);
+      y=random(DispHeight - tty2oled_logo32_height);
+      oled.drawXBitmap(x, y, tty2oled_logo32, tty2oled_logo32_width, tty2oled_logo32_height, SSD1322_WHITE);
+      oled.display();
+    break;
+    case 1:                             // MiSTer Logo
+      oled.clearDisplay();
+      x=random(DispWidth - mister_logo32_width);
+      y=random(DispHeight - mister_logo32_height);
+      oled.drawXBitmap(x, y, mister_logo32, mister_logo32_width, mister_logo32_height, SSD1322_WHITE);
+      oled.display();
+    break;
+    case 2:                             // 1/4 Version of the actual Core
+      x=random(DispWidth - DispWidth/2);
+      y=random(DispHeight - DispHeight/2);
+      oled_showSmallCorePicture(x,y);
+    break;
+    
+#ifdef ESP32
+    case 3:                             // Show Time if ESP32 and Time was set before
+      oled.clearDisplay();
+      u8g2.setFont(u8g2_font_luBS24_tf);
+      actTime=rtc.getTime("%H:%M");
+      x=random(DispWidth - u8g2.getUTF8Width(actTime.c_str()));
+      y=random(u8g2.getFontAscent(), DispHeight);
+      u8g2.setCursor(x,y);
+      u8g2.print(actTime);
+      oled.display();
+    break;
+    case 4:                             // Show Date if ESP32 and Time was set before
+      oled.clearDisplay();
+      u8g2.setFont(u8g2_font_luBS14_tf);
+      actTime=rtc.getTime("%d. %B %Y");
+      x=random(DispWidth - u8g2.getUTF8Width(actTime.c_str()));
+      y=random(u8g2.getFontAscent(), DispHeight);
+      u8g2.setCursor(x,y);
+      u8g2.print(actTime);
+      oled.display();
+    break;
+#endif
+
+  }
+}
+
+
+// --------------------------------------------------------------
 // ------------- Show 1/4 Core Picture at Position V2 -----------
 // --------------------------------------------------------------
 // xpos & ypos = Offset
-void oled_showSmallCorePictureV2(int xpos, int ypos) {
+void oled_showSmallCorePicture(int xpos, int ypos) {
   int x=0,y=0,px=0,py=0,i=0;
   unsigned char b1,b2,br;
 
-  //Serial.printf("Show 1/4 Pic\n",actPicType);
-  //actPicType = XBM;
-  //actPicType = GSC;
-  //Serial.printf("ActPicType: %d\n",actPicType);
+#ifdef XDEBUG
+  Serial.printf("Show 1/4 Pic\n",actPicType);
+  actPicType = XBM;
+  actPicType = GSC;
+  Serial.printf("ActPicType: %d\n",actPicType);
+#endif
   
   oled.clearDisplay();
   switch (actPicType) {
@@ -784,7 +920,9 @@ void oled_showSmallCorePictureV2(int xpos, int ypos) {
             else {
               oled.drawPixel(xpos+x, ypos+y, SSD1322_BLACK);         // Clear Pixel if "0"
             }
-            //Serial.printf("X: %d Y: %d\n",x,y);
+#ifdef XDEBUG
+            Serial.printf("X: %d Y: %d\n",x,y);
+#endif
             x++;
           }
 #ifdef USE_NODEMCU
@@ -805,7 +943,6 @@ void oled_showSmallCorePictureV2(int xpos, int ypos) {
             b2=logoBin[(px*4)+i+(py+1)*DispLineBytes4bpp];                                              // Get Data Byte 2 for 2 Pixels
             //br=(((0xF0 & b1) >> 4) + (0x0F & b1) + ((0xF0 & b2) >> 4) + (0x0F & b2)) / 4;               // cutting
             br=round((((0xF0 & b1) >> 4) + (0x0F & b1) + ((0xF0 & b2) >> 4) + (0x0F & b2)) / 4);        // rounding
-            //br=(round(((0xF0 & b1) >> 4) + (0x0F & b1) + ((0xF0 & b2) >> 4) + (0x0F & b2)) /8)*2;       // /8*2 = more Contrast ?
             oled.drawPixel(xpos+x, ypos+y, br);   // Draw only Pixel 1, Left Nibble
             //Serial.printf("X: %d Y: %d\n",x,y);
             x++;
@@ -821,104 +958,6 @@ void oled_showSmallCorePictureV2(int xpos, int ypos) {
     break;
     case NONE:
       usb2oled_showcorename();
-    break;
-  }
-}
-
-
-// --------------------------------------------------------------
-// ------------- Show 1/4 Core Picture at Position --------------
-// --------------------------------------------------------------
-// xpos & ypos = Offset
-void oled_showSmallCorePicture(int xpos, int ypos) {
-  int x=0,y=0,px=0,py=0,i=0;
-  unsigned char b;
-
-  //Serial.printf("Show 1/4 Pic\n",actPicType);
-  //actPicType = XBM;
-  //actPicType = GSC;
-  //Serial.printf("ActPicType: %d\n",actPicType);
-  
-  oled.clearDisplay();
-  switch (actPicType) {
-    case XBM:
-      x=0;y=0;
-      for (py=0; py<DispHeight; py=py+2) {
-        for (px=0; px<DispLineBytes1bpp; px++) {
-          b=logoBin[px+py*DispLineBytes1bpp];                // Get Data Byte for 8 Pixels
-          for (i=0; i<8; i=i+2){
-            if (bitRead(b, i)) {
-              oled.drawPixel(xpos+x, ypos+y, SSD1322_WHITE);         // Draw Pixel if "1"
-            }
-            else {
-              oled.drawPixel(xpos+x, ypos+y, SSD1322_BLACK);         // Clear Pixel if "0"
-            }
-            //Serial.printf("X: %d Y: %d\n",x,y);
-            x++;
-          }
-#ifdef USE_NODEMCU
-          yield();
-#endif
-        }
-        x=0;
-        y++;
-      }
-      oled.display();  
-    break;
-    case GSC:
-      x=0;y=0;
-      for (py=0; py<DispHeight; py=py+2) {
-        for (px=0; px<DispLineBytes1bpp; px++) {
-          for (i=0; i<4; i++) {
-            b=logoBin[(px*4)+i+py*DispLineBytes4bpp];        // Get Data Byte for 2 Pixels
-            oled.drawPixel(xpos+x, ypos+y, (0xF0 & b) >> 4);   // Draw only Pixel 1, Left Nibble
-            //Serial.printf("X: %d Y: %d\n",x,y);
-            x++;
-          }
-#ifdef USE_NODEMCU
-          yield();
-#endif
-        }
-      x=0;
-      y++;
-      }
-      oled.display();  
-    break;
-    case NONE:
-      usb2oled_showcorename();
-    break;
-  }
-}
-
-// --------------------------------------------------------------
-// ---------------- Show ScreenSaver Picture  -------------------
-// --------------------------------------------------------------
-void oled_showScreenSaverPicture(void) {
-  int l,x,y;
-  oled.setContrast(ScreenSaverColor);  // Test
-  l=random(1+2);
-  switch (l) {
-    case 0:
-      oled.clearDisplay();
-      x=random(DispWidth - mister_logo32_width);
-      y=random(DispHeight - mister_logo32_height);
-      oled.drawXBitmap(x, y, mister_logo32, mister_logo32_width, mister_logo32_height, SSD1322_WHITE);
-      //oled.drawXBitmap(x, y, mister_logo32, mister_logo32_width, mister_logo32_height, ScreenSaverColor);
-      oled.display();
-    break;
-    case 1:
-      oled.clearDisplay();
-      x=random(DispWidth - tty2oled_logo32_width);
-      y=random(DispHeight - tty2oled_logo32_height);
-      oled.drawXBitmap(x, y , tty2oled_logo32, tty2oled_logo32_width, tty2oled_logo32_height, SSD1322_WHITE);
-      //oled.drawXBitmap(x, y , tty2oled_logo32, tty2oled_logo32_width, tty2oled_logo32_height, ScreenSaverColor);
-      oled.display();
-    break;
-    case 2:
-      x=random(DispWidth - DispWidth/2);
-      y=random(DispHeight - DispHeight/2);
-      //oled_showSmallCorePicture(x,y);
-      oled_showSmallCorePictureV2(x,y);
     break;
   }
 }
@@ -943,14 +982,14 @@ void oled_sendHardwareInfo(void) {
 #endif
 
  
-  delay(hwDelay);                            // Small Delay
+  delay(hwDelay);                          // Small Delay
 
   switch (hwinfo) {
     case 0:
       Serial.println("HWNONEXXX;" BuildVersion ";");              // No known Hardware in use
     break;
     case 1:
-      Serial.println("HWESP32DE;" BuildVersion ";");              // ESP32-DEV, TTGO, DTI-Board without active Options
+      Serial.println("HWESP32DE;" BuildVersion ";");              // ESP32-DEV, TTGO, DTI-Board
     break;
     case 2:
       Serial.println("HWLOLIN32;" BuildVersion ";");              // Wemos,Lolin,DevKit_V4
@@ -959,10 +998,10 @@ void oled_sendHardwareInfo(void) {
       Serial.println("HWESP8266;" BuildVersion ";");              // ESP8266
     break;
     case 4:
-      Serial.println("HWDTIPCB0;" BuildVersion ";");              // DTI Board v1.0
+      Serial.println("HWDTIPCB0;" BuildVersion ";");              // Unused
     break;
     case 5:
-      Serial.println("HWDTIPCB1;" BuildVersion ";");              // Currently unused
+      Serial.println("HWDTIPCB1;" BuildVersion ";");              // Unused
     break;
     default:
       Serial.println("HWNONEXXX;" BuildVersion ";");              // Default
@@ -995,7 +1034,7 @@ void usb2oled_showcorename() {
 
   oled.clearDisplay();
   u8g2.setFont(u8g2_font_tenfatguys_tr);     // 10 Pixel Font
-  u8g2.setCursor(DispWidth/2-(u8g2.getUTF8Width(actCorename.c_str())/2), DispHeight/2 + ( u8g2.getFontAscent()/2 ) );
+  u8g2.setCursor(DispWidth/2-(u8g2.getUTF8Width(actCorename.c_str())/2), DispHeight/2 + (u8g2.getFontAscent()/2));
   u8g2.print(actCorename);
   oled.display();
 }
@@ -1750,7 +1789,7 @@ void usb2oled_readnwritetext(void) {
     f=f-100;
   }
 
-#ifdef USE_ESP32DEV
+#ifdef USE_ESP32DEV             // Only for d.ti Boards
   if (TextOut=="TEP184") {      // If Text is "TEP184" replace Text with Temperature Value
     if (micAvail) {
       TextOut=String(tSensor.getTemp())+"\xb0"+"C";
@@ -1800,7 +1839,7 @@ void usb2oled_readnwritetext(void) {
     u8g2.setBackgroundColor(b);                           // Set Backgrounf Color
     u8g2.setCursor(x,y);                                  // Set Cursor Position
     u8g2.print(TextOut);                                  // Write Text to Buffer
-    if (!bufferMode) oled.display();                       // Update Screen only if not Clear Mode (Font>100)
+    if (!bufferMode) oled.display();                      // Update Screen only if not "Clear Mode" (Font>100)
     u8g2.setForegroundColor(SSD1322_WHITE);               // Set Color back
     u8g2.setBackgroundColor(SSD1322_BLACK);
   }
@@ -1930,7 +1969,7 @@ void usb2oled_readndrawgeo(void) {
 void usb2oled_showtemperature() {
   String myTemp="";
 #ifdef XDEBUG
-  Serial.println("Called Command CMDSTEMP");
+  Serial.println("Called Command CMDSHTEMP");
 #endif
   if (micAvail) {
     myTemp=String(tSensor.getTemp())+"\xb0"+"C";
@@ -2023,20 +2062,21 @@ void usb2oled_readnsetpowerled(void) {
   if (pcaAvail) {                               // PCA not avail = Board Rev 1.1 = LED
     if (x<0) x=0;
     if (x>1) x=1;
-    digitalWrite(PWRLED,!x);                    // Need to negate Signal, Pin = 1 LED's off
+    digitalWrite(POWER_LED,!x);                 // Need to negate Signal, Pin = 1 LED's off
   }
 }
 
 // --------------------------------------------------------------
-// ------------ Play Tone using Piezo Beeper --------------------
+// --------- Play Note/Tone using Piezo Beeper ------------------
 // --------------------------------------------------------------
-void usb2oled_playtone(void) {
+void usb2oled_playnote(void) {
   int d0=0,d1=0,d2=0,d3=0,d4=0,o=0,d=0,p=0;
   String TextIn="",nT="",oT="",dT="",pT="";
   note_t n;
+  bool pError=false;
   
 #ifdef XDEBUG
-  Serial.println("Called Command CMDPTONE");
+  Serial.println("Called Command CMDPNOTE");
 #endif  
   TextIn=newCommand.substring(8);               // Start to find the first "," after the command
 #ifdef XDEBUG
@@ -2044,6 +2084,10 @@ void usb2oled_playtone(void) {
 #endif
   
   d0 = TextIn.indexOf(',');                 // Find location of the Starting ","
+
+#ifdef XDEBUG
+    Serial.printf("Find first delimeter at: %d\n", d0);
+#endif  
  
   ledcAttachPin(BUZZER, TONE_PWM_CHANNEL);
  
@@ -2054,19 +2098,30 @@ void usb2oled_playtone(void) {
     d1 = TextIn.indexOf(',', d0+1 );          // Find location of first ","
     d2 = TextIn.indexOf(',', d1+1 );          // Find location of second ","
     d3 = TextIn.indexOf(',', d2+1 );          // Find location of third ","
-    d4 = TextIn.indexOf(',', d3+1 );          // Find location of fouth "," - Value = "-1" if not found = no more Notes available
+    d4 = TextIn.indexOf(',', d3+1 );          // Find location of fourth "," - Value = "-1" if not found = no more Notes available
+
+#ifdef XDEBUG
+    Serial.printf("Find delimeters at: %d %d %d %d\n", d1,d2,d3,d4);
+#endif  
 
     //Create Substrings
     nT = TextIn.substring(d0+1, d1);          // Get String for Note
     oT = TextIn.substring(d1+1, d2);          // Get String for Octave
     dT = TextIn.substring(d2+1, d3);          // Get String for Duration
-    if (d4 != -1) {
+    if (d4 == -1) {                           // String finished
+      pT = TextIn.substring(d3+1);            // Get String for Pause
+    }
+    else if (d3 == -1 || d2 == -1 || d1 == -1) {  // Parameter missing = pError
+      pError=true;
+    }
+    else {                                    // String not finished
       pT = TextIn.substring(d3+1, d4);        // Get String for Pause
       d0=d4;                                  // Set Index for next Note
     }
-    else {
-      pT = TextIn.substring(d3+1);            // Get String for Pause
-    }
+
+#ifdef XDEBUG
+    Serial.printf("Found strings: %s %s %s %s\n", (char*)nT.c_str(), (char*)oT.c_str(), (char*)dT.c_str(), (char*)pT.c_str());
+#endif  
 
     // Build Note and convert Substrings to Integers
     // See https://github.com/espressif/arduino-esp32/blob/6a7bcabd6b7a33f074f93ed60e5cc4378d350b81/cores/esp32/esp32-hal-ledc.c#L141
@@ -2088,28 +2143,40 @@ void usb2oled_playtone(void) {
     o = oT.toInt();                           // Octave
     d = dT.toInt();                           // Duration
     p = pT.toInt();                           // Pause after playing tone
+
+    if (o == 0 || d == 0 || p == 0) pError=true;
+    
 #ifdef XDEBUG
     Serial.printf("Values to Play: %s %d %d %d\n", (char*)nT.c_str(), o, d, p);
 #endif  
-    ledcWriteNote(TONE_PWM_CHANNEL, n, o);    // Play Note
-    delay(d);                                 // Duration
-    ledcWriteTone(TONE_PWM_CHANNEL, 0);       // Buzzer off
-    delay(p);                                 // Pause
-    
-  } while (d4 != -1);                         // Repeat as long a fourth "," is found
+
+    if (!pError) {
+      ledcWriteNote(TONE_PWM_CHANNEL, n, o);    // Play Note
+      delay(d);                                 // Duration
+      ledcWriteTone(TONE_PWM_CHANNEL, 0);       // Buzzer off
+      delay(p);                                 // Pause
+    }
+    else {
+      usb2oled_showperror(); 
+#ifdef XDEBUG
+      Serial.printf("Parameter Error!\n");
+#endif  
+    }
+  } while (d4 != -1 && !pError);                         // Repeat as long a fourth "," is found
 
   ledcDetachPin(BUZZER);
 }
 
 // --------------------------------------------------------------
-// --------- Play Frequency using Piezo Beeper ------------------
+// -------- Play Tone/Frequency using Piezo Beeper --------------
 // --------------------------------------------------------------
-void usb2oled_playfrequency(void) {
+void usb2oled_playtone(void) {
   int d0=0,d1=0,d2=0,d3=0,f=0,d=0,p=0;
   String TextIn="",fT="",dT="",pT="";
+  bool pError=false;
   
 #ifdef XDEBUG
-  Serial.println("Called Command CMDPFREQ");
+  Serial.println("Called Command CMDPTONE");
 #endif  
   TextIn=newCommand.substring(8);               // Start to find the first "," after the command
 #ifdef XDEBUG
@@ -2131,26 +2198,37 @@ void usb2oled_playfrequency(void) {
     //Create Substrings
     fT = TextIn.substring(d0+1, d1);          // Get String for Frequency
     dT = TextIn.substring(d1+1, d2);          // Get String for Duration
-    if (d3 != -1) {
-      pT = TextIn.substring(d2+1, d3);        // Get String for Pause
-      d0=d3;                                  // Set Index in String for next Note
-    }
-    else {
+    if (d3 == -1) {                           // String finished
       pT = TextIn.substring(d2+1);            // Get String for Pause
     }
+    else if (d2 == -1 || d1 == -1) {          // Parameter missing = pError
+      pError=true;
+    }
+    else {                                    // String not finished
+      pT = TextIn.substring(d2+1, d3);        // Get String for Pause
+      d0=d3;                                  // Set Index for next Tone
+    }
+
 
     f = fT.toInt();                           // Octave
     d = dT.toInt();                           // Duration
     p = pT.toInt();                           // Pause after playing tone
+
+    if (f == 0 || d == 0 || p == 0) pError=true;
+    
 #ifdef XDEBUG
     Serial.printf("Values to Play: %d %d %d\n", f, d, p);
 #endif  
-    ledcWriteTone(TONE_PWM_CHANNEL, f);       // Play Frequency
-    delay(d);                                 // Duration
-    ledcWriteTone(TONE_PWM_CHANNEL, 0);       // Buzzer off
-    delay(p);                                 // Pause
-   
-  } while (d3 != -1);                         // Repeat as long a third "," is found
+    if (!pError) {
+      ledcWriteTone(TONE_PWM_CHANNEL, f);       // Play Frequency
+      delay(d);                                 // Duration
+      ledcWriteTone(TONE_PWM_CHANNEL, 0);       // Buzzer off
+      delay(p);                                 // Pause
+    }
+    else {
+      usb2oled_showperror();      
+    }
+  } while (d3 != -1 && !pError);                         // Repeat as long a third "," is found
 
   ledcDetachPin(BUZZER);
 }
@@ -2158,8 +2236,9 @@ void usb2oled_playfrequency(void) {
 #endif  // ----------- d.ti functions---------------
 
 
-// -------------- ESP32 Funtions -------------------- 
-#ifdef ESP32  // OTA and Reset only for ESP32
+// -------------- ESP32 Functions -------------------- 
+#ifdef ESP32  // OTA, Reset and Time only for ESP32
+
 // --------------------------------------------------
 // ---------------- Enable OTA ---------------------- 
 // --------------------------------------------------

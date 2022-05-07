@@ -88,8 +88,7 @@
 // OLED Pins, Tilt Pin, I2C, User-LED for d.ti Board
 // using VSPI SCLK = 18, MISO = 19, MOSI = 23 and...
 #ifdef USE_ESP32DEV
-  //int cDelay = 10;                 // Command Delay in ms for Handshake >>Best Value<<
-  int cDelay = 20;                 // Command Delay in ms for Handshake
+  int cDelay = 15;                 // Command Delay in ms for ACK-Handshake
   #define OLED_CS 26               // OLED Chip Select Pin
   #define OLED_DC 25               // OLED Data/Command Pin
   #define OLED_RESET 27            // OLED Reset Pin
@@ -97,7 +96,7 @@
   #define I2C1_SCL 16              // I2C_1-SCL
   #define TILT_PIN 32              // Using internal PullUp
   #define USER_LED 19              // USER_LED/WS2812B
-  #define POWER_LED 5                 // Set Pin to "1" = LED's off
+  #define POWER_LED 5              // Set Pin to "1" = LED's off
   #define BUZZER 4                 // Piezo Buzzer
   #define TONE_PWM_CHANNEL 0       // See: https://makeabilitylab.github.io/physcomp/esp32/tone.html
   #include <MIC184.h>              // MIC184 Library, get from https://github.com/venice1200/MIC184_Temperature_Sensor
@@ -110,8 +109,7 @@
 
 // WEMOS LOLIN32/Devkit_V4 using VSPI SCLK = 18, MISO = 19, MOSI = 23, SS = 5 and...
 #ifdef USE_LOLIN32
-  //int cDelay = 60;                 // Command Delay in ms for Handshake >>Best Value<<
-  int cDelay = 70;                 // Command Delay in ms for Handshake
+  int cDelay = 60;                 // Command Delay in ms for ACK-Handshake
   #define OLED_CS 5
   #define OLED_DC 16
   #define OLED_RESET 17
@@ -120,8 +118,7 @@
 
 // ESP8266-Board (NodeMCU v3)
 #ifdef USE_NODEMCU
-  //int cDelay = 60;                 // Command Delay in ms for Handshake >>Best Value<<
-  int cDelay = 70;                 // Command Delay in ms for Handshake
+  int cDelay = 60;                 // Command Delay in ms for ACK-Handshake
   #define OLED_CS 15
   #define OLED_DC 4
   #define OLED_RESET 5

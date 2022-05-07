@@ -414,6 +414,45 @@
    
   2022-03-31
   ** Release **
+  
+  2022-04-01
+  -Consolidate CMDSSCP/CMDSSCP2 and oled_showSmallCorePicture/oled_showSmallCorePictureV2
+
+  2022-04-05
+  -Wemos Lolin 32 Profile: #define cDelay 100 fixes MiSTer SAM issues with waitforack
+  
+  2022-04-07
+  -Renamed Command CMDPTONE to CMDPNOTE
+   >> CMDPNOTE,C,4,150,30,C,4,160,30,C,4,150,30,F,4,150,30,C,4,150,30  
+  -Renamed Command CMDPFREQ to CMDPTONE
+  
+  2022-04-07
+  -Testing without "serial.flush" after "ttyack;"
+
+  2022-04-10..13
+  -Add Command "CMDSECD,[value]" to set the Command Delay
+  -Add Command "CMDSHCD" to show the actual Command Delay "On Screen" (for Debugging)
+  -Set cDelay for ESPDEV=15, Lolin32=60, 8266=60 after some manual tests with MiSTer SAM
+  
+  2022-04-16
+  -Fix CMDPNOTE/CMDPTONE Bug if Parameter is missing
+
+  2022-04-17
+  -Add Code for new Commadn CMDSETTIME (stolen from tty2tft)
+  -Add CMDNULL (Test) Command, for Troubleshooting and ACK Testing.
+
+  2022-04-18
+  -Add Time to ScreenSaver but only if Time was set before, and only for ESP32
+
+  2022-04-22
+  -Command CMDSETTIME can be called by all MCU's but only the ESP32 is setting his internal RTC
+
+  2022-04-28
+  -Remove CMDSTEMP command and temnperature loop
+  -Add CMDSHTEMP Command, show only once the actual MIC184 Temperature, for DTI Boards only
+  
+  2022-05-07
+  ** Release to stable**
 
 
   

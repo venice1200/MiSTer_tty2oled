@@ -439,17 +439,20 @@
 
   2022-04-17
   -Add Code for new Commadn CMDSETTIME (stolen from tty2tft)
-  -Add CMDNULL Command, it is for Troubleshooting and ACK Testing.
+  -Add CMDNULL (Test) Command, for Troubleshooting and ACK Testing.
 
   2022-04-18
   -Add Time to ScreenSaver but only if Time was set before, and only for ESP32
 
   2022-04-22
-  -Command CMDSETTIME can be called by all MCU's but only the ESP32 is setting the internal RTC
+  -Command CMDSETTIME can be called by all MCU's but only the ESP32 is setting his internal RTC
 
   2022-04-28
-  -Remove CMDSTEMP command and loop
-  -Add CMDSHTEMP Command, show once the actual MIC184 Temperature, for DTI Boards only
+  -Remove CMDSTEMP command and temnperature loop
+  -Add CMDSHTEMP Command, show only once the actual MIC184 Temperature, for DTI Boards only
+  
+  2022-05-07
+  ** Release to stable**
 
 
   

@@ -22,15 +22,19 @@
    
   See changelog.md in Sketch folder for more details
 
+  2022-05-07
+  -Fix CMDPNOTE/CMDPTONE
+  -Add CMDSHTIME
+  -A lot Cosmetics
+
   ToDo
-   -CMDSHTIME
-   
+      
   -Everything I forgot
    
 */
 
 // Set Version
-#define BuildVersion "220506T"                    // "T" for Testing
+#define BuildVersion "220507T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -378,7 +382,7 @@ void loop(void) {
       oled_showStartScreen();
     }
     else {
-      usb2oled_drawlogo(0);
+      oled_drawlogo(0);
     }
   }
   if (RotationDebouncer.fell()) {
@@ -390,7 +394,7 @@ void loop(void) {
       oled_showStartScreen();
     }
     else {
-      usb2oled_drawlogo(0);
+      oled_drawlogo(0);
     }
   }
 
@@ -484,7 +488,7 @@ void loop(void) {
     }
 
     else if (newCommand.startsWith("CMDCLST")) {                            // Clear/Fill Screen with Transition and Color
-      usb2oled_clswithtransition();
+      oled_clswithtransition();
     }
     
     else if (newCommand=="CMDSORG") {                                       // Show Startscreen
@@ -512,54 +516,54 @@ void loop(void) {
     }
 
     else if (newCommand=="CMDSNAM") {                                       // Show actual loaded Corename
-      usb2oled_showcorename();
+      oled_showcorename();
     }
 
     else if (newCommand.startsWith("CMDSPIC")) {                            // Show actual loaded Picture with(without Transition
-      usb2oled_showpic();
+      oled_showpic();
       if (tEffect==-1) {                                                    // Send without Effect Parameter or Parameter = -1
-        usb2oled_drawlogo(random(minEffect,maxEffect+1));                   // ...and show them on the OLED with Transition Effect 1..MaxEffect
+        oled_drawlogo(random(minEffect,maxEffect+1));                       // ...and show them on the OLED with Transition Effect 1..MaxEffect
       } 
       else {                                                                // Send with Effect "CMDSPIC,15"
-        usb2oled_drawlogo(tEffect);
+        oled_drawlogo(tEffect);
       }
     }
 
-    else if (newCommand=="CMDSSCP") {                                     // Show actual loaded Core Picture but in 1/4 size
+    else if (newCommand=="CMDSSCP") {                                       // Show actual loaded Core Picture but in 1/4 size
       oled_showSmallCorePicture(64,16);
     }
 
     else if (newCommand=="CMDDOFF") {                                       // Switch Display Off
-      usb2oled_displayoff();
+      oled_displayoff();
     }
 
     else if (newCommand=="CMDDON") {                                        // Switch Display On
-      usb2oled_displayon();
+      oled_displayon();
     }
 
     else if (newCommand=="CMDDUPD") {                                       // Update Display Content
-      usb2oled_updatedisplay();
+      oled_updatedisplay();
     }
 
     else if (newCommand.startsWith("CMDTXT")) {                             // Command from Serial to write Text
-      usb2oled_readnwritetext();                                            // Read and Write Text
+      oled_readnwritetext();                                                // Read and Write Text
     }
     
     else if (newCommand.startsWith("CMDGEO")) {                             // Command from Serial to draw geometrics
-      usb2oled_readndrawgeo();                                              // Read and Draw Geometrics
+      oled_readndrawgeo();                                                  // Read and Draw Geometrics
     }
 
     else if (newCommand.startsWith("CMDAPD")) {                             // Command from Serial to receive Picture Data via USB Serial from the MiSTer
-      usb2oled_readlogo();                                                  // Receive Picture Data... 
+      oled_readlogo();                                                      // Receive Picture Data... 
     }
 
     else if (newCommand.startsWith("CMDCOR")) {                             // Command from Serial to receive Picture Data via USB Serial from the MiSTer
-      if (usb2oled_readlogo()==1) {                                         // Receive Picture Data... 
+      if (oled_readlogo()==1) {                                             // Receive Picture Data... 
         if (tEffect==-1) {                                                  // Send without Effect Parameter or with Effect Parameter -1
-          usb2oled_drawlogo(random(minEffect,maxEffect+1));                 // ...and show them on the OLED with Transition Effect 1..MaxEffect
+          oled_drawlogo(random(minEffect,maxEffect+1));                     // ...and show them on the OLED with Transition Effect 1..MaxEffect
         } 
         else {                                                              // Send with Effect "CMDCOR,llander,15"
-          usb2oled_drawlogo(tEffect);
+          oled_drawlogo(tEffect);
         }
       }
     }
@@ -569,14 +573,14 @@ void loop(void) {
     }
 
     else if (newCommand.startsWith("CMDCON")) {                            // Command from Serial to receive Contrast-Level Data from the MiSTer
-      usb2oled_readnsetcontrast();                                          // Read and Set contrast                                   
+      oled_readnsetcontrast();                                             // Read and Set contrast                                   
     }
 
     else if (newCommand.startsWith("CMDROT")) {                            // Command from Serial to set Rotation
-      usb2oled_readnsetrotation();                                         // Set Rotation
+      oled_readnsetrotation();                                             // Set Rotation
     }
     else if (newCommand.startsWith("CMDSAVER")) {                          // Command from Serial to set Screensaver
-      usb2oled_readnsetscreensaver();                                      // Enable/Disable Screensaver
+      oled_readnsetscreensaver();                                          // Enable/Disable Screensaver
     }
 
 // ---------------------------------------------------
@@ -584,27 +588,27 @@ void loop(void) {
 // ---------------------------------------------------
 #ifdef USE_ESP32DEV
     else if (newCommand.startsWith("CMDULED")) {                           // User LED
-      usb2oled_readnsetuserled();                                           // Set LED                                   
+      oled_readnsetuserled();                                              // Set LED
     }
     
     else if (newCommand.startsWith("CMDPLED")) {                           // Power Control LED
-      usb2oled_readnsetpowerled();                                          // Set LED
+      oled_readnsetpowerled();                                             // Set LED
     }
 
-    else if (newCommand=="CMDSHTEMP") {                                      // Enable to show Temperature Big Picture
-    usb2oled_showtemperature();
+    else if (newCommand=="CMDSHTEMP") {                                    // Enable to show Temperature Big Picture
+    oled_showtemperature();
     }
 
-    else if (newCommand.startsWith("CMDTZONE")) {                           // Set Temperature Zone
-    usb2oled_settempzone();
+    else if (newCommand.startsWith("CMDTZONE")) {                          // Set Temperature Zone
+    oled_settempzone();
     }
 
-    else if (newCommand.startsWith("CMDPNOTE")) {                           // Play Note
-    usb2oled_playnote();
+    else if (newCommand.startsWith("CMDPNOTE")) {                          // Play Note
+    oled_playnote();
     }
 
-    else if (newCommand.startsWith("CMDPTONE")) {                           // Play Tone/Frequency
-    usb2oled_playtone();
+    else if (newCommand.startsWith("CMDPTONE")) {                          // Play Tone/Frequency
+    oled_playtone();
     }
 #endif  // USE_ESP32DEV
 // ---------------------------------------------------
@@ -614,12 +618,17 @@ void loop(void) {
 // ---------------------------------------------------
 #ifdef ESP32  // OTA and Reset only for ESP32
     else if (newCommand=="CMDENOTA") {                                      // Command from Serial to enable OTA on the ESP
-      enableOTA();                                                          // Setup Wireless and enable OTA
+      oled_enableOTA();                                                     // Setup Wireless and enable OTA
     }
 
     else if (newCommand=="CMDRESET") {                                      // Command from Serial for Resetting the ESP
       ESP.restart();                                                        // Reset ESP
     }
+
+    else if (newCommand=="CMDSHTIME") {                                     // ShowTime
+      oled_showtime();
+    }
+    
 #endif  // ESP32
 // ---------------------------------------------------
 
@@ -627,7 +636,7 @@ void loop(void) {
     else {
       actCorename=newCommand;
       actPicType=NONE;
-      usb2oled_showcorename();
+      oled_showcorename();
     }  // end ifs
 
     delay(cDelay);                                    // Command Response Delay
@@ -749,7 +758,7 @@ void oled_setcdelay(void) {
 // --------------------------------------------------------------
 void oled_showcdelay(void) {
 #ifdef XDEBUG
-  Serial.println("Called Command CMDGECD");
+  Serial.println("Called Command CMDSHCD");
 #endif
   
   oled.clearDisplay();
@@ -764,7 +773,7 @@ void oled_showcdelay(void) {
 // --------------------------------------------------------------
 // ----------------- Set ScreenSaver Mode -----------------------
 // --------------------------------------------------------------
-void usb2oled_readnsetscreensaver(void) {
+void oled_readnsetscreensaver(void) {
   String TextIn="",mT="",iT="",lT="";
   int d1,d2,m,i,l;
 #ifdef XDEBUG
@@ -957,7 +966,7 @@ void oled_showSmallCorePicture(int xpos, int ypos) {
       oled.display();  
     break;
     case NONE:
-      usb2oled_showcorename();
+      oled_showcorename();
     break;
   }
 }
@@ -1023,7 +1032,7 @@ void oled_drawlogo64h(uint16_t w, const uint8_t *bitmap) {
 // --------------------------------------------------------------
 // ----------------- Just show the Corename ---------------------
 // --------------------------------------------------------------
-void usb2oled_showcorename() {
+void oled_showcorename() {
 #ifdef XDEBUG
   Serial.println("Called Command CMDSNAM");
 #endif
@@ -1043,7 +1052,7 @@ void usb2oled_showcorename() {
 // --------------------------------------------------------------
 // ------------------ Switch Display off ------------------------
 // --------------------------------------------------------------
-void usb2oled_displayoff(void) {
+void oled_displayoff(void) {
 #ifdef XDEBUG
   Serial.println("Called Command CMDDOFF");
 #endif
@@ -1055,7 +1064,7 @@ void usb2oled_displayoff(void) {
 // --------------------------------------------------------------
 // ------------------- Switch Display on ------------------------
 // --------------------------------------------------------------
-void usb2oled_displayon(void) {
+void oled_displayon(void) {
 #ifdef XDEBUG
   Serial.println("Called Command CMDDOFF");
 #endif
@@ -1067,7 +1076,7 @@ void usb2oled_displayon(void) {
 // --------------------------------------------------------------
 // -------------- Update Display Content ------------------------
 // --------------------------------------------------------------
-void usb2oled_updatedisplay(void) {
+void oled_updatedisplay(void) {
 #ifdef XDEBUG
   Serial.println("Called Command CMDDUPD");
 #endif
@@ -1078,7 +1087,7 @@ void usb2oled_updatedisplay(void) {
 // --------------------------------------------------------------
 // ----------------- Read an Set Contrast -----------------------
 // --------------------------------------------------------------
-void usb2oled_readnsetcontrast(void) {
+void oled_readnsetcontrast(void) {
   String cT="";
 #ifdef XDEBUG
   Serial.println("Called Command CMDCON");
@@ -1096,7 +1105,7 @@ void usb2oled_readnsetcontrast(void) {
 // --------------------------------------------------------------
 // ---------------- Show Parameter Error ------------------------
 // --------------------------------------------------------------
-void usb2oled_showperror(void) {
+void oled_showperror(void) {
   oled.clearDisplay();
   u8g2.setFont(u8g2_font_luBS14_tf);
   u8g2.setCursor(5, 20);
@@ -1111,7 +1120,7 @@ void usb2oled_showperror(void) {
 // --------------------------------------------------------------
 // ----------- Command Read and Set Rotation --------------------
 // --------------------------------------------------------------
-void usb2oled_readnsetrotation(void) {
+void oled_readnsetrotation(void) {
   String rT="";
   int r=0;
   
@@ -1144,7 +1153,7 @@ void usb2oled_readnsetrotation(void) {
 // --------------------------------------------------------------
 // --------------- Clear Display with Transition ----------------
 // --------------------------------------------------------------
-void usb2oled_clswithtransition() {
+void oled_clswithtransition() {
   String TextIn,tT="",cT="";
   //uint16_t w,t=0,c=0,d1=0;
   int w,t=0,c=0,d1=0;
@@ -1198,18 +1207,18 @@ void usb2oled_clswithtransition() {
   }
 
   if (!pError) {
-    usb2oled_drawlogo(t);                // ..and draw Picture to Display with Effect
+    oled_drawlogo(t);                // ..and draw Picture to Display with Effect
   }
   else {
-    usb2oled_showperror();
+    oled_showperror();
   }
-}  // end usb2oled_clswithtransition
+}  // end oled_clswithtransition
 
 
 // --------------------------------------------------------------
 // ------------------------- Showpic ----------------------------
 // --------------------------------------------------------------
-void usb2oled_showpic(void) {
+void oled_showpic(void) {
 #ifdef XDEBUG
   Serial.println("Called Command CMDSPIC");
 #endif
@@ -1231,7 +1240,7 @@ void usb2oled_showpic(void) {
 // --------------------------------------------------------------
 // ----------------------- Read Logo ----------------------------
 // --------------------------------------------------------------
-int usb2oled_readlogo() {
+int oled_readlogo() {
   String TextIn="",tT="";
   int d1=0;
   
@@ -1290,13 +1299,13 @@ int usb2oled_readlogo() {
   else {
     return 1;
   }
-}  //end usb2oled_readlogo
+}  //end oled_readlogo
 
 
 // --------------------------------------------------------------
 // ----------------------- Draw Logo ----------------------------
 // --------------------------------------------------------------
-void usb2oled_drawlogo(uint8_t e) {
+void oled_drawlogo(uint8_t e) {
   int w,x,y,x2=0,y2=0;
   //unsigned char logoByteValue;
   //int logoByte;
@@ -1735,7 +1744,7 @@ void drawEightPixelXY(int x, int y, int dx, int dy) {
 // ----------------------------------------------------------------------
 // ----------------------- Read and Write Text --------------------------
 // ----------------------------------------------------------------------
-void usb2oled_readnwritetext(void) {
+void oled_readnwritetext(void) {
   int f=0,c=0,b=0,x=0,y=0,d1=0,d2=0,d3=0,d4=0,d5=0;
   //int16_t x1,y1;
   //uint16_t w1,h1;
@@ -1844,7 +1853,7 @@ void usb2oled_readnwritetext(void) {
     u8g2.setBackgroundColor(SSD1322_BLACK);
   }
   else { 
-    usb2oled_showperror();
+    oled_showperror();
   }
 }
 
@@ -1852,7 +1861,7 @@ void usb2oled_readnwritetext(void) {
 // --------------------------------------------------------------
 // ------------------ Read and Draw Geometrics ------------------
 // --------------------------------------------------------------
-void usb2oled_readndrawgeo(void) {
+void oled_readndrawgeo(void) {
   int g=0,c=0,x=0,y=0,i=0,j=0,k=0,l=0,d1=0,d2=0,d3=0,d4=0,d5=0,d6=0,d7=0;
   String TextIn="",gT="",cT="",xT="",yT="",iT="",jT="",kT="",lT="";
   bool pError=false;
@@ -1955,7 +1964,7 @@ void usb2oled_readndrawgeo(void) {
     if (!bufferMode) oled.display();                       // Update Screen only if not Buffer Mode (Geo>100)
   }
   else { 
-    usb2oled_showperror();
+    oled_showperror();
   }
 }
 
@@ -1966,7 +1975,7 @@ void usb2oled_readndrawgeo(void) {
 // --------------------------------------------------------------
 // ---------------- Just show the Temperature -------------------
 // --------------------------------------------------------------
-void usb2oled_showtemperature() {
+void oled_showtemperature() {
   String myTemp="";
 #ifdef XDEBUG
   Serial.println("Called Command CMDSHTEMP");
@@ -1989,7 +1998,7 @@ void usb2oled_showtemperature() {
 // --------------------------------------------------------------
 // ----------------------- Set User LED -------------------------
 // --------------------------------------------------------------
-void usb2oled_readnsetuserled(void) {
+void oled_readnsetuserled(void) {
   String xT="";
   int x;
 #ifdef XDEBUG
@@ -2025,13 +2034,14 @@ void usb2oled_readnsetuserled(void) {
 // --------------------------------------------------------------
 // ------------- Set MIC184 Temperature Zone --------------------
 // --------------------------------------------------------------
-void usb2oled_settempzone(void) {
+void oled_settempzone(void) {
   String xZ="";
 #ifdef XDEBUG
   Serial.println("Called Command CMDTZONE");
 #endif
   
-  xZ=newCommand.substring(9);
+  //xZ=newCommand.substring(9);
+  xZ=newCommand.substring(newCommand.indexOf(',')+1);
 
 #ifdef XDEBUG
   Serial.printf("\nReceived Text: %s\n", (char*)xZ.c_str());
@@ -2046,13 +2056,14 @@ void usb2oled_settempzone(void) {
 // --------------------------------------------------------------
 // ---------------------- Set Power LED -------------------------
 // --------------------------------------------------------------
-void usb2oled_readnsetpowerled(void) {
+void oled_readnsetpowerled(void) {
   String xT="";
   int x;
 #ifdef XDEBUG
   Serial.println("Called Command CMDPLED");
 #endif
-  xT=newCommand.substring(8);
+  //xT=newCommand.substring(8);
+  xT=newCommand.substring(newCommand.indexOf(',')+1);
 #ifdef XDEBUG
   Serial.printf("\nReceived Text: %s\n", (char*)xT.c_str());
 #endif
@@ -2069,7 +2080,7 @@ void usb2oled_readnsetpowerled(void) {
 // --------------------------------------------------------------
 // --------- Play Note/Tone using Piezo Beeper ------------------
 // --------------------------------------------------------------
-void usb2oled_playnote(void) {
+void oled_playnote(void) {
   int d0=0,d1=0,d2=0,d3=0,d4=0,o=0,d=0,p=0;
   String TextIn="",nT="",oT="",dT="",pT="";
   note_t n;
@@ -2078,7 +2089,10 @@ void usb2oled_playnote(void) {
 #ifdef XDEBUG
   Serial.println("Called Command CMDPNOTE");
 #endif  
-  TextIn=newCommand.substring(8);               // Start to find the first "," after the command
+  
+  //TextIn=newCommand.substring(8);               // Start to find the first "," after the command
+  TextIn=newCommand.substring(newCommand.indexOf(','));  // Find the first "," after the command
+
 #ifdef XDEBUG
   Serial.printf("\nReceived Text: %s\n", (char*)TextIn.c_str());
 #endif
@@ -2091,7 +2105,9 @@ void usb2oled_playnote(void) {
  
   ledcAttachPin(BUZZER, TONE_PWM_CHANNEL);
  
+#ifdef XDEBUG
   Serial.printf("\nReceived Text: %s\n", (char*)TextIn.c_str());
+#endif  
 
   do {
     // find ","
@@ -2157,7 +2173,7 @@ void usb2oled_playnote(void) {
       delay(p);                                 // Pause
     }
     else {
-      usb2oled_showperror(); 
+      oled_showperror(); 
 #ifdef XDEBUG
       Serial.printf("Parameter Error!\n");
 #endif  
@@ -2170,7 +2186,7 @@ void usb2oled_playnote(void) {
 // --------------------------------------------------------------
 // -------- Play Tone/Frequency using Piezo Beeper --------------
 // --------------------------------------------------------------
-void usb2oled_playtone(void) {
+void oled_playtone(void) {
   int d0=0,d1=0,d2=0,d3=0,f=0,d=0,p=0;
   String TextIn="",fT="",dT="",pT="";
   bool pError=false;
@@ -2178,7 +2194,10 @@ void usb2oled_playtone(void) {
 #ifdef XDEBUG
   Serial.println("Called Command CMDPTONE");
 #endif  
-  TextIn=newCommand.substring(8);               // Start to find the first "," after the command
+
+  //TextIn=newCommand.substring(8);               // Start to find the first "," after the command
+  TextIn=newCommand.substring(newCommand.indexOf(','));  // Find the first "," after the command
+
 #ifdef XDEBUG
   Serial.printf("\nReceived Text: %s\n", (char*)TextIn.c_str());
 #endif
@@ -2187,7 +2206,9 @@ void usb2oled_playtone(void) {
  
   ledcAttachPin(BUZZER, TONE_PWM_CHANNEL);
  
+#ifdef XDEBUG
   Serial.printf("\nReceived Text: %s\n", (char*)TextIn.c_str());
+#endif  
 
   do {
     // find ","
@@ -2226,9 +2247,9 @@ void usb2oled_playtone(void) {
       delay(p);                                 // Pause
     }
     else {
-      usb2oled_showperror();      
+      oled_showperror();      
     }
-  } while (d3 != -1 && !pError);                         // Repeat as long a third "," is found
+  } while (d3 != -1 && !pError);                         // Repeat as long as a third "," is found
 
   ledcDetachPin(BUZZER);
 }
@@ -2237,12 +2258,34 @@ void usb2oled_playtone(void) {
 
 
 // -------------- ESP32 Functions -------------------- 
-#ifdef ESP32  // OTA, Reset and Time only for ESP32
+#ifdef ESP32  // OTA, Reset and Time are only for ESP32
+
+// --------------------------------------------------
+// ----------------- Show Time ---------------------- 
+// --------------------------------------------------
+void oled_showtime(void) {
+  String actTime=rtc.getTime("%H:%M");                    // Get Hrs and Secs
+
+#ifdef XDEBUG
+  Serial.println("Called Command CMDSHTIME");
+#endif  
+
+  oled.clearDisplay();
+  u8g2.setForegroundColor(15);                            // Set Font Color
+  u8g2.setBackgroundColor(0);                             // Set Background Color
+  u8g2.setFont(u8g2_font_5x7_mf);                         // Set Font
+  u8g2.setCursor(0,8);                                    // Set Cursor Position
+  u8g2.print("Show Time");                                     // Write Text
+  u8g2.setFont(u8g2_font_7Segments_26x42_mn);             // Set Font
+  u8g2.setCursor(55,58);                                  // Set Cursor Position
+  u8g2.print(actTime);                                    // Write Text
+  oled.display();                                         // Output Text
+}
 
 // --------------------------------------------------
 // ---------------- Enable OTA ---------------------- 
 // --------------------------------------------------
-void enableOTA (void) {
+void oled_enableOTA (void) {
   Serial.println("Connecting to Wireless...");
   oled.setTextSize(1);
   oled.clearDisplay();

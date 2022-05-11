@@ -120,13 +120,13 @@ if [ "${1}" = "FORCE" ]; then
     [ "${INITSTOPPED}" = "yes" ] && ${INITSCRIPT} start
 else
     if [[ "${SWver}" < "${BUILDVER}" ]]; then
-	    echo -e "${fyellow}Version of your tty2oled device is ${fblue}${SWver}${fyellow}, but BUILDVER is ${fgreen}${BUILDVER}${fyellow}.${freset}"
-	    echo -en "${fyellow}Do you want to Update? Use Cursor or Joystick for ${fgreen}YES=UP${freset} / ${fred}NO=DOWN${fyellow}. Countdown: 9${freset}"
-	    yesno 9
+	echo -e "${fyellow}Version of your tty2oled device is ${fblue}${SWver}${fyellow}, but BUILDVER is ${fgreen}${BUILDVER}${fyellow}.${freset}"
+	echo -en "${fyellow}Do you want to Update? Use Cursor or Joystick for ${fgreen}YES=UP${freset} / ${fred}NO=DOWN${fyellow}. Countdown: 9${freset}"
+	yesno 9
 	if [ "${KEY}" = "y" ]; then
 	    echo "Updating tty2oled" > /dev/ttyUSB0
 	    flash
-    fi
+	fi
     elif [[ "${SWver}" > "${BUILDVER}" ]]; then
 	if [ "${SWver: -1}" = "T" ]; then
 	    echo -e "${fyellow}Your version ${fblue}${SWver}${fyellow} is newer than the available stable build ${fgreen}${BUILDVER}${fyellow}!${freset}"

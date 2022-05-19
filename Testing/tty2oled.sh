@@ -215,12 +215,13 @@ if [ -c "${TTYDEV}" ]; then							# check for tty device
       fi									# end if core check
       if [ "${debug}" = "false" ]; then
         # wait here for next change of corename, -qq for quietness
-        #sh -c 'PID=$(echo $$); echo ${PID} > /run/tty2oled.pid ; inotifywait -qq -e modify \"${corenamefile}\"'
-        sh -c 'echo $$ > /run/tty2oled.pid ; inotifywait -qq -e modify ${corenamefile}'
+        inotifywait -qq -e modify "${corenamefile}" & echo $! > /run/tty2oled-inotify.pid
+        while [ -d /proc/$(</run/tty2oled-inotify.pid) ] ; do true; done
       fi
       if [ "${debug}" = "true" ]; then
         # but not -qq when debugging
-        sh -c 'echo $$ > /run/tty2oled.pid ; inotifywait -e modify ${corenamefile}'
+        inotifywait -e modify "${corenamefile}" & echo $! > /run/tty2oled-inotify.pid
+        while [ -d /proc/$(</run/tty2oled-inotify.pid) ] ; do true; done
       fi
     else									# CORENAME file not found
      #echo "File ${corenamefile} not found!"

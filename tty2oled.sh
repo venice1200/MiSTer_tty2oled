@@ -200,7 +200,7 @@ if [ -c "${TTYDEV}" ]; then							# check for tty device
   sleep ${WAITSECS}
   sendcontrast									# Set Contrast
   sendrotation									# Set Display Rotation
-  #sendtime										# Set time and date
+  sendtime										# Set time and date
   sendscreensaver								# Set Screensaver
   while true; do								# main loop
     if [ -r ${corenamefile} ]; then						# proceed if file exists and is readable (-r)
@@ -214,7 +214,7 @@ if [ -c "${TTYDEV}" ]; then							# check for tty device
         oldcore="${newcore}"							# update oldcore variable
       fi									# end if core check
       [ "${debug}" = "false" ] && inotifywait -qq -e modify "${corenamefile}"	# wait here for next change of corename, -qq for quietness
-      [ "${debug}" = "true" ] && inotifywait -e modify "${corenamefile}"		# but not -qq when debugging
+      [ "${debug}" = "true" ] && inotifywait -e modify "${corenamefile}"	# but not -qq when debugging
     else									# CORENAME file not found
      #echo "File ${corenamefile} not found!"
      dbug "File ${corenamefile} not found!"

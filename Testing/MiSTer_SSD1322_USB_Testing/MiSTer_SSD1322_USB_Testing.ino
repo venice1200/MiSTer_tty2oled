@@ -26,15 +26,21 @@
   -Fix CMDPNOTE/CMDPTONE
   -Add CMDSHTIME
   -A lot Cosmetics
+  -Lib Update: ESP32 Package 2.0.1 -> 2.0.3
+  -Lib Update: Adafruit GFX 1.10.14 -> 1.11.1
+
+  2022-05-21
+  -Nothing changed.
 
   ToDo
+  -Byte for d.ti Board Revisions 11=1.1 120=1.2 usw.
       
   -Everything I forgot
    
 */
 
 // Set Version
-#define BuildVersion "220507T"                    // "T" for Testing
+#define BuildVersion "220521T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>

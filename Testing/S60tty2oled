@@ -22,8 +22,13 @@ start() {
     done
 
     if [[ -x ${DAEMONSCRIPT} ]]; then
-      echo "Starting ${DAEMONNAME}..."
-      ${DAEMONSCRIPT} & echo $! > /run/tty2oled-daemon.pid
+      if [ -e /run/tty2oled-daemon.pid ] && [ -d /proc/$(</run/tty2oled-daemon.pid) ]; then
+	echo "${DAEMONNAME} already running"
+	exit 1
+      else
+	echo "Starting ${DAEMONNAME}..."
+	${DAEMONSCRIPT} & echo $! > /run/tty2oled-daemon.pid
+      fi
     else
       echo "${DAEMONSCRIPT} not found!"
     fi
@@ -32,10 +37,11 @@ start() {
 # Stop
 stop() {
     echo "Stopping ${DAEMONNAME}..."
-    PIDDAEMON=$(</run/tty2oled-daemon.pid)
-    PIDINOTIFY=$(</run/tty2oled-inotify.pid)
-    kill ${PIDDAEMON} ${PIDINOTIFY}
-    rm /run/tty2oled-daemon.pid /run/tty2oled-inotify.pid
+    [ -e /run/tty2oled-daemon.pid ] && PIDDAEMON=$(</run/tty2oled-daemon.pid)
+    [ -e /run/tty2oled-inotify.pid ] && PIDINOTIFY=$(</run/tty2oled-inotify.pid)
+    [ ${PIDDAEMON} ] && kill ${PIDDAEMON}
+    [ ${PIDINOTIFY} ] && kill ${PIDINOTIFY}
+    rm -f /run/tty2oled-daemon.pid /run/tty2oled-inotify.pid
 }
 
 case "$1" in

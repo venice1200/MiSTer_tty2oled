@@ -149,8 +149,8 @@ senddata() {
 	  [ "${ALTPICRND}" -gt 0 ] && picfnam="${picturefolder}/${picfolder^^}/${newcore}_alt"${ALTPICRND}".${picfolder:0:3}"
 	fi									# If 0 then original picture, otherwise _altX
       fi
-      dbug "Sending: CMDCOR,${1}"
-      echo "CMDCOR,${1}" > ${TTYDEV}						# Send CORECHANGE" Command and Corename
+      dbug "Sending: CMDCOR,${1},${PICEFFECT}"
+      echo "CMDCOR,${1},${PICEFFECT}" > ${TTYDEV}				# Send CORECHANGE" Command and Corename
       sleep ${WAITSECS}								# sleep needed here ?!
       tail -n +4 "${picfnam}" | xxd -r -p > ${TTYDEV}				# The Magic, send the Picture-Data up from Line 4 and proces
     else									# No Picture available!

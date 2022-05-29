@@ -20,6 +20,10 @@ start() {
     while !  [ -c ${TTYDEV} ] && [ ${SECONDS} -lt ${WAITEND} ]; do
       sleep 0.1
     done
+    if ! [ -c ${TTYDEV} ]; then
+      echo "Could not find the needed USB module ${TTYDEV}. Exiting."
+      exit 1
+    fi
 
     if [[ -x ${DAEMONSCRIPT} ]]; then
       if [ -e /run/tty2oled-daemon.pid ] && [ -d /proc/$(</run/tty2oled-daemon.pid) ]; then

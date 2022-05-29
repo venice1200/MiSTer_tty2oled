@@ -207,21 +207,18 @@ if [ -c "${TTYDEV}" ]; then							# check for tty device
       newcore=$(cat ${corenamefile})						# get CORENAME
       #echo "Read CORENAME: -${newcore}-"
       dbug "Read CORENAME: -${newcore}-"
-      if [ "${newcore}" != "${oldcore}" ]; then					# proceed only if Core has changed
-        #echo "Send -${newcore}- to ${TTYDEV}."
-        dbug "Send -${newcore}- to ${TTYDEV}."
-        senddata "${newcore}"							# The "Magic"
-        oldcore="${newcore}"							# update oldcore variable
-      fi									# end if core check
+      #echo "Send -${newcore}- to ${TTYDEV}."
+      dbug "Send -${newcore}- to ${TTYDEV}."
+      senddata "${newcore}"							# The "Magic"
       if [ "${debug}" = "false" ]; then
-        # wait here for next change of corename, -qq for quietness
-        inotifywait -qq -e modify "${corenamefile}" & echo $! > /run/tty2oled-inotify.pid
-        while [ -d /proc/$(</run/tty2oled-inotify.pid) ] ; do true; done
+	# wait here for next change of corename, -qq for quietness
+	inotifywait -qq -e modify "${corenamefile}" & echo $! > /run/tty2oled-inotify.pid
+	while [ -d /proc/$(</run/tty2oled-inotify.pid) ] ; do true; done
       fi
       if [ "${debug}" = "true" ]; then
         # but not -qq when debugging
-        inotifywait -e modify "${corenamefile}" & echo $! > /run/tty2oled-inotify.pid
-        while [ -d /proc/$(</run/tty2oled-inotify.pid) ] ; do true; done
+	inotifywait -e modify "${corenamefile}" & echo $! > /run/tty2oled-inotify.pid
+	while [ -d /proc/$(</run/tty2oled-inotify.pid) ] ; do true; done
       fi
     else									# CORENAME file not found
      #echo "File ${corenamefile} not found!"

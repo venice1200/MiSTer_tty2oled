@@ -6,13 +6,13 @@ Start Gimp, load or insert the found picture and
 
 - if there is a transparent layer, remove it by /Layer/Transparency/Remove Alpha Channel
 - /Colours/Desaturate/Colour to Grey
-- /Colours/Invert
+~~- /Colours/Invert~~ Let image2lcd do the invert
 - /Image/Mode/Indexed/Generate optimum palette (16 Colours)
 - /Image/Scale Image/256\*64 if possible. It might be needful to resize
   the picture non-proportional. Otherwise resize to 256\*Y or X\*64 and
 - use /Image/Canvas Size afterwards to move the whole thing so that it fits
 - /File/Export as/ and save your work as GIF
-- Start image2lcd, load your GIF ans save the result as \*.C file
+- Start image2lcd, load your GIF, check *Reverse color* and save the result as \*.C file
   without "head data"
 - Edit the created \*.C file and replace the line
   "const unsigned char gImage_x[8192]" by
@@ -34,13 +34,13 @@ lässt. Hatt man denn eines gefunden, ist die weitere Vorgehensweise wie folgt:
 - Falls eine transparente Ebene vorhanden ist: /Ebene/Transparenz/Alphakanal
   entfernen
 - /Farben/Entsättigen/Grau einfärben
-- /Farben/Invertieren
+~~- /Farben/Invertieren~~ Besser durch image2lcd invertieren lassen
 - /Bild/Modus/Indiziert/Optimale Palette (16 Farben)
 - /Bild/Bild skalieren/256\*64 sofern möglich. Manchmal reicht es auch, einfach
   nicht-proportional zu skalieren. Ansonsten auf 256\*Y oder X\*64 skalieren und
 - per /Bild/Leinwandgröße das ganze zurecht rücken, so dass es passt
 - /Datei/Exportieren nach/ als BMP oder GIF speichern
-- Das exportierte Bild in image2lcd laden und als \*.C wieder speichern
+- Das exportierte Bild in image2lcd laden, *Reverse color* anhaken und als \*.C wieder speichern
   (ohne "head data")
 - Im \*.C Export die Zeile "const unsigned char gImage_x[8192]" entfernen und
   durch ersetzen durch:

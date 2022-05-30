@@ -62,7 +62,7 @@ cd /tmp
 # Debug function
 dbug() {
   if [ "${debug}" = "true" ]; then
-  echo "${1}"
+    echo "${1}"
     if [ ! -e ${debugfile} ]; then						# log file not (!) exists (-e) create it
       echo "---------- tty2oled Debuglog ----------" > ${debugfile}
     fi 
@@ -216,7 +216,7 @@ if [ -c "${TTYDEV}" ]; then							# check for tty device
 	while [ -d /proc/$(</run/tty2oled-inotify.pid) ] ; do true; done
       fi
       if [ "${debug}" = "true" ]; then
-        # but not -qq when debugging
+	# but not -qq when debugging
 	inotifywait -e modify "${corenamefile}" & echo $! > /run/tty2oled-inotify.pid
 	while [ -d /proc/$(</run/tty2oled-inotify.pid) ] ; do true; done
       fi

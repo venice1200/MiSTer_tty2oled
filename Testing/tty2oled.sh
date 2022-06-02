@@ -210,6 +210,7 @@ if [ -c "${TTYDEV}" ]; then							# check for tty device
       #echo "Send -${newcore}- to ${TTYDEV}."
       dbug "Send -${newcore}- to ${TTYDEV}."
       senddata "${newcore}"							# The "Magic"
+      wget 'http://mary.dfki.de:59125/process?INPUT_TEXT=Core started.&INPUT_TYPE=TEXT&OUTPUT_TYPE=AUDIO&AUDIO=WAVE_FILE&LOCALE=en_US&VOICE=cmu-rms' -O core.wav -O - | aplay -
       if [ "${debug}" = "false" ]; then
 	# wait here for next change of corename, -qq for quietness
 	inotifywait -qq -e modify "${corenamefile}" & echo $! > /run/tty2oled-inotify.pid

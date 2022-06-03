@@ -30,17 +30,20 @@
   -Lib Update: Adafruit GFX 1.10.14 -> 1.11.1
 
   2022-05-21
-  -Nothing changed.
+  -Only Cosmetics
+
+  2022-06-02
+  -Add Function Prototypes for C++ Compatibilty
 
   ToDo
-  -Byte for d.ti Board Revisions 11=1.1 120=1.2 usw.
+  -Byte/Float for d.ti Board Revisions 11=1.1 12=1.2 usw.
       
   -Everything I forgot
    
 */
 
 // Set Version
-#define BuildVersion "220521T"                    // "T" for Testing
+#define BuildVersion "220602T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -222,13 +225,44 @@ bool pcaAvail=false;                          // Is the PCA9536 Port-Extender Ch
 byte pcaInputValue=255;                       // PCA9536 Input Pin State as Byte Value
 
 // =============================================================================================================
-// ====================================== NEEDED FUNCTION PROTOTYPES ===========================================
+// ========================================== FUNCTION PROTOTYPES ==============================================
 // =============================================================================================================
+
+void oled_showStartScreen(void);
+void oled_setTime(void);
+void oled_setcdelay(void);
+void oled_showcdelay(void);
+void oled_readnsetscreensaver(void);
+void oled_showScreenSaverPicture(void);
+void oled_showSmallCorePicture(int xpos, int ypos);
+void oled_sendHardwareInfo(void);
+void oled_drawlogo64h(uint16_t w, const uint8_t *bitmap);
+void oled_showcorename();
+void oled_displayoff(void);
+void oled_displayon(void);
+void oled_updatedisplay(void);
+void oled_readnsetcontrast(void);
+void oled_showperror(void);
+void oled_readnsetrotation(void);
+void oled_clswithtransition();
+void oled_showpic(void);
+int oled_readlogo();
+void oled_drawlogo(uint8_t e);
+void oled_drawEightPixelXY(int x, int y, int dx, int dy);
+void oled_readnwritetext(void);
+void oled_readndrawgeo(void);
+void oled_showtemperature();
+void oled_readnsetuserled(void);
+void oled_settempzone(void);
+void oled_readnsetpowerled(void);
+void oled_playnote(void);
+void oled_playtone(void);
+void oled_showtime(void);
+void oled_enableOTA (void);
 
 // Info about overloading found here
 // https://stackoverflow.com/questions/1880866/can-i-set-a-default-argument-from-a-previous-argument
-void drawEightPixelXY(int x, int y, int dx, int dy);
-inline void drawEightPixelXY(int x, int y) { drawEightPixelXY(x,y,x,y); };
+inline void oled_drawEightPixelXY(int x, int y) { oled_drawEightPixelXY(x,y,x,y); };
 
 // =============================================================================================================
 // ================================================ SETUP ======================================================
@@ -1329,7 +1363,7 @@ void oled_drawlogo(uint8_t e) {
     case 1:                                  // Left to Right
       for (x=0; x<DispLineBytes1bpp; x++) {
         for (y=0; y<DispHeight; y++) {
-          drawEightPixelXY(x, y);
+          oled_drawEightPixelXY(x, y);
         }
         oled.display();
       }
@@ -1338,7 +1372,7 @@ void oled_drawlogo(uint8_t e) {
     case 2:                                  // Top to Bottom
       for (y=0; y<DispHeight; y++) {
         for (x=0; x<DispLineBytes1bpp; x++) {
-          drawEightPixelXY(x, y);
+          oled_drawEightPixelXY(x, y);
         }
         if (y%2==1) oled.display();
       }
@@ -1347,7 +1381,7 @@ void oled_drawlogo(uint8_t e) {
     case 3:                                  // Right to left
       for (x=DispLineBytes1bpp-1; x>=0; x--) {
         for (y=0; y<DispHeight; y++) {
-          drawEightPixelXY(x, y);
+          oled_drawEightPixelXY(x, y);
         }
         oled.display();
       }
@@ -1356,7 +1390,7 @@ void oled_drawlogo(uint8_t e) {
     case 4:                                  // Bottom to Top
       for (y=DispHeight-1; y>=0; y--) {
         for (x=0; x<DispLineBytes1bpp; x++) {
-          drawEightPixelXY(x, y);
+          oled_drawEightPixelXY(x, y);
         }
         if (y%2==0) oled.display();
       }
@@ -1371,7 +1405,7 @@ void oled_drawlogo(uint8_t e) {
           else {
             x2 = x*-1 + DispLineBytes1bpp -1;
           }
-          drawEightPixelXY(x2, y);
+          oled_drawEightPixelXY(x2, y);
         }  // end for y
         oled.display();
       }  // end for x
@@ -1386,7 +1420,7 @@ void oled_drawlogo(uint8_t e) {
           else {
             x2 = x*-1 + DispLineBytes1bpp -1;
           }
-          drawEightPixelXY(x2, y);
+          oled_drawEightPixelXY(x2, y);
         }  // end for y
         oled.display();
       }  // end for x
@@ -1402,7 +1436,7 @@ void oled_drawlogo(uint8_t e) {
             else {
               x2 = x*-1 + DispLineBytes1bpp -1;
             }
-            drawEightPixelXY(x2, y+w*16);
+            oled_drawEightPixelXY(x2, y+w*16);
           }  // end for y
           oled.display();
         }  // end for x
@@ -1413,28 +1447,28 @@ void oled_drawlogo(uint8_t e) {
       // Part 1 Top Left
       for (x=0; x<DispLineBytes1bpp/2; x++) {
         for (y=0; y<DispHeight/2; y++) {
-          drawEightPixelXY(x, y);
+          oled_drawEightPixelXY(x, y);
         }  // end for y
         oled.display();
       }  // end for x
       // Part 2 Bottom Right
       for (x=DispLineBytes1bpp/2; x<DispLineBytes1bpp; x++) {
         for (y=DispHeight/2; y<DispHeight; y++) {
-          drawEightPixelXY(x, y);
+          oled_drawEightPixelXY(x, y);
         }  // end for y
         oled.display();
       }  // end for x
       // Part 3 Top Right
       for (x=DispLineBytes1bpp-1; x>=DispLineBytes1bpp/2; x--) {
         for (y=0; y<DispHeight/2; y++) {
-          drawEightPixelXY(x, y);
+          oled_drawEightPixelXY(x, y);
         }  // end for y
         oled.display();
       }  // end for x
       // Part 4 Bottom Left
       for (x=DispLineBytes1bpp/2-1; x>=0; x--) {
         for (y=DispHeight/2; y<DispHeight; y++) {
-          drawEightPixelXY(x, y);
+          oled_drawEightPixelXY(x, y);
         }  // end for y
         oled.display();
       }  // end for x
@@ -1445,7 +1479,7 @@ void oled_drawlogo(uint8_t e) {
         x = random(DispLineBytes1bpp);
         y = random(DispHeight/8);
         for (int offset=0; offset<8; offset++) {
-          drawEightPixelXY(x, y*8+offset);
+          oled_drawEightPixelXY(x, y*8+offset);
         }
         // Different speed
         if (w<=250) {
@@ -1473,7 +1507,7 @@ void oled_drawlogo(uint8_t e) {
           //x2=x-y/2;                              // Middle Diagonal
           x2=x-y/4;                                // Short Diagonal
           if ((x2>=0) && (x2<DispLineBytes1bpp)) {
-            drawEightPixelXY(x2, y);
+            oled_drawEightPixelXY(x2, y);
           }  // end for x2
           else {
 #ifdef USE_NODEMCU
@@ -1489,7 +1523,7 @@ void oled_drawlogo(uint8_t e) {
       for (x=0; x<DispLineBytes1bpp; x++) {
         for (x2=DispLineBytes1bpp-1-x; x2<DispLineBytes1bpp; x2++) {
           for (y=0; y<DispHeight; y++) {
-            drawEightPixelXY(x+x2-(DispLineBytes1bpp-1), y, x2, y);
+            oled_drawEightPixelXY(x+x2-(DispLineBytes1bpp-1), y, x2, y);
           }
         }
         oled.display();
@@ -1500,7 +1534,7 @@ void oled_drawlogo(uint8_t e) {
       for (y=0; y<DispHeight; y++) {
         for (y2=DispHeight-1-y; y2<DispHeight; y2++) {
           for (x=0; x<DispLineBytes1bpp; x++) {
-            drawEightPixelXY(x, y+y2-(DispHeight-1), x, y2);
+            oled_drawEightPixelXY(x, y+y2-(DispHeight-1), x, y2);
           }
         }
         if (y%2==1) oled.display();
@@ -1511,7 +1545,7 @@ void oled_drawlogo(uint8_t e) {
       for (x=DispLineBytes1bpp-1; x>=0; x--) {
         for (x2=DispLineBytes1bpp-1-x; x2>=0; x2--) {
           for (y=0; y<DispHeight; y++) {
-            drawEightPixelXY(x+x2, y, x2, y);
+            oled_drawEightPixelXY(x+x2, y, x2, y);
           }
         }
         oled.display();
@@ -1522,7 +1556,7 @@ void oled_drawlogo(uint8_t e) {
       for (y=DispHeight-1; y>=0; y--) {
         for (y2=DispHeight-1-y; y2>=0; y2--) {
           for (x=0; x<DispLineBytes1bpp; x++) {
-            drawEightPixelXY(x, y+y2, x, y2); 
+            oled_drawEightPixelXY(x, y+y2, x, y2); 
           }
         }
         if (y%2==0) oled.display();
@@ -1532,8 +1566,8 @@ void oled_drawlogo(uint8_t e) {
     case 15:                                  // Top and Bottom to Middle
       for (y=0; y<DispHeight/2; y++) {
         for (x=0; x<DispLineBytes1bpp; x++) {
-          drawEightPixelXY(x, y);
-          drawEightPixelXY(x, DispHeight-y-1);
+          oled_drawEightPixelXY(x, y);
+          oled_drawEightPixelXY(x, DispHeight-y-1);
         }
       oled.display();
       }
@@ -1542,8 +1576,8 @@ void oled_drawlogo(uint8_t e) {
     case 16:                                  // Left and Right to Middle
       for (x=0; x<DispLineBytes1bpp/2; x++) {
         for (y=0; y<DispHeight; y++) {
-          drawEightPixelXY(x, y);
-          drawEightPixelXY(DispLineBytes1bpp-x-1, y);
+          oled_drawEightPixelXY(x, y);
+          oled_drawEightPixelXY(DispLineBytes1bpp-x-1, y);
         }
         oled.display();
       }
@@ -1552,8 +1586,8 @@ void oled_drawlogo(uint8_t e) {
     case 17:                                  // Middle to Top and Bottom
       for (y=0; y<DispHeight/2; y++) {
         for (x=0; x<DispLineBytes1bpp; x++) {
-          drawEightPixelXY(x, DispHeight/2-1-y);
-          drawEightPixelXY(x, DispHeight/2+y);
+          oled_drawEightPixelXY(x, DispHeight/2-1-y);
+          oled_drawEightPixelXY(x, DispHeight/2+y);
         }
       oled.display();
       }
@@ -1562,8 +1596,8 @@ void oled_drawlogo(uint8_t e) {
     case 18:                                  // Middle to Left and Right
       for (x=0; x<DispLineBytes1bpp/2; x++) {
         for (y=0; y<DispHeight; y++) {
-          drawEightPixelXY(DispLineBytes1bpp/2-1-x, y);
-          drawEightPixelXY(DispLineBytes1bpp/2+x, y);
+          oled_drawEightPixelXY(DispLineBytes1bpp/2-1-x, y);
+          oled_drawEightPixelXY(DispLineBytes1bpp/2+x, y);
         }
         oled.display();
       }
@@ -1573,7 +1607,7 @@ void oled_drawlogo(uint8_t e) {
       for (w=0; w<DispLineBytes1bpp/2; w++) {
         for (y=DispHeight/2-2-(w*2); y<=DispHeight/2+(w*2)+1; y++) {
           for (x=DispLineBytes1bpp/2-1-w; x<=DispLineBytes1bpp/2+w; x++) {
-            drawEightPixelXY(x, y);
+            oled_drawEightPixelXY(x, y);
           }
         }
         oled.display();
@@ -1583,27 +1617,27 @@ void oled_drawlogo(uint8_t e) {
     case 20:                                  // Slightly Clockwise
       for (y=0; y<DispHeight/2;y++) {
         for (x=DispLineBytes1bpp-DispHeight/16;x<DispLineBytes1bpp;x++) {
-          drawEightPixelXY(x, y);
+          oled_drawEightPixelXY(x, y);
         }
       //oled.display();  
       if (y%2==1) oled.display();             // Update only each uneven (second) round = faster 
       }
       for (x=DispLineBytes1bpp-1;x>=DispHeight/16;x--) {
         for (y=DispHeight/2; y<DispHeight;y++) {
-          drawEightPixelXY(x, y);
+          oled_drawEightPixelXY(x, y);
         }
       oled.display();  
       }
       for (y=DispHeight-1; y>=DispHeight/2;y--) {
         for (x=0;x<DispHeight/16;x++) {
-          drawEightPixelXY(x, y);
+          oled_drawEightPixelXY(x, y);
         }
       //oled.display();  
       if (y%2==0) oled.display();             // Update only each even (second) round = faster 
       }
       for (x=0;x<DispLineBytes1bpp-DispHeight/16;x++) {
         for (y=0; y<DispHeight/2;y++) {
-          drawEightPixelXY(x, y);
+          oled_drawEightPixelXY(x, y);
         }
       oled.display();  
       }
@@ -1612,8 +1646,8 @@ void oled_drawlogo(uint8_t e) {
     case 21:                                  // Shaft
       for (y=0; y<DispHeight; y++) {
         for (x=0; x<DispLineBytes1bpp; x++) {
-          if ((x>=0 && x<DispLineBytes1bpp/4*1) || (x>=DispLineBytes1bpp/2 && x<DispLineBytes1bpp/4*3)) drawEightPixelXY(x, y);
-          if ((x>=DispLineBytes1bpp/4*1 && x<DispLineBytes1bpp/2) || (x>=DispLineBytes1bpp/4*3 && x<DispLineBytes1bpp)) drawEightPixelXY(x, DispHeight-y-1);
+          if ((x>=0 && x<DispLineBytes1bpp/4*1) || (x>=DispLineBytes1bpp/2 && x<DispLineBytes1bpp/4*3)) oled_drawEightPixelXY(x, y);
+          if ((x>=DispLineBytes1bpp/4*1 && x<DispLineBytes1bpp/2) || (x>=DispLineBytes1bpp/4*3 && x<DispLineBytes1bpp)) oled_drawEightPixelXY(x, DispHeight-y-1);
         }
         //oled.display();
         if (y%2==1) oled.display();
@@ -1629,8 +1663,8 @@ void oled_drawlogo(uint8_t e) {
       }
       for (x=0; x<DispLineBytes1bpp/2;x++) {
         for (y=0; y<DispHeight; y++) {
-          drawEightPixelXY(vArray[x*2], y);
-          drawEightPixelXY(vArray[x*2+1], y);
+          oled_drawEightPixelXY(vArray[x*2], y);
+          oled_drawEightPixelXY(vArray[x*2+1], y);
           //if (y%8==7) oled.display();       // Waterfall Speed
           if (y%16==15) oled.display();       // Waterfall Speed
         }
@@ -1673,7 +1707,7 @@ void oled_drawlogo(uint8_t e) {
         }
         for (x=x2;x<x2+DispLineBytes1bpp/4;x++) {
           for (y=y2;y<y2+DispHeight/2;y++) {
-            drawEightPixelXY(x, y);
+            oled_drawEightPixelXY(x, y);
           }
         }
         oled.display();
@@ -1718,7 +1752,7 @@ void oled_drawlogo(uint8_t e) {
 // 8 Pixels are written, Data Byte(s) are taken from Array
 // Display Positions are calculated from x,y and Type of Pic (XBM/GSX)
 // ---------------------------------------------------------------------
-void drawEightPixelXY(int x, int y, int dx, int dy) {
+void oled_drawEightPixelXY(int x, int y, int dx, int dy) {
   unsigned char b;
   int i;
   switch (actPicType) {

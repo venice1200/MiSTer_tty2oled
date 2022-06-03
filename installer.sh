@@ -70,7 +70,7 @@ if ! [ -f ${TMPDIR}/esptool.py ]; then
 fi
 
 #Check if interface ttyUSB0 is present
-if [ "${2}" = "" ]; then
+if [ "${MCUtype}" = "" ]; then
     echo -en "${freset}Checking for device at ${TTYDEV}${freset}: "
     if [[ -c ${TTYDEV} ]]; then
 	stty -F ${TTYDEV} ${BAUDRATE} ${TTYPARAM}

@@ -20,10 +20,19 @@ start() {
     while !  [ -c ${TTYDEV} ] && [ ${SECONDS} -lt ${WAITEND} ]; do
       sleep 0.1
     done
+    if ! [ -c ${TTYDEV} ]; then
+      echo "Could not find the needed USB module ${TTYDEV}. Exiting."
+      exit 1
+    fi
 
     if [[ -x ${DAEMONSCRIPT} ]]; then
-      echo "Starting ${DAEMONNAME}..."
-      ${DAEMONSCRIPT} &
+      if [ -e /run/tty2oled-daemon.pid ] && [ -d /proc/$(</run/tty2oled-daemon.pid) ]; then
+	echo "${DAEMONNAME} already running"
+	exit 1
+      else
+	echo "Starting ${DAEMONNAME}..."
+	${DAEMONSCRIPT} & echo $! > /run/tty2oled-daemon.pid
+      fi
     else
       echo "${DAEMONSCRIPT} not found!"
     fi
@@ -32,7 +41,11 @@ start() {
 # Stop
 stop() {
     echo "Stopping ${DAEMONNAME}..."
-    killall ${DAEMONNAME}
+    [ -e /run/tty2oled-daemon.pid ] && PIDDAEMON=$(</run/tty2oled-daemon.pid)
+    [ -e /run/tty2oled-inotify.pid ] && PIDINOTIFY=$(</run/tty2oled-inotify.pid)
+    [ ${PIDDAEMON} ] && kill ${PIDDAEMON}
+    [ ${PIDINOTIFY} ] && kill ${PIDINOTIFY}
+    rm -f /run/tty2oled-daemon.pid /run/tty2oled-inotify.pid
 }
 
 case "$1" in

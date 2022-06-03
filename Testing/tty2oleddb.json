@@ -1,0 +1,19 @@
+{
+    "base_files_url": "",
+    "db_files": [],
+    "db_id": "tty2oled_files",
+    "db_url": "https://raw.githubusercontent.com/venice1200/MiSTer_tty2oled/main/tty2oleddb.json",
+    "default_options": {},
+    "files": {
+	"Scripts/update_tty2oled.sh": {
+	    "hash": "",
+	    "size": ,
+	    "url": "https://raw.githubusercontent.com/venice1200/MiSTer_tty2oled/main/update_tty2oled.sh"
+	}
+    },
+    "folders": {
+	"Scripts": {}
+    },
+    "timestamp": ,
+    "zips": {}
+}

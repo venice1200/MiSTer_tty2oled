@@ -62,7 +62,7 @@ cd /tmp
 # Debug function
 dbug() {
   if [ "${debug}" = "true" ]; then
-  echo "${1}"
+    echo "${1}"
     if [ ! -e ${debugfile} ]; then						# log file not (!) exists (-e) create it
       echo "---------- tty2oled Debuglog ----------" > ${debugfile}
     fi 
@@ -149,8 +149,8 @@ senddata() {
 	  [ "${ALTPICRND}" -gt 0 ] && picfnam="${picturefolder}/${picfolder^^}/${newcore}_alt"${ALTPICRND}".${picfolder:0:3}"
 	fi									# If 0 then original picture, otherwise _altX
       fi
-      dbug "Sending: CMDCOR,${1}"
-      echo "CMDCOR,${1}" > ${TTYDEV}						# Send CORECHANGE" Command and Corename
+      dbug "Sending: CMDCOR,${1},${TRANSITION}"
+      echo "CMDCOR,${1},${TRANSITION}" > ${TTYDEV}				# Send CORECHANGE" Command and Corename
       sleep ${WAITSECS}								# sleep needed here ?!
       tail -n +4 "${picfnam}" | xxd -r -p > ${TTYDEV}				# The Magic, send the Picture-Data up from Line 4 and proces
     else									# No Picture available!
@@ -207,14 +207,19 @@ if [ -c "${TTYDEV}" ]; then							# check for tty device
       newcore=$(cat ${corenamefile})						# get CORENAME
       #echo "Read CORENAME: -${newcore}-"
       dbug "Read CORENAME: -${newcore}-"
-      if [ "${newcore}" != "${oldcore}" ]; then					# proceed only if Core has changed
-        #echo "Send -${newcore}- to ${TTYDEV}."
-        dbug "Send -${newcore}- to ${TTYDEV}."
-        senddata "${newcore}"							# The "Magic"
-        oldcore="${newcore}"							# update oldcore variable
-      fi									# end if core check
-      [ "${debug}" = "false" ] && inotifywait -qq -e modify "${corenamefile}"	# wait here for next change of corename, -qq for quietness
-      [ "${debug}" = "true" ] && inotifywait -e modify "${corenamefile}"	# but not -qq when debugging
+      #echo "Send -${newcore}- to ${TTYDEV}."
+      dbug "Send -${newcore}- to ${TTYDEV}."
+      senddata "${newcore}"							# The "Magic"
+      if [ "${debug}" = "false" ]; then
+	# wait here for next change of corename, -qq for quietness
+	inotifywait -qq -e modify "${corenamefile}" & echo $! > /run/tty2oled-inotify.pid
+	while [ -d /proc/$(</run/tty2oled-inotify.pid) ] ; do true; done
+      fi
+      if [ "${debug}" = "true" ]; then
+	# but not -qq when debugging
+	inotifywait -e modify "${corenamefile}" & echo $! > /run/tty2oled-inotify.pid
+	while [ -d /proc/$(</run/tty2oled-inotify.pid) ] ; do true; done
+      fi
     else									# CORENAME file not found
      #echo "File ${corenamefile} not found!"
      dbug "File ${corenamefile} not found!"

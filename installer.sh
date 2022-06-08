@@ -124,7 +124,7 @@ else
 	echo -en "${fyellow}Do you want to Update? Use Cursor or Joystick for ${fgreen}YES=UP${freset} / ${fred}NO=DOWN${fyellow}. Countdown: 9${freset}"
 	yesno 9
 	if [ "${KEY}" = "y" ]; then
-	    echo "Updating tty2oled" > /dev/ttyUSB0
+	    echo "Updating tty2oled" > ${TTYDEV}
 	    flash
 	fi
     elif [[ "${SWver}" > "${BUILDVER}" ]]; then
@@ -133,7 +133,7 @@ else
 	    echo -en "${fyellow}Do you want to Downgrade? Use Cursor or Joystick for ${fgreen}YES=UP${freset} / ${fred}NO=DOWN${fyellow}. Countdown: 9${freset}"
 	    yesno 9
 	    if [ "${KEY}" = "y" ]; then
-		echo "Downgrading tty2oled" > /dev/ttyUSB0
+		echo "Downgrading tty2oled" > ${TTYDEV}
 		flash
 	    fi
 	fi

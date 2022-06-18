@@ -6,6 +6,7 @@
 # 2021-09-09 Moved from /etc/init.d to /media/fat/tty2oled 
 # 2021-01-22 Added -x /usr/bin/tty2oled check to start()
 # 2021-04-12 Added an INI file
+# 2022-06-17 Redo/Rework of PID and inotify
 #
 
 ! [ "$(dos2unix -ic /media/fat/tty2oled/*.ini)" = "" ] && dos2unix -k -q /media/fat/tty2oled/*.ini
@@ -41,29 +42,33 @@ start() {
 # Stop
 stop() {
     echo "Stopping ${DAEMONNAME}..."
-    [ -e /run/tty2oled-daemon.pid ] && PIDDAEMON=$(</run/tty2oled-daemon.pid)
-    [ -e /run/tty2oled-inotify.pid ] && PIDINOTIFY=$(</run/tty2oled-inotify.pid)
+    if [ -e /run/tty2oled-daemon.pid ]; then
+      PIDDAEMON=$(</run/tty2oled-daemon.pid)
+      PIDINOTIFY=$(ps -eo pid,ppid,args | grep $(ps | grep tty2oled | awk 'NR==1{print $1}') | tail -1 | awk '{print $1}')
+      echo "PIDDAEMON = $PIDDAEMON"
+      echo "PIDINOTIFY = $PIDINOTIFY"
+    fi
     [ ${PIDDAEMON} ] && kill ${PIDDAEMON}
     [ ${PIDINOTIFY} ] && kill ${PIDINOTIFY}
-    rm -f /run/tty2oled-daemon.pid /run/tty2oled-inotify.pid
+    rm -f /run/tty2oled-daemon.pid
 }
 
 case "$1" in
   start)
-        start
+	start
         ;;
   stop) 
-        stop
+	stop
         ;;
   restart)
-        stop
-        start
-        ;;
+	stop
+	start
+	;;
 #  reload)
-#       reload
-#       ;;
+#	reload
+#	;;
   *)
-#        echo "Usage: $0 {start|stop|restart|reload}"
-        echo "Usage: $0 {start|stop|restart}"
-        exit 1
+#	 echo "Usage: $0 {start|stop|restart|reload}"
+	echo "Usage: $0 {start|stop|restart}"
+	exit 1
 esac

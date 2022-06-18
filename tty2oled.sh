@@ -52,7 +52,7 @@
 # 2022-02-10 Added ScreenSaver functionality
 # 2022-04-09 Make the Daemon more quiet
 # 2022-04-24 Add "settime"
-#
+# 2022-06-17 Redo/Rework of PID and inotify
 #
 
 . /media/fat/tty2oled/tty2oled-system.ini
@@ -212,13 +212,11 @@ if [ -c "${TTYDEV}" ]; then							# check for tty device
       senddata "${newcore}"							# The "Magic"
       if [ "${debug}" = "false" ]; then
 	# wait here for next change of corename, -qq for quietness
-	inotifywait -qq -e modify "${corenamefile}" & echo $! > /run/tty2oled-inotify.pid
-	while [ -d /proc/$(</run/tty2oled-inotify.pid) ] ; do true; done
+	inotifywait -qq -e modify "${corenamefile}"
       fi
       if [ "${debug}" = "true" ]; then
 	# but not -qq when debugging
-	inotifywait -e modify "${corenamefile}" & echo $! > /run/tty2oled-inotify.pid
-	while [ -d /proc/$(</run/tty2oled-inotify.pid) ] ; do true; done
+	inotifywait -e modify "${corenamefile}"
       fi
     else									# CORENAME file not found
      #echo "File ${corenamefile} not found!"

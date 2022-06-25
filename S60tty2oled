@@ -45,8 +45,8 @@ stop() {
     if [ -e /run/tty2oled-daemon.pid ]; then
       PIDDAEMON=$(</run/tty2oled-daemon.pid)
       PIDINOTIFY=$(ps -eo pid,ppid,args | grep $(ps | grep tty2oled | awk 'NR==1{print $1}') | tail -1 | awk '{print $1}')
-      echo "PIDDAEMON = $PIDDAEMON"
-      echo "PIDINOTIFY = $PIDINOTIFY"
+      #echo "PIDDAEMON = $PIDDAEMON"
+      #echo "PIDINOTIFY = $PIDINOTIFY"
     fi
     [ ${PIDDAEMON} ] && kill ${PIDDAEMON}
     [ ${PIDINOTIFY} ] && kill ${PIDINOTIFY}

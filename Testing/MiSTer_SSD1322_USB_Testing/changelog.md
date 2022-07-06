@@ -454,8 +454,24 @@
   2022-05-07
   ** Release to stable**
 
+  2022-05-07
+  -Fix CMDPNOTE/CMDPTONE
+  -Add CMDSHTIME
+  -A lot Cosmetics
+  -Lib Update: ESP32 Package 2.0.1 -> 2.0.3
+  -Lib Update: Adafruit GFX 1.10.14 -> 1.11.1
 
-  
+  2022-05-21
+  -Only Cosmetics
+
+  2022-06-02
+  -Add Function Prototypes for C++ Compatibilty
+
+  2022-06-08
+  -Note: Use U8g2_for_Adafruit_GFX setForegroundColor and setBackgroundColor together for inverted text
+   See: https://github.com/olikraus/U8g2_for_Adafruit_GFX#command-reference
+
+
 =====================================================================================
   
 ToDo

@@ -22,18 +22,8 @@
    
   See changelog.md in Sketch folder for more details
 
-  2022-05-07
-  -Fix CMDPNOTE/CMDPTONE
-  -Add CMDSHTIME
-  -A lot Cosmetics
-  -Lib Update: ESP32 Package 2.0.1 -> 2.0.3
-  -Lib Update: Adafruit GFX 1.10.14 -> 1.11.1
-
-  2022-05-21
-  -Only Cosmetics
-
-  2022-06-02
-  -Add Function Prototypes for C++ Compatibilty
+  2022-07-06
+  -Adding two new fonts u8g2_font_commodore64_tr and u8g2_font_8bitclassic_tf
 
   ToDo
   -Byte/Float for d.ti Board Revisions 11=1.1 12=1.2 usw.
@@ -43,13 +33,15 @@
 */
 
 // Set Version
-#define BuildVersion "220602T"                    // "T" for Testing
+#define BuildVersion "220706T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
 #include <SSD1322_for_Adafruit_GFX.h>             // SSD1322 Controller Display Library https://github.com/venice1200/SSD1322_for_Adafruit_GFX
 #include <U8g2_for_Adafruit_GFX.h>                // U8G2 Font Engine for Adafruit GFX  https://github.com/olikraus/U8g2_for_Adafruit_GFX
 #include "logo.h"                                 // Some needed Pictures
+#include "fonts.h"                                // Some needed fonts
+
 
 // ---------------------------------------------------------------------------------------------------------------------
 // ----------------------------------------------- System Config -------------------------------------------------------
@@ -292,8 +284,8 @@ void setup(void) {
 
   // Init U8G2 for Adafruit GFX
   u8g2.begin(oled); 
-  //u8g2.setFontMode(1);                             // Transpartent Font Mode, Background is transparent
-  u8g2.setFontMode(0);                               // Non-Transpartent Font Mode, Background is overwritten
+  // u8g2.setFontMode(1);                             // Transparent Font Mode, Background is transparent
+  u8g2.setFontMode(0);                               // Non-Transparent Font Mode, Background is overwritten (u8g2 default)
   u8g2.setForegroundColor(SSD1322_WHITE);            // apply Adafruit GFX color
   //u8g2.setBackgroundColor(SSD1322_BLACK);
 
@@ -1082,7 +1074,8 @@ void oled_showcorename() {
   oled.setContrast(contrast);
 
   oled.clearDisplay();
-  u8g2.setFont(u8g2_font_tenfatguys_tr);     // 10 Pixel Font
+  //u8g2.setFont(u8g2_font_tenfatguys_tr);     // 10 Pixel Font
+  u8g2.setFont(u8g2_font_commodore64_tr);      // Commodore 64 Font
   u8g2.setCursor(DispWidth/2-(u8g2.getUTF8Width(actCorename.c_str())/2), DispHeight/2 + (u8g2.getFontAscent()/2));
   u8g2.print(actCorename);
   oled.display();
@@ -1878,6 +1871,14 @@ void oled_readnwritetext(void) {
     case 8:
       u8g2.setFont(u8g2_font_7Segments_26x42_mn); // 7 Segments 42 Pixel Font
     break;
+    
+    case 9:
+      u8g2.setFont(u8g2_font_commodore64_tr);     // Commodore 64
+    break;
+    case 10:
+      u8g2.setFont(u8g2_font_8bitclassic_tf);     // 8bitclassic
+    break;
+
     default:
       u8g2.setFont(u8g2_font_tenfatguys_tr);      // Nice 10 Pixel Font
     break;
@@ -1885,7 +1886,7 @@ void oled_readnwritetext(void) {
   if (!pError) {
     // Write or Clear Text
     u8g2.setForegroundColor(c);                           // Set Font Color
-    u8g2.setBackgroundColor(b);                           // Set Backgrounf Color
+    u8g2.setBackgroundColor(b);                           // Set Background Color
     u8g2.setCursor(x,y);                                  // Set Cursor Position
     u8g2.print(TextOut);                                  // Write Text to Buffer
     if (!bufferMode) oled.display();                      // Update Screen only if not "Clear Mode" (Font>100)

@@ -25,6 +25,14 @@
   2022-07-06
   -Adding two new fonts u8g2_font_commodore64_tr and u8g2_font_8bitclassic_tf
 
+  2022-07-08
+  -Change ScreensaverColor to ScreeensaverMode
+   Modes: 1: Show tty2oled Logo
+          2: Show tty2oled Logo, Mister Logo
+          3: Show tty2oled Logo, Mister Logo, Core Logo
+          4: Show tty2oled Logo, Mister Logo, Core Logo, Time
+          5: Show tty2oled Logo, Mister Logo, Core Logo, Time & Date
+
   ToDo
   -Byte/Float for d.ti Board Revisions 11=1.1 12=1.2 usw.
       
@@ -33,7 +41,7 @@
 */
 
 // Set Version
-#define BuildVersion "220706T"                    // "T" for Testing
+#define BuildVersion "220708T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -205,7 +213,7 @@ bool ScreenSaverActive=false;
 int ScreenSaverTimer=0;                      // ScreenSaverTimer
 int ScreenSaverInterval=60;                  // Interval for ScreenSaverTimer
 bool ScreenSaverPos;                         // Positive Signal ScreenSaver
-int ScreenSaverColor=1;                      // ScreenSaver Drawing Color
+int ScreenSaverMode=1;                      // ScreenSaver Drawing Color
 int ScreenSaverLogoTimer=0;                  // ScreenSaverLogo-Timer
 int ScreenSaverLogoTime=60;                  // ScreenSaverLogoTime
 
@@ -824,12 +832,12 @@ void oled_readnsetscreensaver(void) {
   iT = TextIn.substring(d1+1, d2);          // Get String for Interval
   lT = TextIn.substring(d2+1);              // Get String for Logo-Time
 
-  m=mT.toInt();                             // Convert Mode/Color
+  m=mT.toInt();                             // Convert Mode
   i=iT.toInt();                             // Convert Interval
   l=lT.toInt();                             // Convert Logo-Time
 
-  if (m<0) m=0;                             // Check & Set Mode/Color low range
-  if (m>15) m=15;                           // Check & Set Mode/Color high range
+  if (m<0) m=0;                             // Check & Set Mode
+  if (m>4) m=4;                             // Check & Set Mode
   if (i<5) i=5;                             // Check&Set Minimum Interval
   if (i>600) i=600;                         // Check&Set Maximiun Interval
   if (l<20) l=20;                           // Check&Set Minimum Logo-Time
@@ -855,7 +863,7 @@ void oled_readnsetscreensaver(void) {
 #endif
     ScreenSaverEnabled = true;
     //ScreenSaverActive = false;
-    ScreenSaverColor = m;                     // Set ScreenSaver Color
+    ScreenSaverMode = m;                      // Set ScreenSaver Mode
     ScreenSaverInterval=i;                    // Set ScreenSaverTimer Interval
     ScreenSaverTimer=0;                       // Reset Screensaver-Timer
     ScreenSaverLogoTime=l-i;                  // Set ScreenSaverLogoTime (First Screensaver shown after ScreenSaverLogoTime-ScreenSaverInterval+ScreenSaverInterval)
@@ -868,21 +876,19 @@ void oled_readnsetscreensaver(void) {
 // ------------ Show ScreenSaver Pictures/Time  -----------------
 // --------------------------------------------------------------
 void oled_showScreenSaverPicture(void) {
-  int l,x,y;
+  int l,x,y,m=ScreenSaverMode;
   String actTime="";
-  oled.setContrast(ScreenSaverColor);  // Set Contrast
-
-#ifdef ESP32                           // Only ESP32
-  if (!timeIsSet) {                    // If Time was Set show the Time will be Part of the Screensaver.
-    l=random(3);                       // random(3) = 0..2
+  oled.setContrast(1);                 // Set Contrast
+  
+#ifdef ESP32                           // Only ESP32 MCUs
+  if (!timeIsSet) {                    // If the time was set, the Time will be Part of the Screensaver.
+    if (m>3) m=3;
   }
-  else {
-    //l=random(4);                       // 0..3 (without Date)
-    l=random(5);                       // 0..4 (with Date)
-  }
-#else                                  // All others like the 8266
-  l=random(3);                         // 0..2
+#else                                  // All other MCUs
+  if (m>3) m=3;
 #endif
+
+  l=random(m);                         // 5 = 0..4
 
   switch (l) {
     case 0:                             // tty2oled Logo

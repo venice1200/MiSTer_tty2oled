@@ -2130,7 +2130,7 @@ void oled_readnsetpowerled(void) {
 void oled_playnote(void) {
   int d0=0,d1=0,d2=0,d3=0,d4=0,o=0,d=0,p=0;
   String TextIn="",nT="",oT="",dT="",pT="";
-  note_t n;
+  note_t n=NOTE_C;
   bool pError=false;
   
 #ifdef XDEBUG

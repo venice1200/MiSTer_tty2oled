@@ -25,13 +25,22 @@
   2022-07-06
   -Adding two new fonts u8g2_font_commodore64_tr and u8g2_font_8bitclassic_tf
 
-  2022-07-08
+  2022-07-08 -OBSOLETE- see 2022-07-12
   -Change ScreensaverColor to ScreeensaverMode
    Modes: 1: Show tty2oled Logo
           2: Show tty2oled Logo, Mister Logo
           3: Show tty2oled Logo, Mister Logo, Core Logo
           4: Show tty2oled Logo, Mister Logo, Core Logo, Time
           5: Show tty2oled Logo, Mister Logo, Core Logo, Time & Date
+
+  2022-07-09
+  -Minor Update to make the Sketch compatible to ESP32 Board-Pack v2.0.4
+
+  2022-07-12..13
+  -Introduce ScreenSaver "Screens" which can be selected separatly (bitwise)
+   Bit 1=tty2oled,2=MiSTer,3=Core,4=Time,5=Date
+   Examples: 12=Core+Time, 5=tty2oled+Core, 13=tty2oled+Core+Time
+   
 
   ToDo
   -Byte/Float for d.ti Board Revisions 11=1.1 12=1.2 usw.
@@ -41,7 +50,7 @@
 */
 
 // Set Version
-#define BuildVersion "220709T"                    // "T" for Testing
+#define BuildVersion "220713T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -213,9 +222,17 @@ bool ScreenSaverActive=false;
 int ScreenSaverTimer=0;                      // ScreenSaverTimer
 int ScreenSaverInterval=60;                  // Interval for ScreenSaverTimer
 bool ScreenSaverPos;                         // Positive Signal ScreenSaver
-int ScreenSaverMode=1;                      // ScreenSaver Drawing Color
+int ScreenSaverMode=1;                       // ScreenSaver Drawing Color
 int ScreenSaverLogoTimer=0;                  // ScreenSaverLogo-Timer
 int ScreenSaverLogoTime=60;                  // ScreenSaverLogoTime
+#ifdef ESP32
+const int ScreenSaverMaxScreens=5;           // Max ScreenSavers ESP32 = 5
+#else
+const int ScreenSaverMaxScreens=3;           // Max ScreenSavers ESP8266 = 3
+#endif
+int ScreenSaverActiveScreens[ScreenSaverMaxScreens]; // Array contains Pointer to Active ScreeenSavers (1=tty2oled,2=MiSTer,3=Core,4=Time,5=Date)
+int ScreenSaverCountScreens=0;               // How many ScreenSaver Screens are Active?
+const int ScreenSaverContrast=1;             // Contrast Value for ScreenSaver Mode
 
 // I2C Hardware
 bool micAvail=false;                          // Is the MIC184 Sensor available?
@@ -815,7 +832,7 @@ void oled_showcdelay(void) {
 // --------------------------------------------------------------
 void oled_readnsetscreensaver(void) {
   String TextIn="",mT="",iT="",lT="";
-  int d1,d2,m,i,l;
+  int d1,d2,m,i,l,b;
 #ifdef XDEBUG
   Serial.println("Called Command CMDSAVER");
 #endif
@@ -823,6 +840,7 @@ void oled_readnsetscreensaver(void) {
 #ifdef XDEBUG
   Serial.printf("Received Text: %s\n", (char*)TextIn.c_str());
 #endif
+
  
   //Searching for the "," delimiter
   d1 = TextIn.indexOf(',');                 // Find location of first ","
@@ -837,12 +855,27 @@ void oled_readnsetscreensaver(void) {
   l=lT.toInt();                             // Convert Logo-Time
 
   if (m<0) m=0;                             // Check & Set Mode
-  if (m>4) m=4;                             // Check & Set Mode
+  if (m>31) m=31;                           // Check & Set Mode 5 Bits = 0..31
   if (i<5) i=5;                             // Check&Set Minimum Interval
   if (i>600) i=600;                         // Check&Set Maximiun Interval
   if (l<20) l=20;                           // Check&Set Minimum Logo-Time
   if (l>600) l=600;                         // Check&Set Maximiun Logo-Time
-  
+
+  // Get&Set Active ScreenSaverScreens
+  ScreenSaverCountScreens=0;                                               // Reset Counter   
+  for (b=0; b<ScreenSaverMaxScreens; b++) ScreenSaverActiveScreens[b]=0;   // Clear Array
+  for (b=0; b<ScreenSaverMaxScreens; b++) {
+    if (bitRead(m,b)) {                                                    // Read Bits out of Mode and if "1"...
+      ScreenSaverActiveScreens[ScreenSaverCountScreens]=b+1;               // ...set a value in the Array and..
+      ScreenSaverCountScreens++;                                           // ...count up the Counter.
+    }
+  }
+
+  //Debug
+  //Serial.printf("Active ScreenSaverScreens: %i\n", ScreenSaverCountScreens);
+  //for (b=0; b<ScreenSaverMaxScreens; b++) {
+  //  Serial.printf("ScreenSaver Array Value No.%i: %i\n", b, ScreenSaverActiveScreens[b]);
+  //}
   
 #ifdef XDEBUG
   Serial.printf("Created Strings: M:%s I:%s L:%s\n", (char*)mT.c_str(), (char*)iT.c_str(), (char*)lT.c_str());
@@ -876,65 +909,80 @@ void oled_readnsetscreensaver(void) {
 // ------------ Show ScreenSaver Pictures/Time  -----------------
 // --------------------------------------------------------------
 void oled_showScreenSaverPicture(void) {
-  int l,x,y,m=ScreenSaverMode;
+  int l,x,y;
   String actTime="";
-  oled.setContrast(1);                 // Set Contrast
-  
-#ifdef ESP32                           // Only ESP32 MCUs
-  if (!timeIsSet) {                    // If the time was set, the Time will be Part of the Screensaver.
-    if (m>3) m=3;
-  }
-#else                                  // All other MCUs
-  if (m>3) m=3;
-#endif
+  oled.setContrast(ScreenSaverContrast);                        // Set Contrast for ScreenSaver Mode
 
-  l=random(m);                         // 5 = 0..4
+  l=ScreenSaverActiveScreens[random(ScreenSaverCountScreens)];  // Get random Screen out of the Active-Screens-Array
+  //Debug
+  //Serial.printf("Screen: %i\n", l);  
 
   switch (l) {
-    case 0:                             // tty2oled Logo
+    case 1:                                             // Show tiny tty2oled Logo
       oled.clearDisplay();
       x=random(DispWidth - tty2oled_logo32_width);
       y=random(DispHeight - tty2oled_logo32_height);
       oled.drawXBitmap(x, y, tty2oled_logo32, tty2oled_logo32_width, tty2oled_logo32_height, SSD1322_WHITE);
       oled.display();
     break;
-    case 1:                             // MiSTer Logo
+    case 2:                                             // Show tiny MiSTer Logo
       oled.clearDisplay();
       x=random(DispWidth - mister_logo32_width);
       y=random(DispHeight - mister_logo32_height);
       oled.drawXBitmap(x, y, mister_logo32, mister_logo32_width, mister_logo32_height, SSD1322_WHITE);
       oled.display();
     break;
-    case 2:                             // 1/4 Version of the actual Core
+    case 3:                                             // Show 1/4 Version of the actual Core
       x=random(DispWidth - DispWidth/2);
       y=random(DispHeight - DispHeight/2);
       oled_showSmallCorePicture(x,y);
     break;
-    
 #ifdef ESP32
-    case 3:                             // Show Time if ESP32 and Time was set before
+    case 4:                                             // Show Time for ESP32
       oled.clearDisplay();
-      u8g2.setFont(u8g2_font_luBS24_tf);
-      actTime=rtc.getTime("%H:%M");
-      x=random(DispWidth - u8g2.getUTF8Width(actTime.c_str()));
-      y=random(u8g2.getFontAscent(), DispHeight);
-      u8g2.setCursor(x,y);
-      u8g2.print(actTime);
+      if (timeIsSet) {
+        u8g2.setFont(u8g2_font_luBS24_tf);
+        actTime=rtc.getTime("%H:%M");
+        x=random(DispWidth - u8g2.getUTF8Width(actTime.c_str()));
+        y=random(u8g2.getFontAscent(), DispHeight);
+        u8g2.setCursor(x,y);
+        u8g2.print(actTime);
+      }
+      else {
+        u8g2.setFont(u8g2_font_commodore64_tr);
+        actTime="Time not set!";
+        u8g2.setCursor(DispWidth/2-(u8g2.getUTF8Width(actTime.c_str())/2), DispHeight/2 + (u8g2.getFontAscent()/2));
+        u8g2.print(actTime);
+      }
       oled.display();
     break;
-    case 4:                             // Show Date if ESP32 and Time was set before
+    case 5:                                            // Show Date for ESP32
       oled.clearDisplay();
-      u8g2.setFont(u8g2_font_luBS14_tf);
-      actTime=rtc.getTime("%d. %B %Y");
-      x=random(DispWidth - u8g2.getUTF8Width(actTime.c_str()));
-      y=random(u8g2.getFontAscent(), DispHeight);
-      u8g2.setCursor(x,y);
-      u8g2.print(actTime);
+      if (timeIsSet) {
+        u8g2.setFont(u8g2_font_luBS14_tf);
+        actTime=rtc.getTime("%d. %B %Y");
+        x=random(DispWidth - u8g2.getUTF8Width(actTime.c_str()));
+        y=random(u8g2.getFontAscent(), DispHeight);
+        u8g2.setCursor(x,y);
+        u8g2.print(actTime);
+      }
+      else {
+        u8g2.setFont(u8g2_font_commodore64_tr);
+        actTime="Date not set!";
+        u8g2.setCursor(DispWidth/2-(u8g2.getUTF8Width(actTime.c_str())/2), DispHeight/2 + (u8g2.getFontAscent()/2));
+        u8g2.print(actTime);
+      }
       oled.display();
     break;
 #endif
-
-  }
+    default:
+      oled.clearDisplay();
+      x=random(DispWidth - tty2oled_logo32_width);
+      y=random(DispHeight - tty2oled_logo32_height);
+      oled.drawXBitmap(x, y, tty2oled_logo32, tty2oled_logo32_width, tty2oled_logo32_height, SSD1322_WHITE);
+      oled.display();
+    break;
+  } //end switch
 }
 
 

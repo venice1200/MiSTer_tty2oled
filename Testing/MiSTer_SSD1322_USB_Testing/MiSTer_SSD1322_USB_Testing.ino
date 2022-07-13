@@ -871,11 +871,12 @@ void oled_readnsetscreensaver(void) {
     }
   }
 
-  //Debug
-  //Serial.printf("Active ScreenSaverScreens: %i\n", ScreenSaverCountScreens);
-  //for (b=0; b<ScreenSaverMaxScreens; b++) {
-  //  Serial.printf("ScreenSaver Array Value No.%i: %i\n", b, ScreenSaverActiveScreens[b]);
-  //}
+#ifdef XDEBUG
+  Serial.printf("Active ScreenSaverScreens: %i\n", ScreenSaverCountScreens);
+  for (b=0; b<ScreenSaverMaxScreens; b++) {
+    Serial.printf("ScreenSaver Array Value No.%i: %i\n", b, ScreenSaverActiveScreens[b]);
+  }
+#endif
   
 #ifdef XDEBUG
   Serial.printf("Created Strings: M:%s I:%s L:%s\n", (char*)mT.c_str(), (char*)iT.c_str(), (char*)lT.c_str());
@@ -914,8 +915,9 @@ void oled_showScreenSaverPicture(void) {
   oled.setContrast(ScreenSaverContrast);                        // Set Contrast for ScreenSaver Mode
 
   l=ScreenSaverActiveScreens[random(ScreenSaverCountScreens)];  // Get random Screen out of the Active-Screens-Array
-  //Debug
-  //Serial.printf("Screen: %i\n", l);  
+#ifdef XDEBUG
+  Serial.printf("Screen: %i\n", l);
+#endif
 
   switch (l) {
     case 1:                                             // Show tiny tty2oled Logo

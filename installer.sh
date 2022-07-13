@@ -3,7 +3,7 @@
 REPOSITORY_URL1="https://raw.githubusercontent.com/venice1200/MiSTer_tty2oled/main"
 REPOSITORY_URL2="https://www.tty2tft.de//MiSTer_tty2oled-installer"
 DBAUD="921600"
-DSTD="--before default_reset --after hard_reset write_flash --compress --flash_size detect"
+DSTD="--before default_reset --after hard_reset write_flash --compress --flash_mode dio --flash_freq 80m --flash_size detect"
 TMPDIR=$(mktemp -d)
 MCUtype="${2}"
 cd ${TMPDIR}

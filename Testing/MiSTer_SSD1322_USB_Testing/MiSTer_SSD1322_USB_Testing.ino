@@ -36,10 +36,10 @@
   2022-07-09
   -Minor Update to make the Sketch compatible to ESP32 Board-Pack v2.0.4
 
-  2022-07-12..13
+  2022-07-12..14
   -Introduce ScreenSaver "Screens" which can be selected separatly (bitwise)
-   Bit 1=tty2oled,2=MiSTer,3=Core,4=Time,5=Date
-   Examples: 12=Core+Time, 5=tty2oled+Core, 13=tty2oled+Core+Time
+   Bit 0=tty2oled Logo=Value 1, 1=MiSTer Logo=Value 2, 2=Core Logo=Value 4, 3=Time=Value 8, 4=Date=Value 16
+   Examples: 12=4+8=Core+Time, 5=1+4=tty2oled+Core, 13=1+4+8=tty2oled+Core+Time
    
 
   ToDo
@@ -50,7 +50,7 @@
 */
 
 // Set Version
-#define BuildVersion "220713T"                    // "T" for Testing
+#define BuildVersion "220714T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -226,9 +226,9 @@ int ScreenSaverMode=1;                       // ScreenSaver Drawing Color
 int ScreenSaverLogoTimer=0;                  // ScreenSaverLogo-Timer
 int ScreenSaverLogoTime=60;                  // ScreenSaverLogoTime
 #ifdef ESP32
-const int ScreenSaverMaxScreens=5;           // Max ScreenSavers ESP32 = 5
+const int ScreenSaverMaxScreens=5;           // Max ScreenSavers ESP32 => 5 (bit)
 #else
-const int ScreenSaverMaxScreens=3;           // Max ScreenSavers ESP8266 = 3
+const int ScreenSaverMaxScreens=3;           // Max ScreenSavers not ESP32 = ESP8266 => 3 (bit)
 #endif
 int ScreenSaverActiveScreens[ScreenSaverMaxScreens]; // Array contains Pointer to Active ScreeenSavers (1=tty2oled,2=MiSTer,3=Core,4=Time,5=Date)
 int ScreenSaverCountScreens=0;               // How many ScreenSaver Screens are Active?
@@ -865,8 +865,8 @@ void oled_readnsetscreensaver(void) {
   ScreenSaverCountScreens=0;                                               // Reset Counter   
   for (b=0; b<ScreenSaverMaxScreens; b++) ScreenSaverActiveScreens[b]=0;   // Clear Array
   for (b=0; b<ScreenSaverMaxScreens; b++) {
-    if (bitRead(m,b)) {                                                    // Read Bits out of Mode and if "1"...
-      ScreenSaverActiveScreens[ScreenSaverCountScreens]=b+1;               // ...set a value in the Array and..
+    if (bitRead(m,b)) {                                                    // Read Bits out of Mode and if Bit is "1"...
+      ScreenSaverActiveScreens[ScreenSaverCountScreens]=b+1;               // ...write the value in the Screens-Array[0..x] and..
       ScreenSaverCountScreens++;                                           // ...count up the Counter.
     }
   }
@@ -896,7 +896,6 @@ void oled_readnsetscreensaver(void) {
     Serial.println("ScreenSaver Enabled!");
 #endif
     ScreenSaverEnabled = true;
-    //ScreenSaverActive = false;
     ScreenSaverMode = m;                      // Set ScreenSaver Mode
     ScreenSaverInterval=i;                    // Set ScreenSaverTimer Interval
     ScreenSaverTimer=0;                       // Reset Screensaver-Timer
@@ -914,7 +913,7 @@ void oled_showScreenSaverPicture(void) {
   String actTime="";
   oled.setContrast(ScreenSaverContrast);                        // Set Contrast for ScreenSaver Mode
 
-  l=ScreenSaverActiveScreens[random(ScreenSaverCountScreens)];  // Get random Screen out of the Active-Screens-Array
+  l=ScreenSaverActiveScreens[random(ScreenSaverCountScreens)];  // Get random Screen out of the Active-Screens-Array[0..x]
 #ifdef XDEBUG
   Serial.printf("Screen: %i\n", l);
 #endif

@@ -48,8 +48,8 @@ stop() {
       #echo "PIDDAEMON = $PIDDAEMON"
       #echo "PIDINOTIFY = $PIDINOTIFY"
     fi
-    [ ${PIDDAEMON} ] && kill ${PIDDAEMON}
-    [ ${PIDINOTIFY} ] && kill ${PIDINOTIFY}
+    [ ${PIDDAEMON} ] && kill ${PIDDAEMON} &> /dev/null
+    [ ${PIDINOTIFY} ] && kill ${PIDINOTIFY} &> /dev/null
     rm -f /run/tty2oled-daemon.pid
 }
 

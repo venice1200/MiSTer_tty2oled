@@ -53,7 +53,6 @@
 # 2022-04-09 Make the Daemon more quiet
 # 2022-04-24 Add "settime"
 # 2022-06-17 Redo/Rework of PID and inotify
-# 2022-07-22 New Screensaver Mode Handling
 #
 
 . /media/fat/tty2oled/tty2oled-system.ini
@@ -91,12 +90,27 @@ sendscreensaver() {
   if [ "${SCREENSAVER}" = "yes" ]; then						# Check screensaver mode
 
     SCREENSAVER_MODE="0"
-    [ "${SCREENSAVER_SCREEN_TTY2OLED}" = "yes" ] && let SCREENSAVER_MODE=${SCREENSAVER_MODE}+1
-    [ "${SCREENSAVER_SCREEN_MISTER}" = "yes" ] && let SCREENSAVER_MODE=${SCREENSAVER_MODE}+2
-    [ "${SCREENSAVER_SCREEN_CORE}" = "yes" ] && let SCREENSAVER_MODE=${SCREENSAVER_MODE}+4
-    [ "${SCREENSAVER_SCREEN_TIME}" = "yes" ] && let SCREENSAVER_MODE=${SCREENSAVER_MODE}+8
-    [ "${SCREENSAVER_SCREEN_DATE}" = "yes" ] && let SCREENSAVER_MODE=${SCREENSAVER_MODE}+16
-    # echo "ScreenSaverMode: ${SCREENSAVER_MODE}"
+
+    if [ "${SCREENSAVER_SCREEN_TTY2OLED}" = "yes" ]; then			# Show TTY2OLED Logo
+      let SCREENSAVER_MODE=${SCREENSAVER_MODE}+1
+    fi
+
+    if [ "${SCREENSAVER_SCREEN_MISTER}" = "yes" ]; then				# Show MiSTer Logo
+      let SCREENSAVER_MODE=${SCREENSAVER_MODE}+2
+    fi
+
+    if [ "${SCREENSAVER_SCREEN_CORE}" = "yes" ]; then				# Show Core Logo
+      let SCREENSAVER_MODE=${SCREENSAVER_MODE}+4
+    fi
+
+    if [ "${SCREENSAVER_SCREEN_TIME}" = "yes" ]; then				# Show Time
+      let SCREENSAVER_MODE=${SCREENSAVER_MODE}+8
+    fi
+
+    if [ "${SCREENSAVER_SCREEN_DATE}" = "yes" ]; then				# Show Date
+      let SCREENSAVER_MODE=${SCREENSAVER_MODE}+16
+    fi
+
     dbug "Sending: CMDSAVER,${SCREENSAVER_MODE},${SCREENSAVER_IVAL},${SCREENSAVER_START}"
     echo "CMDSAVER,${SCREENSAVER_MODE},${SCREENSAVER_IVAL},${SCREENSAVER_START}" > ${TTYDEV}	# Send Screensaver Command and Values
 

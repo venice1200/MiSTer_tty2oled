@@ -158,7 +158,7 @@ senddata() {
         IFS="${SAVEIFS}"
         if [ "${ALTPICNUM}" -gt "0" ]; then             # If more than 0 _altX pictures
           ALTPICRND=$((${RANDOM} % $((ALTPICNUM + 1)))) # then dice between 0 and count of found _altX pictures
-          [ "${ALTPICRND}" -gt 0 ] && picfnam="${picturefolder}/${picfolder^^}/${newcore}_alt"${ALTPICRND}".${picfolder:0:3}"
+           [ "${ALTPICRND}" -gt 0 ] && picfnam="${picfnam%.*}_alt"${ALTPICRND}".${picfolder:0:3}"
         fi # If 0 then original picture, otherwise _altX
       fi
       dbug "Sending: CMDCOR,${1},${TRANSITION}"
@@ -210,36 +210,40 @@ if [ -c "${TTYDEV}" ]; then # check for tty device
   echo "QWERTZ" >${TTYDEV} # First Transmission to clear serial send buffer
   dbug "Send QWERTZ as first transmission"
   sleep ${WAITSECS}
-  sendcontrast                       # Set Contrast
-  sendrotation                       # Set Display Rotation
-  sendtime                           # Set time and date
-  sendscreensaver                    # Set Screensaver
-  while true; do                     # main loop
-    if [ -r ${corenamefile} ]; then  # proceed if file exists and is readable (-r)
+  sendcontrast                      # Set Contrast
+  sendrotation                      # Set Display Rotation
+  sendtime                          # Set time and date
+  sendscreensaver                   # Set Screensaver
+  while true; do                    # main loop
+    if [ -r ${corenamefile} ]; then # proceed if file exists and is readable (-r)
+      if [ "$newcore" ]; then
+        oldcore=$newcore
+      fi
       newcore=$(cat ${corenamefile}) # get CORENAME
-      #echo "Read CORENAME: -${newcore}-"
-      dbug "Read CORENAME: -${newcore}-"
-      if [ ${newcore} = "MENU" ]; then      # Check for MENU
-        if [ -f /tmp/tty2oled_sleep ]; then # Check for Sleepfile
-          #echo "Deleting sleepfile"
-          rm /tmp/tty2oled_sleep # Delete Sleepfile
+      if [ "$oldcore" ] && [ "$oldcore" != "$newcore" ]; then
+        #echo "Read CORENAME: -${newcore}-"
+        dbug "Read CORENAME: -${newcore}-"
+        if [ -f /tmp/tty2oled_sleep ] && [ "$newcore" != "MENU" ]; then
+          #echo "The tty2oled daemon is sleeping!"
+          dbug "The tty2oled daemon is sleeping!"
+          sleep 5
+        else
+          if [ -f /tmp/tty2oled_sleep ]; then # Check for Sleepfile
+            #echo "Deleting sleepfile"
+            rm /tmp/tty2oled_sleep # Delete Sleepfile
+          fi
+          #echo "Send -${newcore}- to ${TTYDEV}."
+          dbug "Send -${newcore}- to ${TTYDEV}."
+          senddata "${newcore}" # The "Magic"
+          if [ "${debug}" = "false" ]; then
+            # wait here for next change of corename, -qq for quietness
+            inotifywait -qq -e modify "${corenamefile}"
+          fi
+          if [ "${debug}" = "true" ]; then
+            # but not -qq when debugging
+            inotifywait -e modify "${corenamefile}"
+          fi
         fi
-      fi
-      if [ ! -f /tmp/tty2oled_sleep ]; then
-        #echo "Send -${newcore}- to ${TTYDEV}."
-        dbug "Send -${newcore}- to ${TTYDEV}."
-        senddata "${newcore}" # The "Magic"
-      else
-        #echo "The tty2oled daemon is sleeping!"
-        dbug "The tty2oled daemon is sleeping!"
-      fi
-      if [ "${debug}" = "false" ]; then
-        # wait here for next change of corename, -qq for quietness
-        inotifywait -qq -e modify "${corenamefile}"
-      fi
-      if [ "${debug}" = "true" ]; then
-        # but not -qq when debugging
-        inotifywait -e modify "${corenamefile}"
       fi
     else # CORENAME file not found
       #echo "File ${corenamefile} not found!"

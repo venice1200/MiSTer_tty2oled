@@ -156,7 +156,7 @@ senddata() {
 	IFS="${SAVEIFS}"
 	if [ "${ALTPICNUM}" -gt "0" ]; then					# If more than 0 _altX pictures
 	  ALTPICRND=$(( ${RANDOM} % $((ALTPICNUM+1)) ))				# then dice between 0 and count of found _altX pictures
-	  [ "${ALTPICRND}" -gt 0 ] && picfnam="${picturefolder}/${picfolder^^}/${newcore}_alt"${ALTPICRND}".${picfolder:0:3}"
+	  [ "${ALTPICRND}" -gt 0 ] && picfnam="${picfnam%.*}_alt"${ALTPICRND}".${picfolder:0:3}"
 	fi									# If 0 then original picture, otherwise _altX
       fi
       dbug "Sending: CMDCOR,${1},${TRANSITION}"

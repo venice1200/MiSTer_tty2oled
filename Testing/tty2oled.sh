@@ -218,11 +218,11 @@ if [ -c "${TTYDEV}" ]; then # check for tty device
   oldcore=""                        # Initialize variable
   while true; do                    # main loop
     if [ -r ${corenamefile} ]; then # proceed if file exists and is readable (-r)
-      if [ "$newcore" ]; then
+      if [ ! -z "$newcore" ]; then
         oldcore=$newcore
       fi
       newcore=$(cat ${corenamefile}) # get CORENAME
-      if [ "$oldcore" ] && [ "$oldcore" != "$newcore" ]; then
+      if [ ! -z "$oldcore" ] && [ "$oldcore" != "$newcore" ]; then
         #echo "Read CORENAME: -${newcore}-"
         dbug "Read CORENAME: -${newcore}-"
         if [ -f /tmp/tty2oled_sleep ] && [ "$newcore" != "MENU" ]; then

@@ -214,8 +214,6 @@ if [ -c "${TTYDEV}" ]; then # check for tty device
   sendrotation                      # Set Display Rotation
   sendtime                          # Set time and date
   sendscreensaver                   # Set Screensaver
-  newcore=""                        # Initialize variable
-  oldcore=""                        # Initialize variable
   while true; do                    # main loop
     if [ -r ${corenamefile} ]; then # proceed if file exists and is readable (-r)
       if [ ! -z "$newcore" ]; then

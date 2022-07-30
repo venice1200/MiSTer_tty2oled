@@ -218,37 +218,34 @@ if [ -c "${TTYDEV}" ]; then # check for tty device
   sendscreensaver                   # Set Screensaver
   while true; do                    # main loop
     if [ -r ${corenamefile} ]; then # proceed if file exists and is readable (-r)
-      #if [ ! -z "$newcore" ]; then
-      #  oldcore=$newcore
-      #fi
       newcore=$(cat ${corenamefile}) # get CORENAME
-      if [ "$oldcore" != "$newcore" ]; then
-      #if [ ! -z "$oldcore" ] && [ "$oldcore" != "$newcore" ]; then
-        #echo "Read CORENAME: -${newcore}-"
-        dbug "Read CORENAME: -${newcore}-"
-        if [ -f /tmp/tty2oled_sleep ] && [ "$newcore" != "MENU" ]; then
-          #echo "The tty2oled daemon is sleeping!"
-          dbug "The tty2oled daemon is sleeping!"
-          sleep 5
-        else
-          if [ -f /tmp/tty2oled_sleep ]; then # Check for Sleepfile
-            #echo "Deleting sleepfile"
-            rm /tmp/tty2oled_sleep # Delete Sleepfile
-          fi
-          #echo "Send -${newcore}- to ${TTYDEV}."
+      dbug "Read CORENAME: -${newcore}-"
+      if [ -f /tmp/tty2oled_sleep ] && [ "$newcore" != "MENU" ]; then
+        dbug "tty2oled is sleeping!"
+        dbug "Waiting 5 secs."
+        sleep 5
+      else # sleepfile
+        if [ -f /tmp/tty2oled_sleep ]; then # Check for Sleepfile
+          dbug "Deleting sleepfile"
+          rm /tmp/tty2oled_sleep # Delete Sleepfile
+        fi #sleepfile
+        if [ "$oldcore" != "$newcore" ]; then
           dbug "Send -${newcore}- to ${TTYDEV}."
           senddata "${newcore}" # The "Magic"
-          if [ "${debug}" = "false" ]; then
-            # wait here for next change of corename, -qq for quietness
-            inotifywait -qq -e modify "${corenamefile}"
-          fi
-          if [ "${debug}" = "true" ]; then
-            # but not -qq when debugging
-            inotifywait -e modify "${corenamefile}"
-          fi
-        fi
+        else
+          dbug "Core not changed!"
+        fi #oldcore != newcore
+        if [ "${debug}" = "false" ]; then
+          # wait here for next change of corename, -qq for quietness
+          inotifywait -qq -e modify "${corenamefile}"
+        fi #debug false
+        if [ "${debug}" = "true" ]; then
+          # but not -qq when debugging
+          inotifywait -e modify "${corenamefile}"
+        fi # debug true
+      fi # sleepfile
+      dbug "Update oldcore"
       oldcore=$newcore
-      fi
     else # CORENAME file not found
       #echo "File ${corenamefile} not found!"
       dbug "File ${corenamefile} not found!"

@@ -222,6 +222,10 @@ if [ -c "${TTYDEV}" ]; then # check for tty device
       dbug "Read CORENAME: -${newcore}-"
       if [ -f /tmp/tty2oled_sleep ] && [ "$newcore" != "MENU" ]; then
         dbug "tty2oled is sleeping!"
+        if [ "$oldcore" != "$newcore" ]; then
+          dbug "Update oldcore"
+          oldcore=$newcore
+        fi
         dbug "Waiting 5 secs."
         sleep 5
       else # sleepfile
@@ -232,6 +236,8 @@ if [ -c "${TTYDEV}" ]; then # check for tty device
         if [ "$oldcore" != "$newcore" ]; then
           dbug "Send -${newcore}- to ${TTYDEV}."
           senddata "${newcore}" # The "Magic"
+          dbug "Update oldcore"
+          oldcore=$newcore
         else
           dbug "Core not changed!"
         fi #oldcore != newcore
@@ -244,8 +250,6 @@ if [ -c "${TTYDEV}" ]; then # check for tty device
           inotifywait -e modify "${corenamefile}"
         fi # debug true
       fi # sleepfile
-      dbug "Update oldcore"
-      oldcore=$newcore
     else # CORENAME file not found
       #echo "File ${corenamefile} not found!"
       dbug "File ${corenamefile} not found!"

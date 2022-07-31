@@ -22,26 +22,10 @@
    
   See changelog.md in Sketch folder for more details
 
-  2022-07-06
-  -Adding two new fonts u8g2_font_commodore64_tr and u8g2_font_8bitclassic_tf
-
-  2022-07-08 -OBSOLETE- see 2022-07-12
-  -Change ScreensaverColor to ScreeensaverMode
-   Modes: 1: Show tty2oled Logo
-          2: Show tty2oled Logo, Mister Logo
-          3: Show tty2oled Logo, Mister Logo, Core Logo
-          4: Show tty2oled Logo, Mister Logo, Core Logo, Time
-          5: Show tty2oled Logo, Mister Logo, Core Logo, Time & Date
-
-  2022-07-09
-  -Minor Update to make the Sketch compatible to ESP32 Board-Pack v2.0.4
-
-  2022-07-12..14
-  -Introduce ScreenSaver "Screens" which can be selected separatly (bitwise)
-   Bit 0=tty2oled Logo=Value 1, 1=MiSTer Logo=Value 2, 2=Core Logo=Value 4, 3=Time=Value 8, 4=Date=Value 16
-   Examples: 12=4+8=Core+Time, 5=1+4=tty2oled+Core, 13=1+4+8=tty2oled+Core+Time
-   
-
+  2022-07-31
+  -SSD1322 Minor change
+  -New Option "XOTA" for enabling the OTA functionality, Sketch consumption 65%->28%
+  
   ToDo
   -Byte/Float for d.ti Board Revisions 11=1.1 12=1.2 usw.
       
@@ -50,7 +34,7 @@
 */
 
 // Set Version
-#define BuildVersion "220714T"                    // "T" for Testing
+#define BuildVersion "220731T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -61,7 +45,6 @@
 
 
 // ---------------------------------------------------------------------------------------------------------------------
-// ----------------------------------------------- System Config -------------------------------------------------------
 // ------------------------------------------- Activate your Options ---------------------------------------------------
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -75,10 +58,12 @@
 // Uncomment for 180° StartUp Rotation (Display Connector up)
 //#define XROTATE
 
+// Uncomment for OTA Support
+//#define XOTA
 
 // ---------------------------------------------------------------------------------------------------------------------
 // ---------------------------------- Auto-Board-Config via Arduino IDE Board Selection --------------------------------
-// ------------------------------------ Make sure the Auto-Board-Config is not active ----------------------------------
+// ----------------------------------- Make sure the Manual-Board-Config is not active ---------------------------------
 // ---------------------------------------------------------------------------------------------------------------------
 
 #ifdef ARDUINO_ESP32_DEV          // Set Arduino Board to "ESP32 Dev Module"
@@ -160,11 +145,13 @@ Bounce RotationDebouncer = Bounce();     // Create Bounce class
 // OTA, Reset and RTC only for ESP32
 #ifdef ESP32
   #include "cred.h"                               // Load your WLAN Credentials for OTA
+#ifdef XOTA
   #include <WiFi.h>
   #include <ESPmDNS.h>
   #include <WiFiUdp.h>
   #include <ArduinoOTA.h>
   bool OTAEN=false;                               // Will be set to "true" by Command "CMDENOTA"
+#endif
   #include <ESP32Time.h>                          // Time-Library
   ESP32Time rtc;                                  // Create Real-Time-Clock Device
 #endif
@@ -424,8 +411,10 @@ void loop(void) {
   unsigned long currentMillis = millis();
 
   // ESP32 OTA
+#ifdef XOTA
 #ifdef ESP32  // OTA and Reset only for ESP32
   if (OTAEN) ArduinoOTA.handle();                            // OTA active?
+#endif
 #endif
 
   // Tilt Sensor/Auto-Rotation
@@ -674,10 +663,11 @@ void loop(void) {
 // The following Commands are only for ESP32 Boards
 // ---------------------------------------------------
 #ifdef ESP32  // OTA and Reset only for ESP32
+#ifdef XOTA
     else if (newCommand=="CMDENOTA") {                                      // Command from Serial to enable OTA on the ESP
       oled_enableOTA();                                                     // Setup Wireless and enable OTA
     }
-
+#endif
     else if (newCommand=="CMDRESET") {                                      // Command from Serial for Resetting the ESP
       ESP.restart();                                                        // Reset ESP
     }
@@ -996,10 +986,7 @@ void oled_showSmallCorePicture(int xpos, int ypos) {
   unsigned char b1,b2,br;
 
 #ifdef XDEBUG
-  Serial.printf("Show 1/4 Pic\n",actPicType);
-  actPicType = XBM;
-  actPicType = GSC;
-  Serial.printf("ActPicType: %d\n",actPicType);
+  Serial.printf("Show 1/4 Pic, ActPicType: %d\n",actPicType);
 #endif
   
   oled.clearDisplay();
@@ -1008,7 +995,7 @@ void oled_showSmallCorePicture(int xpos, int ypos) {
       x=0;y=0;
       for (py=0; py<DispHeight; py=py+2) {
         for (px=0; px<DispLineBytes1bpp; px++) {
-          b1=logoBin[px+py*DispLineBytes1bpp];                // Get Data Byte for 8 Pixels
+          b1=logoBin[px+py*DispLineBytes1bpp];                       // Get Data Byte for 8 Pixels
           for (i=0; i<8; i=i+2){
             if (bitRead(b1, i)) {
               oled.drawPixel(xpos+x, ypos+y, SSD1322_WHITE);         // Draw Pixel if "1"
@@ -2378,6 +2365,7 @@ void oled_showtime(void) {
   oled.display();                                         // Output Text
 }
 
+#ifdef XOTA
 // --------------------------------------------------
 // ---------------- Enable OTA ---------------------- 
 // --------------------------------------------------
@@ -2469,6 +2457,8 @@ void oled_enableOTA (void) {
   
   OTAEN = true;  // Set OTA Enabled to True for the "Handler" in "loop"
 }
+#endif
+
 #endif
 
 //========================== The end ================================

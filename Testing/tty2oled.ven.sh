@@ -227,7 +227,7 @@ if [ -c "${TTYDEV}" ]; then # check for tty device
           oldcore=$newcore
         fi
         dbug "Waiting 5 secs."
-        sleep 5
+        inotifywait -qq -e delete "/tmp/tty2oled_sleep"
       else # sleepfile
         if [ -f /tmp/tty2oled_sleep ]; then # Check for Sleepfile
           dbug "Deleting sleepfile"

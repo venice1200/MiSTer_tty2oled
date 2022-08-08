@@ -226,7 +226,7 @@ if [ -c "${TTYDEV}" ]; then # check for tty device
         if [ -f /tmp/tty2oled_sleep ] && [ "$newcore" != "MENU" ]; then
           #echo "The tty2oled daemon is sleeping!"
           dbug "The tty2oled daemon is sleeping!"
-          sleep 5
+          inotifywait -qq -e delete "/tmp/tty2oled_sleep"
         else
           if [ -f /tmp/tty2oled_sleep ]; then # Check for Sleepfile
             #echo "Deleting sleepfile"

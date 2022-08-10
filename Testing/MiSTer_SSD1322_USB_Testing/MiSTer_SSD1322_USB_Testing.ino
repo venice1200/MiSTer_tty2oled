@@ -25,16 +25,18 @@
   2022-07-31
   -SSD1322 Minor change
   -New Option "XOTA" for enabling the OTA functionality, Sketch consumption 65%->28%
+
+  2022-08-07
+  -Add RGB LED to Startup Screen (d.ti Board 1.2)
+  -New Variable "dtiv" showing d.ti Board Revisions: 11=1.1 12=1.2
   
   ToDo
-  -Byte/Float for d.ti Board Revisions 11=1.1 12=1.2 usw.
-      
   -Everything I forgot
    
 */
 
 // Set Version
-#define BuildVersion "220731T"                    // "T" for Testing
+#define BuildVersion "220807T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -227,6 +229,7 @@ const byte PCA9536_ADDR = 0x41;               // PCA9536 Base Address
 const byte PCA9536_IREG = 0x00;               // PCA9536 Input Register
 bool pcaAvail=false;                          // Is the PCA9536 Port-Extender Chip available?
 byte pcaInputValue=255;                       // PCA9536 Input Pin State as Byte Value
+byte dtiv=0;                                  // d.ti Board Version 11=1.1, 12=1.2
 
 // =============================================================================================================
 // ========================================== FUNCTION PROTOTYPES ==============================================
@@ -320,8 +323,9 @@ void setup(void) {
   Wire.begin(int(I2C1_SDA), int(I2C1_SCL), uint32_t(100000));   // Setup I2C-1 Port
   
   Wire.beginTransmission (MIC184_BASE_ADDRESS);                 // Check for MIC184 Sensor...
-  if (Wire.endTransmission() == 0) {                           // ..and wait for Answer
+  if (Wire.endTransmission() == 0) {                            // ..and wait for Answer
     micAvail=true;                                              // If Answer OK Sensor available
+    dtiv=11;                                                    // d.ti Board >= 1.1
   }
   //tSensor.setZone(MIC184_ZONE_REMOTE);                        // Remote = use External Sensor using LM3906/MMBT3906
 #ifdef XDEBUG
@@ -339,6 +343,7 @@ void setup(void) {
   Wire.beginTransmission(PCA9536_ADDR);                        // Check for PCA9536
   if (Wire.endTransmission() == 0) {                           // ..and wait for Answer
     pcaAvail=true;                                             // If Answer OK PCA available
+    dtiv=12;                                                   // d.ti Board = 1.2
   }
 
 #ifdef XDEBUG
@@ -717,18 +722,40 @@ void oled_showStartScreen(void) {
   oled.drawXBitmap(82, 0, tty2oled_logo, tty2oled_logo_width, tty2oled_logo_height, SSD1322_WHITE);
   oled.display();
   delay(1000);
-  //oled.setFont();
-  for (int i=0; i<DispWidth; i+=16) {
+#ifdef USE_ESP32DEV
+  if (pcaAvail) {
+    digitalWrite(POWER_LED,1);                   // Power off Power LED's D2 & D3
+  }
+#endif
+  for (int i=0; i<DispWidth; i+=16) {            // Some Animation
     oled.fillRect(i,55,16,8,color);
     color++;
     oled.display();
+#ifdef USE_ESP32DEV
+    if (dtiv==12) {                              // Let the RGB LED light up
+      wsleds[0] = CHSV(i,255,255);
+      FastLED.show();
+    }
+#endif
     delay(20);
   }
-  for (int i=0; i<DispWidth; i+=16) {
+  for (int i=0; i<DispWidth; i+=16) {            // Remove Animation Line
     oled.fillRect(i,55,16,8,SSD1322_BLACK);
     oled.display();
+#ifdef USE_ESP32DEV
+    if (dtiv==12) {                              // Let the RGB LED light up
+      wsleds[0] = CHSV(255-i,255,255);
+      FastLED.show();
+    }
+#endif
     delay(20);
   }
+#ifdef USE_ESP32DEV
+  if (dtiv==12) {                                // RGB LED off
+    wsleds[0] = CRGB::Black;
+    FastLED.show();
+  }
+#endif
   delay(500);
   u8g2.setFont(u8g2_font_5x7_mf);            // 6 Pixel Font
   u8g2.setCursor(0,63);
@@ -745,9 +772,6 @@ void oled_showStartScreen(void) {
     u8g2.print(tSensor.getTemp());    // Show Temperature if Sensor available
     u8g2.print("\xb0");
     u8g2.print("C");
-  }
-  if (pcaAvail) {
-    digitalWrite(POWER_LED,1);           // Power off Power LED's D2 & D3
   }
 #endif
 

@@ -26,9 +26,9 @@
   -SSD1322 Minor change
   -New Option "XOTA" for enabling the OTA functionality, Sketch consumption 65%->28%
 
-  2022-08-07
+  2022-08-07..12
   -Add RGB LED to Startup Screen (d.ti Board 1.2)
-  -New Variable "dtiv" showing d.ti Board Revisions: 11=1.1 12=1.2
+  -New Variable "dtiv" showing d.ti Board Revisions: 11=1.1 12=1.2...
   
   ToDo
   -Everything I forgot
@@ -36,7 +36,7 @@
 */
 
 // Set Version
-#define BuildVersion "220807T"                    // "T" for Testing
+#define BuildVersion "220812T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -228,7 +228,8 @@ bool micAvail=false;                          // Is the MIC184 Sensor available?
 const byte PCA9536_ADDR = 0x41;               // PCA9536 Base Address
 const byte PCA9536_IREG = 0x00;               // PCA9536 Input Register
 bool pcaAvail=false;                          // Is the PCA9536 Port-Extender Chip available?
-byte pcaInputValue=255;                       // PCA9536 Input Pin State as Byte Value
+//byte pcaInputValue=255;                       // PCA9536 Input Pin State as Byte Value
+byte pcaInputValue=0;                         // PCA9536 Input Pin State as Byte Value
 byte dtiv=0;                                  // d.ti Board Version 11=1.1, 12=1.2
 
 // =============================================================================================================
@@ -343,7 +344,6 @@ void setup(void) {
   Wire.beginTransmission(PCA9536_ADDR);                        // Check for PCA9536
   if (Wire.endTransmission() == 0) {                           // ..and wait for Answer
     pcaAvail=true;                                             // If Answer OK PCA available
-    dtiv=12;                                                   // d.ti Board = 1.2
   }
 
 #ifdef XDEBUG
@@ -361,7 +361,8 @@ void setup(void) {
     if (Wire.endTransmission() == 0) {                          // If OK...
       Wire.requestFrom(PCA9536_ADDR, byte(1));                  // request one byte from PCA
       if (Wire.available() == 1) {                              // If just one byte is available,
-        pcaInputValue = Wire.read() & 0x0F;                     // read it and mask the high bits out.
+        pcaInputValue = Wire.read() & 0x0F;                     // read it and mask the higher bits out
+        dtiv=12+pcaInputValue;                                  // d.ti Board >= 1.2
 #ifdef XDEBUG
         Serial.print("PCA9536 Input Register Value: ");
         Serial.println(pcaInputValue);
@@ -763,6 +764,7 @@ void oled_showStartScreen(void) {
 #ifdef XDEBUG	
   if (micAvail) u8g2.print("M");
   if (pcaAvail) u8g2.print("P");
+  if (dtiv>=11) u8g2.print(dtiv);
 #endif	
   oled.drawXBitmap(DispWidth-usb_icon_width, DispHeight-usb_icon_height, usb_icon, usb_icon_width, usb_icon_height, SSD1322_WHITE);
 
@@ -2121,11 +2123,11 @@ void oled_readnsetuserled(void) {
   x=xT.toInt();                                  // Convert Value
   if (x<0) x=0;
   
-  if (!pcaAvail) {                               // PCA not avail = Board Rev 1.1 = LED
+  if (dtiv==11) {                               // d.ti Board Rev 1.1 = LED
     if (x>1) x=1;
     digitalWrite(USER_LED,x);  
   }
-  else {                                         // PCA avail = Board Rev 1.2 = WS2812B LED
+  if (dtiv==12){                                // d.ti Board Rev 1.2 = WS2812B LED
     if (x>255) x=255;
     if (x==0) {
       wsleds[0] = CRGB::Black;                   // off

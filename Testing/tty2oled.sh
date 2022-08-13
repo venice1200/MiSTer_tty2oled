@@ -216,30 +216,35 @@ if [ -c "${TTYDEV}" ]; then # check for tty device
   sendscreensaver                   # Set Screensaver
   while true; do                    # main loop
     if [ -r ${corenamefile} ]; then # proceed if file exists and is readable (-r)
-      if [ ! -z "$newcore" ]; then
-        oldcore=$newcore
-      fi
-      newcore=$(cat ${corenamefile}) # get CORENAME
-      if [ ! -z "$oldcore" ] && [ "$oldcore" != "$newcore" ]; then
-        #echo "Read CORENAME: -${newcore}-"
-        dbug "Read CORENAME: -${newcore}-"
-        if [ -f /tmp/tty2oled_sleep ] && [ "$newcore" != "MENU" ]; then
+      if [ -f /tmp/tty2oled_sleep ]; then
+        sleepfile_creation=$(</tmp/tty2oled_sleep)
+        sleepfile_age=$((EPOCHSECONDS - sleepfile_creation))
+        dbug "! $sleepfile_creation ! $sleepfile_age !"
+        if [ ${sleepfile_age} -lt 300 ]; then
           #echo "The tty2oled daemon is sleeping!"
           dbug "The tty2oled daemon is sleeping!"
-          inotifywait -qq -e delete "/tmp/tty2oled_sleep"
+          inotifywait -qq -e delete -t 300 "/tmp/tty2oled_sleep"
         else
-          if [ -f /tmp/tty2oled_sleep ]; then # Check for Sleepfile
-            #echo "Deleting sleepfile"
-            rm /tmp/tty2oled_sleep # Delete Sleepfile
-          fi
+          #echo "Deleting sleepfile"
+          dbug "The sleepfile is more than 5 minutes old, deleting!"
+          rm /tmp/tty2oled_sleep # Delete Sleepfile
+        fi
+      fi
+      if [ ! -f /tmp/tty2oled_sleep ]; then
+        if [ ! -z "$newcore" ]; then
+          oldcore=$newcore
+        fi
+        newcore=$(<${corenamefile}) # get CORENAME
+        if [ ! -z "$oldcore" ] && [ "$oldcore" != "$newcore" ]; then
+          #echo "Read CORENAME: -${newcore}-"
+          dbug "Read CORENAME: -${newcore}-"
           #echo "Send -${newcore}- to ${TTYDEV}."
           dbug "Send -${newcore}- to ${TTYDEV}."
           senddata "${newcore}" # The "Magic"
           if [ "${debug}" = "false" ]; then
             # wait here for next change of corename, -qq for quietness
             inotifywait -qq -e modify "${corenamefile}"
-          fi
-          if [ "${debug}" = "true" ]; then
+          elif [ "${debug}" = "true" ]; then
             # but not -qq when debugging
             inotifywait -e modify "${corenamefile}"
           fi

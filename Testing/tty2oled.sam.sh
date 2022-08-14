@@ -54,13 +54,16 @@
 # 2022-04-24 Add "settime"
 # 2022-06-17 Redo/Rework of PID and inotify
 # 2022-07-22 New Screensaver Mode Handling
-# 2022-07-25 Support for SAM
+# 2022-08-14 Support for SAM adding tty2oled "Sleepmode"
+#            Create the Sleepmode Indicator File "/tmp/tty2oled_sleep" by using "echo $((EPOCHSECONDS + [offset_in_secs])) > /tmp/tty2oled_sleep"
 #
 #
 
 . /media/fat/tty2oled/tty2oled-system.ini
 . /media/fat/tty2oled/tty2oled-user.ini
 cd /tmp
+
+SLEEPFILE="/tmp/tty2oled_sleep"
 
 # Debug function
 dbug() {
@@ -216,29 +219,35 @@ if [ -c "${TTYDEV}" ]; then # check for tty device
   sendscreensaver                   # Set Screensaver
   while true; do                    # main loop
     if [ -r ${corenamefile} ]; then # proceed if file exists and is readable (-r)
-      if [ -f /tmp/tty2oled_sleep ]; then
-        sleepfile_creation=$(</tmp/tty2oled_sleep)
-        sleepfile_age=$((EPOCHSECONDS - sleepfile_creation))
-        dbug "! $sleepfile_creation ! $sleepfile_age !"
-        if [ ${sleepfile_age} -lt 300 ]; then
-          #echo "The tty2oled daemon is sleeping!"
+      if [ -f ${SLEEPFILE} ]; then
+        sleepfile_expiration=$(<${SLEEPFILE})
+        expired=0
+        if [ ! -z ${sleepfile_expiration} ]; then
+          dbug "! Expires: ${sleepfile_expiration} ! Now: ${EPOCHSECONDS} !"
+          if [ ${sleepfile_expiration} -gt ${EPOCHSECONDS} ]; then
+            expired=0
+          else
+            expired=1
+          fi
+        elif [ -z ${sleepfile_expiration} ]; then
+          if [ $(( `stat -c "%Y" ${SLEEPFILE}` + 300)) -gt ${EPOCHSECONDS} ]; then
+            expired=0
+          else
+            expired=1
+          fi
+        fi
+        if [ ${expired} -eq 0 ]; then
           dbug "The tty2oled daemon is sleeping!"
-          inotifywait -qq -e delete -t 300 "/tmp/tty2oled_sleep"
+          inotifywait -qq -e delete -t 60 "${SLEEPFILE}"
         else
-          #echo "Deleting sleepfile"
-          dbug "The sleepfile is more than 5 minutes old, deleting!"
-          rm /tmp/tty2oled_sleep # Delete Sleepfile
+          dbug "The sleepfile has been orphaned, deleting!"
+          rm ${SLEEPFILE} # Delete Sleepfile
         fi
       fi
-      if [ ! -f /tmp/tty2oled_sleep ]; then
-        if [ ! -z "$newcore" ]; then
-          oldcore=$newcore
-        fi
+      if [ ! -f ${SLEEPFILE} ]; then
         newcore=$(<${corenamefile}) # get CORENAME
-        if [ ! -z "$oldcore" ] && [ "$oldcore" != "$newcore" ]; then
-          #echo "Read CORENAME: -${newcore}-"
+        if [ "$newcore" != "$oldcore" ]; then
           dbug "Read CORENAME: -${newcore}-"
-          #echo "Send -${newcore}- to ${TTYDEV}."
           dbug "Send -${newcore}- to ${TTYDEV}."
           senddata "${newcore}" # The "Magic"
           if [ "${debug}" = "false" ]; then
@@ -248,10 +257,12 @@ if [ -c "${TTYDEV}" ]; then # check for tty device
             # but not -qq when debugging
             inotifywait -e modify "${corenamefile}"
           fi
-        fi
+          oldcore=$newcore
+		else
+          dbug "Core not changed!"
+        fi #newcore != oldcore
       fi
     else # CORENAME file not found
-      #echo "File ${corenamefile} not found!"
       dbug "File ${corenamefile} not found!"
     fi # end if /tmp/CORENAME check
   done # end while

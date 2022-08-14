@@ -221,9 +221,8 @@ if [ -c "${TTYDEV}" ]; then # check for tty device
     if [ -r ${corenamefile} ]; then # proceed if file exists and is readable (-r)
       if [ -f ${SLEEPFILE} ]; then
         sleepfile_expiration=$(<${SLEEPFILE})
-        dbug "! Expires: ${sleepfile_expiration} ! Now: ${EPOCHSECONDS} !"
-        #if [ ${sleepfile_expiration} -gt ${EPOCHSECONDS} ]; then
-        if [ $(( `stat -c "%Y" ${SLEEPFILE}` )) -gt ${EPOCHSECONDS} ]; then
+       dbug "! Expires: ${sleepfile_expiration} ! Now: ${EPOCHSECONDS} !"
+        if [ ${sleepfile_expiration} -gt ${EPOCHSECONDS} ]; then
           dbug "The tty2oled daemon is sleeping!"
           inotifywait -qq -e delete -t 60 "${SLEEPFILE}"
         else

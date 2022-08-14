@@ -54,13 +54,16 @@
 # 2022-04-24 Add "settime"
 # 2022-06-17 Redo/Rework of PID and inotify
 # 2022-07-22 New Screensaver Mode Handling
-# 2022-07-25 Support for SAM
+# 2022-08-14 Support for SAM adding tty2oled "Sleepmode"
+#            Create the Sleepmode Indicator File "/tmp/tty2oled_sleep" by using "echo $((EPOCHSECONDS + [offset_in_secs])) > /tmp/tty2oled_sleep"
 #
 #
 
 . /media/fat/tty2oled/tty2oled-system.ini
 . /media/fat/tty2oled/tty2oled-user.ini
 cd /tmp
+
+SLEEPFILE="/tmp/tty2oled_sleep"
 
 # Debug function
 dbug() {
@@ -216,18 +219,19 @@ if [ -c "${TTYDEV}" ]; then # check for tty device
   sendscreensaver                   # Set Screensaver
   while true; do                    # main loop
     if [ -r ${corenamefile} ]; then # proceed if file exists and is readable (-r)
-      if [ -f /tmp/tty2oled_sleep ]; then
-        sleepfile_expiration=$(</tmp/tty2oled_sleep)
+      if [ -f ${SLEEPFILE} ]; then
+        sleepfile_expiration=$(<${SLEEPFILE})
         dbug "! Expires: ${sleepfile_expiration} ! Now: ${EPOCHSECONDS} !"
-        if [ ${sleepfile_expiration} -gt ${EPOCHSECONDS} ]; then
+        #if [ ${sleepfile_expiration} -gt ${EPOCHSECONDS} ]; then
+        if [ $(( `stat -c "%Y" ${SLEEPFILE}` )) -gt ${EPOCHSECONDS} ]; then
           dbug "The tty2oled daemon is sleeping!"
-          inotifywait -qq -e delete -t 120 "/tmp/tty2oled_sleep"
+          inotifywait -qq -e delete -t 60 "${SLEEPFILE}"
         else
           dbug "The sleepfile has been orphaned, deleting!"
-          rm /tmp/tty2oled_sleep # Delete Sleepfile
+          rm ${SLEEPFILE} # Delete Sleepfile
         fi
       fi
-      if [ ! -f /tmp/tty2oled_sleep ]; then
+      if [ ! -f ${SLEEPFILE} ]; then
         newcore=$(<${corenamefile}) # get CORENAME
         if [ "$newcore" != "$oldcore" ]; then
           dbug "Read CORENAME: -${newcore}-"

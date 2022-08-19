@@ -48,7 +48,7 @@ fi
 [ "${TTY2OLED_FW_TESTING}" = "yes" ] && BUILDVER=$(wget -q ${REPOSITORY_URL2}/buildverT -O -) || BUILDVER=$(wget -q ${REPOSITORY_URL2}/buildver -O -)
 
 # Clear the display by setting this as CORENAME, which keeps the display while updating
-echo "cls" > /tmp/CORENAME
+#echo "cls" > /tmp/CORENAME
 
 # Stop an already running daemon
 if [ $(pidof ${DAEMONNAME}) ] && [ -f ${INITSCRIPT} ] ; then

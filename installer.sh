@@ -143,7 +143,7 @@ else
 	[ "${INITSTOPPED}" = "yes" ] && ! [ "${1}" = "UPDATER" ] && ${INITSCRIPT} start
     fi
 fi
-echo "MENU" > /tmp/CORENAME
+#echo "MENU" > /tmp/CORENAME
 
 rm -rf ${TMPDIR}
 exit 0

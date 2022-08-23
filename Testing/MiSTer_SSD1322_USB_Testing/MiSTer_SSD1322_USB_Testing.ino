@@ -29,6 +29,9 @@
   2022-08-07..12
   -Add RGB LED to Startup Screen (d.ti Board 1.2)
   -New Variable "dtiv" showing d.ti Board Revisions: 11=1.1 12=1.2...
+
+  2022-08-23
+  -Replace some pcaAvail into dtiv==12
   
   ToDo
   -Everything I forgot
@@ -36,7 +39,7 @@
 */
 
 // Set Version
-#define BuildVersion "220812T"                    // "T" for Testing
+#define BuildVersion "220823T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -377,10 +380,10 @@ void setup(void) {
     }
   }
   
-  if (!pcaAvail) {                                                 // If PCA9536 is not available = d.ti Board Rev 1.1
+  if (dtiv==11) {                                                  // If PCA9536 is not available = d.ti Board Rev 1.1
     pinMode(USER_LED, OUTPUT);                                     // Setup User LED
   }
-  else {                                                           // If PCA9536 is available = d.ti Board Rev 1.2 or greater
+  if (dtiv==12) {                                                  // If PCA9536 is available = d.ti Board Rev 1.2 or greater
     FastLED.addLeds<WS2812B, USER_LED, GRB>(wsleds, NUM_WSLEDS);   // Setup User WS2812B LED
     FastLED.setBrightness(WS_BRIGHTNESS);                          // and set Brightness
   }
@@ -723,11 +726,6 @@ void oled_showStartScreen(void) {
   oled.drawXBitmap(82, 0, tty2oled_logo, tty2oled_logo_width, tty2oled_logo_height, SSD1322_WHITE);
   oled.display();
   delay(1000);
-#ifdef USE_ESP32DEV
-  if (pcaAvail) {
-    digitalWrite(POWER_LED,1);                   // Power off Power LED's D2 & D3
-  }
-#endif
   for (int i=0; i<DispWidth; i+=16) {            // Some Animation
     oled.fillRect(i,55,16,8,color);
     color++;
@@ -752,13 +750,14 @@ void oled_showStartScreen(void) {
     delay(20);
   }
 #ifdef USE_ESP32DEV
-  if (dtiv==12) {                                // RGB LED off
-    wsleds[0] = CRGB::Black;
+  if (dtiv==12) {
+    digitalWrite(POWER_LED,1);                   // Power off Power LED's D2 & D3
+    wsleds[0] = CRGB::Black;                     // RGB LED off
     FastLED.show();
   }
 #endif
   delay(500);
-  u8g2.setFont(u8g2_font_5x7_mf);            // 6 Pixel Font
+  u8g2.setFont(u8g2_font_5x7_mf);               // 6 Pixel Font
   u8g2.setCursor(0,63);
   u8g2.print(BuildVersion);
 #ifdef XDEBUG	
@@ -2179,7 +2178,7 @@ void oled_readnsetpowerled(void) {
   
   x=xT.toInt();                                 // Convert Value
   
-  if (pcaAvail) {                               // PCA not avail = Board Rev 1.1 = LED
+  if (dtiv==12) {                               // PCA not avail = Board Rev 1.1 = LED
     if (x<0) x=0;
     if (x>1) x=1;
     digitalWrite(POWER_LED,!x);                 // Need to negate Signal, Pin = 1 LED's off

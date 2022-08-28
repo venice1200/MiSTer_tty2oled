@@ -33,7 +33,7 @@
   2022-08-23
   -Replace some if (pcaAvail) with if (dtiv==12)
 
-  2022-08-26
+  2022-08-26..28
   -New Command CMDSHSYSHW shows Hardware & Software Infos on Screen
   
   ToDo
@@ -42,7 +42,7 @@
 */
 
 // Set Version
-#define BuildVersion "220826T"                    // "T" for Testing
+#define BuildVersion "220828T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -1097,15 +1097,15 @@ void oled_showSystemHardware(void) {
 #endif
 
   oled.clearDisplay();
-  u8g2.setFont(u8g2_font_luBS08_tf);
-
+  u8g2.setFont(u8g2_font_luBS10_tf);
   u8g2.setCursor(0,10);
-  u8g2.print("tty2oled SysInfo");
+  u8g2.print("SysInfo");
 
-  u8g2.setCursor(0,20);
+  u8g2.setFont(u8g2_font_luBS08_tf);
+  u8g2.setCursor(0,25);
   u8g2.print("FW Version: " BuildVersion);
 
-  u8g2.setCursor(0,30);
+  u8g2.setCursor(0,35);
   u8g2.print("Board Type: ");
   
   switch (hwinfo) {
@@ -1129,13 +1129,14 @@ void oled_showSystemHardware(void) {
     break;
   }
 
-  u8g2.setCursor(0,40);
+  u8g2.setCursor(0,50);
   u8g2.print("Board Options: ");
+  u8g2.setCursor(0,60);
   if (dtiv>=11) {
     if (micAvail) u8g2.print("MIC184");
-    if (pcaAvail) u8g2.print(",PCA");
+    if (pcaAvail) u8g2.print(",PCA9536");
     if (dtiv==11) u8g2.print(",LED");
-    if (dtiv==12) u8g2.print(",RGB-LED,Buzzer");
+    if (dtiv==12) u8g2.print(",WS2812-LED,Buzzer");
   }
   else {
     u8g2.print("None");

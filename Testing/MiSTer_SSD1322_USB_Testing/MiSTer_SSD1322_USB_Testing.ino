@@ -31,7 +31,10 @@
   -New Variable "dtiv" showing d.ti Board Revisions: 11=1.1 12=1.2...
 
   2022-08-23
-  -Replace some pcaAvail into dtiv==12
+  -Replace some if (pcaAvail) with if (dtiv==12)
+
+  2022-08-26
+  -New Command CMDSHSYSHW shows Hardware & Software Infos on Screen
   
   ToDo
   -Everything I forgot
@@ -39,7 +42,7 @@
 */
 
 // Set Version
-#define BuildVersion "220823T"                    // "T" for Testing
+#define BuildVersion "220826T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -562,6 +565,10 @@ void loop(void) {
       oled_showcdelay();
     }
 
+    else if (newCommand=="CMDSHSYSHW") {                                    // Show System HW
+      oled_showSystemHardware();
+    }
+
     else if (newCommand=="CMDHWINF") {                                      // Send HW Info
       oled_sendHardwareInfo();
     }
@@ -1072,6 +1079,72 @@ void oled_showSmallCorePicture(int xpos, int ypos) {
 
 
 // --------------------------------------------------------------
+// ----------- Show System Hardware Info on Screen --------------
+// --------------------------------------------------------------
+void oled_showSystemHardware(void) {
+  int hwinfo=0;
+
+#ifdef USE_ESP32DEV                        // TTGO-T8 & d.ti Board
+  hwinfo=1;
+#endif
+
+#ifdef USE_LOLIN32                         // Wemos LOLIN32, LOLIN32, DevKit_V4 (Wemos Lolin32)
+  hwinfo=2;
+#endif
+
+#ifdef USE_NODEMCU                         // ESP8266 NodeMCU
+  hwinfo=3;
+#endif
+
+  oled.clearDisplay();
+  u8g2.setFont(u8g2_font_luBS08_tf);
+
+  u8g2.setCursor(0,10);
+  u8g2.print("tty2oled SysInfo");
+
+  u8g2.setCursor(0,20);
+  u8g2.print("FW Version: " BuildVersion);
+
+  u8g2.setCursor(0,30);
+  u8g2.print("Board Type: ");
+  
+  switch (hwinfo) {
+    case 0:
+      u8g2.print("Unknown");                 // Unknow Hardware
+    break;
+    case 1:
+      u8g2.print("ESP32-DEV");               // ESP32-DEV, TTGO, DTI-Board
+      if (dtiv>=11) {
+        u8g2.printf(", d.ti v%.1f", (float)dtiv/10);
+      }
+    break;
+    case 2:
+      u8g2.print("WEMOS LOLIN32");           // Wemos,Lolin,DevKit_V4
+    break;
+    case 3:
+      u8g2.print("NodeMCU 1.0");             // ESP8266
+    break;
+    default:
+      u8g2.print("Other");                   // Everything else
+    break;
+  }
+
+  u8g2.setCursor(0,40);
+  u8g2.print("Board Options: ");
+  if (dtiv>=11) {
+    if (micAvail) u8g2.print("MIC184");
+    if (pcaAvail) u8g2.print(",PCA");
+    if (dtiv==11) u8g2.print(",LED");
+    if (dtiv==12) u8g2.print(",RGB-LED,Buzzer");
+  }
+  else {
+    u8g2.print("None");
+  }
+
+  oled.display();  
+}
+
+// --------------------------------------------------------------
 // ----------- Send Hardware Info Back to the MiSTer ------------
 // --------------------------------------------------------------
 void oled_sendHardwareInfo(void) {
@@ -1088,7 +1161,6 @@ void oled_sendHardwareInfo(void) {
 #ifdef USE_NODEMCU                         // ESP8266 NodeMCU
   hwinfo=3;
 #endif
-
  
   delay(hwDelay);                          // Small Delay
 

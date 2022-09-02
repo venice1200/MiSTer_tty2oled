@@ -35,6 +35,12 @@
 
   2022-08-26..28
   -New Command CMDSHSYSHW shows Hardware & Software Infos on Screen
+
+  2022-09-01
+  -More usage of dtiv
+
+  2022-09-02
+  -New functions oled_showcenterredtext and oled_setfont
   
   ToDo
   -Everything I forgot
@@ -42,7 +48,7 @@
 */
 
 // Set Version
-#define BuildVersion "220828T"                    // "T" for Testing
+#define BuildVersion "220902T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -257,6 +263,8 @@ void oled_displayon(void);
 void oled_updatedisplay(void);
 void oled_readnsetcontrast(void);
 void oled_showperror(void);
+void oled_showcenterredtext(String text, int font);
+void oled_setfont(int font);
 void oled_readnsetrotation(void);
 void oled_clswithtransition();
 void oled_showpic(void);
@@ -1213,12 +1221,13 @@ void oled_showcorename() {
   ScreenSaverLogoTimer=0;                    // Reset ScreenSaverLogo-Timer
   oled.setContrast(contrast);
 
-  oled.clearDisplay();
+  //oled.clearDisplay();
   //u8g2.setFont(u8g2_font_tenfatguys_tr);     // 10 Pixel Font
-  u8g2.setFont(u8g2_font_commodore64_tr);      // Commodore 64 Font
-  u8g2.setCursor(DispWidth/2-(u8g2.getUTF8Width(actCorename.c_str())/2), DispHeight/2 + (u8g2.getFontAscent()/2));
-  u8g2.print(actCorename);
-  oled.display();
+  //u8g2.setFont(u8g2_font_commodore64_tr);      // Commodore 64 Font
+  //u8g2.setCursor(DispWidth/2-(u8g2.getUTF8Width(actCorename.c_str())/2), DispHeight/2 + (u8g2.getFontAscent()/2));
+  //u8g2.print(actCorename);
+  //oled.display();
+  oled_showcenterredtext(actCorename,9);
 }
 
 
@@ -1253,6 +1262,7 @@ void oled_updatedisplay(void) {
 #ifdef XDEBUG
   Serial.println("Called Command CMDDUPD");
 #endif
+
   oled.display();                 // Update Display Content
 }
 
@@ -1276,17 +1286,81 @@ void oled_readnsetcontrast(void) {
 }
 
 // --------------------------------------------------------------
-// ---------------- Show Parameter Error ------------------------
+// ---------------- Show "Parameter Error" ----------------------
 // --------------------------------------------------------------
 void oled_showperror(void) {
+  String actText="Parameter Error";
+  
   oled.clearDisplay();
   u8g2.setFont(u8g2_font_luBS14_tf);
-  u8g2.setCursor(5, 20);
-  u8g2.print("Parameter Error!");
+  u8g2.setCursor(DispWidth/2-(u8g2.getUTF8Width(actText.c_str())/2), 20);
+  //u8g2.setCursor(5, 20);
+  u8g2.print(actText);
+  
   u8g2.setFont(u8g2_font_luBS10_tf);
-  u8g2.setCursor(5, 40);
+  u8g2.setCursor(DispWidth/2-(u8g2.getUTF8Width(newCommand.c_str())/2), 40);
+  //u8g2.setCursor(5, 40);
   u8g2.print(newCommand);
   oled.display();
+}
+
+// --------------------------------------------------------------
+// ------------------ Show centerred Text -----------------------
+// --------------------------------------------------------------
+void oled_showcenterredtext(String text, int font) {
+  
+  oled.clearDisplay();
+  oled_setfont(font);
+  u8g2.setCursor(DispWidth/2-(u8g2.getUTF8Width(text.c_str())/2), DispHeight/2 + (u8g2.getFontAscent()/2));
+  u8g2.print(text);
+  oled.display();
+}
+
+
+// --------------------------------------------------------------
+// -------------------------- Set Font --------------------------
+// --------------------------------------------------------------
+void oled_setfont(int font) {
+  switch (font) {
+    case 0:
+      u8g2.setFont(u8g2_font_5x7_mf);             // Transparent 6 Pixel Font
+    break;
+    case 1:
+      u8g2.setFont(u8g2_font_luBS08_tf);          // Transparent Font 20x12, 8 Pixel A
+    break;
+    case 2:
+      u8g2.setFont(u8g2_font_luBS10_tf);          // Transparent Font 26x15, 10 Pixel A
+    break;
+    case 3:
+      u8g2.setFont(u8g2_font_luBS14_tf);          // Transparent Font 35x22, 14 Pixel A
+    break;
+    case 4:
+      u8g2.setFont(u8g2_font_luBS18_tf);          // Transparent Font 44x28, 18 Pixel A
+    break;
+    case 5:
+      u8g2.setFont(u8g2_font_luBS24_tf);          // Transparent Font 61x40, 24 Pixel A
+    break;
+    case 6:
+      u8g2.setFont(u8g2_font_lucasarts_scumm_subtitle_o_tf); // Nice 12 Pixel Font
+    break;
+    case 7:
+      u8g2.setFont(u8g2_font_tenfatguys_tr);      // Nice 10 Pixel Font
+    break;
+    case 8:
+      u8g2.setFont(u8g2_font_7Segments_26x42_mn); // 7 Segments 42 Pixel Font
+    break;
+    
+    case 9:
+      u8g2.setFont(u8g2_font_commodore64_tr);     // Commodore 64
+    break;
+    case 10:
+      u8g2.setFont(u8g2_font_8bitclassic_tf);     // 8bitclassic
+    break;
+
+    default:
+      u8g2.setFont(u8g2_font_tenfatguys_tr);      // Nice 10 Pixel Font
+    break;
+  }
 }
 
 
@@ -1982,47 +2056,8 @@ void oled_readnwritetext(void) {
   }
 #endif
   
-  //Set Font
-  switch (f) {
-    case 0:
-      u8g2.setFont(u8g2_font_5x7_mf);             // Transparent 6 Pixel Font
-    break;
-    case 1:
-      u8g2.setFont(u8g2_font_luBS08_tf);          // Transparent Font 20x12, 8 Pixel A
-    break;
-    case 2:
-      u8g2.setFont(u8g2_font_luBS10_tf);          // Transparent Font 26x15, 10 Pixel A
-    break;
-    case 3:
-      u8g2.setFont(u8g2_font_luBS14_tf);          // Transparent Font 35x22, 14 Pixel A
-    break;
-    case 4:
-      u8g2.setFont(u8g2_font_luBS18_tf);          // Transparent Font 44x28, 18 Pixel A
-    break;
-    case 5:
-      u8g2.setFont(u8g2_font_luBS24_tf);          // Transparent Font 61x40, 24 Pixel A
-    break;
-    case 6:
-      u8g2.setFont(u8g2_font_lucasarts_scumm_subtitle_o_tf); // Nice 12 Pixel Font
-    break;
-    case 7:
-      u8g2.setFont(u8g2_font_tenfatguys_tr);      // Nice 10 Pixel Font
-    break;
-    case 8:
-      u8g2.setFont(u8g2_font_7Segments_26x42_mn); // 7 Segments 42 Pixel Font
-    break;
-    
-    case 9:
-      u8g2.setFont(u8g2_font_commodore64_tr);     // Commodore 64
-    break;
-    case 10:
-      u8g2.setFont(u8g2_font_8bitclassic_tf);     // 8bitclassic
-    break;
-
-    default:
-      u8g2.setFont(u8g2_font_tenfatguys_tr);      // Nice 10 Pixel Font
-    break;
-  }
+  oled_setfont(f);
+  
   if (!pError) {
     // Write or Clear Text
     u8g2.setForegroundColor(c);                           // Set Font Color
@@ -2271,97 +2306,97 @@ void oled_playnote(void) {
   Serial.println("Called Command CMDPNOTE");
 #endif  
   
-  //TextIn=newCommand.substring(8);               // Start to find the first "," after the command
   TextIn=newCommand.substring(newCommand.indexOf(','));  // Find the first "," after the command
-
-#ifdef XDEBUG
-  Serial.printf("\nReceived Text: %s\n", (char*)TextIn.c_str());
-#endif
-  
   d0 = TextIn.indexOf(',');                 // Find location of the Starting ","
 
 #ifdef XDEBUG
-    Serial.printf("Find first delimeter at: %d\n", d0);
-#endif  
- 
-  ledcAttachPin(BUZZER, TONE_PWM_CHANNEL);
- 
-#ifdef XDEBUG
   Serial.printf("\nReceived Text: %s\n", (char*)TextIn.c_str());
+  Serial.printf("Find first delimeter at: %d\n", d0);
 #endif  
 
-  do {
-    // find ","
-    d1 = TextIn.indexOf(',', d0+1 );          // Find location of first ","
-    d2 = TextIn.indexOf(',', d1+1 );          // Find location of second ","
-    d3 = TextIn.indexOf(',', d2+1 );          // Find location of third ","
-    d4 = TextIn.indexOf(',', d3+1 );          // Find location of fourth "," - Value = "-1" if not found = no more Notes available
+  if (dtiv==12){                                // only on d.ti Board Rev 1.2
+    ledcAttachPin(BUZZER, TONE_PWM_CHANNEL);
+
+    do {
+      // find ","
+      d1 = TextIn.indexOf(',', d0+1 );          // Find location of first ","
+      d2 = TextIn.indexOf(',', d1+1 );          // Find location of second ","
+      d3 = TextIn.indexOf(',', d2+1 );          // Find location of third ","
+      d4 = TextIn.indexOf(',', d3+1 );          // Find location of fourth "," - Value = "-1" if not found = no more Notes available
 
 #ifdef XDEBUG
-    Serial.printf("Find delimeters at: %d %d %d %d\n", d1,d2,d3,d4);
+      Serial.printf("Find delimeters at: %d %d %d %d\n", d1,d2,d3,d4);
 #endif  
 
-    //Create Substrings
-    nT = TextIn.substring(d0+1, d1);          // Get String for Note
-    oT = TextIn.substring(d1+1, d2);          // Get String for Octave
-    dT = TextIn.substring(d2+1, d3);          // Get String for Duration
-    if (d4 == -1) {                           // String finished
-      pT = TextIn.substring(d3+1);            // Get String for Pause
-    }
-    else if (d3 == -1 || d2 == -1 || d1 == -1) {  // Parameter missing = pError
-      pError=true;
-    }
-    else {                                    // String not finished
-      pT = TextIn.substring(d3+1, d4);        // Get String for Pause
-      d0=d4;                                  // Set Index for next Note
-    }
+      //Create Substrings
+      nT = TextIn.substring(d0+1, d1);          // Get String for Note
+      oT = TextIn.substring(d1+1, d2);          // Get String for Octave
+      dT = TextIn.substring(d2+1, d3);          // Get String for Duration
+      if (d4 == -1) {                           // String finished
+        pT = TextIn.substring(d3+1);            // Get String for Pause
+      }
+      else if (d3 == -1 || d2 == -1 || d1 == -1) {  // Parameter missing = pError
+        pError=true;
+      }
+      else {                                    // String not finished
+        pT = TextIn.substring(d3+1, d4);        // Get String for Pause
+        d0=d4;                                  // Set Index for next Note
+      }
 
 #ifdef XDEBUG
-    Serial.printf("Found strings: %s %s %s %s\n", (char*)nT.c_str(), (char*)oT.c_str(), (char*)dT.c_str(), (char*)pT.c_str());
+      Serial.printf("Found strings: %s %s %s %s\n", (char*)nT.c_str(), (char*)oT.c_str(), (char*)dT.c_str(), (char*)pT.c_str());
 #endif  
 
-    // Build Note and convert Substrings to Integers
-    // See https://github.com/espressif/arduino-esp32/blob/6a7bcabd6b7a33f074f93ed60e5cc4378d350b81/cores/esp32/esp32-hal-ledc.c#L141
-    // NOTE_C, NOTE_Cs, NOTE_D, NOTE_Eb, NOTE_E, NOTE_F, NOTE_Fs, NOTE_G, NOTE_Gs, NOTE_A, NOTE_Bb, NOTE_B, NOTE_MAX
-    nT.toUpperCase();                         // Set Note
-    if (nT == "C")   n = NOTE_C;
-    if (nT == "CS")  n = NOTE_Cs;
-    if (nT == "D")   n = NOTE_D;
-    if (nT == "EB")  n = NOTE_Eb;
-    if (nT == "E")   n = NOTE_E;
-    if (nT == "F")   n = NOTE_F;
-    if (nT == "FS")  n = NOTE_Fs;
-    if (nT == "G")   n = NOTE_G;
-    if (nT == "GS")  n = NOTE_Gs;
-    if (nT == "A")   n = NOTE_A;
-    if (nT == "BB")  n = NOTE_Bb;
-    if (nT == "B")   n = NOTE_B;
-    if (nT == "MAX") n = NOTE_MAX;
-    o = oT.toInt();                           // Octave
-    d = dT.toInt();                           // Duration
-    p = pT.toInt();                           // Pause after playing tone
+      // Build Note and convert Substrings to Integers
+      // See https://github.com/espressif/arduino-esp32/blob/6a7bcabd6b7a33f074f93ed60e5cc4378d350b81/cores/esp32/esp32-hal-ledc.c#L141
+      // NOTE_C, NOTE_Cs, NOTE_D, NOTE_Eb, NOTE_E, NOTE_F, NOTE_Fs, NOTE_G, NOTE_Gs, NOTE_A, NOTE_Bb, NOTE_B, NOTE_MAX
+      nT.toUpperCase();                         // Set Note
+      if (nT == "C")   n = NOTE_C;
+      if (nT == "CS")  n = NOTE_Cs;
+      if (nT == "D")   n = NOTE_D;
+      if (nT == "EB")  n = NOTE_Eb;
+      if (nT == "E")   n = NOTE_E;
+      if (nT == "F")   n = NOTE_F;
+      if (nT == "FS")  n = NOTE_Fs;
+      if (nT == "G")   n = NOTE_G;
+      if (nT == "GS")  n = NOTE_Gs;
+      if (nT == "A")   n = NOTE_A;
+      if (nT == "BB")  n = NOTE_Bb;
+      if (nT == "B")   n = NOTE_B;
+      if (nT == "MAX") n = NOTE_MAX;
+      o = oT.toInt();                           // Octave
+      d = dT.toInt();                           // Duration
+      p = pT.toInt();                           // Pause after playing tone
 
-    if (o == 0 || d == 0 || p == 0) pError=true;
+      if (o == 0 || d == 0 || p == 0) pError=true;
     
 #ifdef XDEBUG
-    Serial.printf("Values to Play: %s %d %d %d\n", (char*)nT.c_str(), o, d, p);
+      Serial.printf("Values to Play: %s %d %d %d\n", (char*)nT.c_str(), o, d, p);
 #endif  
 
-    if (!pError) {
-      ledcWriteNote(TONE_PWM_CHANNEL, n, o);    // Play Note
-      delay(d);                                 // Duration
-      ledcWriteTone(TONE_PWM_CHANNEL, 0);       // Buzzer off
-      delay(p);                                 // Pause
-    }
-    else {
-      oled_showperror(); 
+      if (!pError) {
+        ledcWriteNote(TONE_PWM_CHANNEL, n, o);    // Play Note
+        delay(d);                                 // Duration
+        ledcWriteTone(TONE_PWM_CHANNEL, 0);       // Buzzer off
+        delay(p);                                 // Pause
+      }
+      else {
+        oled_showperror(); 
 #ifdef XDEBUG
-      Serial.printf("Parameter Error!\n");
+        Serial.printf("Parameter Error!\n");
 #endif  
-    }
-  } while (d4 != -1 && !pError);                         // Repeat as long a fourth "," is found
+      }
+    } while (d4 != -1 && !pError);                         // Repeat as long a fourth "," is found
 
-  ledcDetachPin(BUZZER);
+    ledcDetachPin(BUZZER);
+
+  }  // endif dtiv==12
+  else {
+    oled_showcenterredtext("No Buzzer!",3);
+#ifdef XDEBUG
+    Serial.printf("No Buzzer!\n");
+#endif  
+  }
 }
 
 // --------------------------------------------------------------
@@ -2376,66 +2411,72 @@ void oled_playtone(void) {
   Serial.println("Called Command CMDPTONE");
 #endif  
 
-  //TextIn=newCommand.substring(8);               // Start to find the first "," after the command
   TextIn=newCommand.substring(newCommand.indexOf(','));  // Find the first "," after the command
+  d0 = TextIn.indexOf(',');                 // Find location of the Starting ","
 
 #ifdef XDEBUG
   Serial.printf("\nReceived Text: %s\n", (char*)TextIn.c_str());
-#endif
-  
-  d0 = TextIn.indexOf(',');                 // Find location of the Starting ","
- 
-  ledcAttachPin(BUZZER, TONE_PWM_CHANNEL);
- 
-#ifdef XDEBUG
-  Serial.printf("\nReceived Text: %s\n", (char*)TextIn.c_str());
+  Serial.printf("Find first delimeter at: %d\n", d0);
 #endif  
 
-  do {
-    // find ","
-    d1 = TextIn.indexOf(',', d0+1 );          // Find location of first ","
-    d2 = TextIn.indexOf(',', d1+1 );          // Find location of second ","
-    d3 = TextIn.indexOf(',', d2+1 );          // Find location of third "," - Value = "-1" if not found = no more Notes available
+  if (dtiv==12){                                // only on d.ti Board Rev 1.2
+    ledcAttachPin(BUZZER, TONE_PWM_CHANNEL);
 
-    //Create Substrings
-    fT = TextIn.substring(d0+1, d1);          // Get String for Frequency
-    dT = TextIn.substring(d1+1, d2);          // Get String for Duration
-    if (d3 == -1) {                           // String finished
-      pT = TextIn.substring(d2+1);            // Get String for Pause
-    }
-    else if (d2 == -1 || d1 == -1) {          // Parameter missing = pError
-      pError=true;
-    }
-    else {                                    // String not finished
-      pT = TextIn.substring(d2+1, d3);        // Get String for Pause
-      d0=d3;                                  // Set Index for next Tone
-    }
+    do {
+      // find ","
+      d1 = TextIn.indexOf(',', d0+1 );          // Find location of first ","
+      d2 = TextIn.indexOf(',', d1+1 );          // Find location of second ","
+      d3 = TextIn.indexOf(',', d2+1 );          // Find location of third "," - Value = "-1" if not found = no more Notes available
 
+      //Create Substrings
+      fT = TextIn.substring(d0+1, d1);          // Get String for Frequency
+      dT = TextIn.substring(d1+1, d2);          // Get String for Duration
+      if (d3 == -1) {                           // String finished
+        pT = TextIn.substring(d2+1);            // Get String for Pause
+      }
+      else if (d2 == -1 || d1 == -1) {          // Parameter missing = pError
+        pError=true;
+      }
+      else {                                    // String not finished
+        pT = TextIn.substring(d2+1, d3);        // Get String for Pause
+        d0=d3;                                  // Set Index for next Tone
+      }
 
-    f = fT.toInt();                           // Octave
-    d = dT.toInt();                           // Duration
-    p = pT.toInt();                           // Pause after playing tone
+      f = fT.toInt();                           // Octave
+      d = dT.toInt();                           // Duration
+      p = pT.toInt();                           // Pause after playing tone
 
-    if (f == 0 || d == 0 || p == 0) pError=true;
+      if (f == 0 || d == 0 || p == 0) pError=true;
     
 #ifdef XDEBUG
-    Serial.printf("Values to Play: %d %d %d\n", f, d, p);
+      Serial.printf("Values to Play: %d %d %d\n", f, d, p);
 #endif  
-    if (!pError) {
-      ledcWriteTone(TONE_PWM_CHANNEL, f);       // Play Frequency
-      delay(d);                                 // Duration
-      ledcWriteTone(TONE_PWM_CHANNEL, 0);       // Buzzer off
-      delay(p);                                 // Pause
-    }
-    else {
-      oled_showperror();      
-    }
-  } while (d3 != -1 && !pError);                         // Repeat as long as a third "," is found
+      if (!pError) {
+        ledcWriteTone(TONE_PWM_CHANNEL, f);       // Play Frequency
+        delay(d);                                 // Duration
+        ledcWriteTone(TONE_PWM_CHANNEL, 0);       // Buzzer off
+        delay(p);                                 // Pause
+      }
+      else {
+        oled_showperror();      
+#ifdef XDEBUG
+        Serial.printf("Parameter Error!\n");
+#endif  
+      }
+    } while (d3 != -1 && !pError);                         // Repeat as long as a third "," is found
 
-  ledcDetachPin(BUZZER);
+    ledcDetachPin(BUZZER);
+
+  }  // endif dtiv==12
+  else {
+    oled_showcenterredtext("No Buzzer!",3);
+#ifdef XDEBUG
+    Serial.printf("No Buzzer!\n");
+#endif  
+  }
 }
 
-#endif  // ----------- d.ti functions---------------
+#endif  // ----------- d.ti functions endif ESP32DEV---------------
 
 
 // -------------- ESP32 Functions -------------------- 

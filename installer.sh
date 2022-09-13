@@ -136,7 +136,7 @@ else
 	fi
 	[ "${INITSTOPPED}" = "yes" ] && ! [ "${1}" = "UPDATER" ] && ${INITSCRIPT} start
     elif [[ "${SWver}" = "${BUILDVER}" ]]; then
-	echo -e "${fyellow}Good boy, your hardware is up-to-date!${freset}"
+	echo -e "${fyellow}Good job, your hardware is up-to-date!${freset}"
 	[ "${INITSTOPPED}" = "yes" ] && ! [ "${1}" = "UPDATER" ] && ${INITSCRIPT} start
     fi
 fi

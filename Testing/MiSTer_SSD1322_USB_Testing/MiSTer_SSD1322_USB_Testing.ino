@@ -41,6 +41,9 @@
 
   2022-09-02
   -New functions oled_showcenterredtext and oled_setfont
+
+  2022-09-18
+  -Shorten the Date Format for the Screensaver. e.g. "19. September 2022" => "19-Sep-22".
   
   ToDo
   -Everything I forgot
@@ -48,7 +51,7 @@
 */
 
 // Set Version
-#define BuildVersion "220902T"                    // "T" for Testing
+#define BuildVersion "220918T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -980,10 +983,11 @@ void oled_showScreenSaverPicture(void) {
         u8g2.print(actTime);
       }
       else {
-        u8g2.setFont(u8g2_font_commodore64_tr);
         actTime="Time not set!";
-        u8g2.setCursor(DispWidth/2-(u8g2.getUTF8Width(actTime.c_str())/2), DispHeight/2 + (u8g2.getFontAscent()/2));
-        u8g2.print(actTime);
+        //u8g2.setFont(u8g2_font_commodore64_tr);
+        //u8g2.setCursor(DispWidth/2-(u8g2.getUTF8Width(actTime.c_str())/2), DispHeight/2 + (u8g2.getFontAscent()/2));
+        //u8g2.print(actTime);
+        oled_showcenterredtext(actTime,9);
       }
       oled.display();
     break;
@@ -991,17 +995,19 @@ void oled_showScreenSaverPicture(void) {
       oled.clearDisplay();
       if (timeIsSet) {
         u8g2.setFont(u8g2_font_luBS14_tf);
-        actTime=rtc.getTime("%d. %B %Y");
+        //actTime=rtc.getTime("%d. %B %Y");
+        actTime=rtc.getTime("%d-%b-%y");
         x=random(DispWidth - u8g2.getUTF8Width(actTime.c_str()));
         y=random(u8g2.getFontAscent(), DispHeight);
         u8g2.setCursor(x,y);
         u8g2.print(actTime);
       }
       else {
-        u8g2.setFont(u8g2_font_commodore64_tr);
         actTime="Date not set!";
-        u8g2.setCursor(DispWidth/2-(u8g2.getUTF8Width(actTime.c_str())/2), DispHeight/2 + (u8g2.getFontAscent()/2));
-        u8g2.print(actTime);
+        //u8g2.setFont(u8g2_font_commodore64_tr);
+        //u8g2.setCursor(DispWidth/2-(u8g2.getUTF8Width(actTime.c_str())/2), DispHeight/2 + (u8g2.getFontAscent()/2));
+        //u8g2.print(actTime);
+        oled_showcenterredtext(actTime,9);
       }
       oled.display();
     break;
@@ -1349,7 +1355,6 @@ void oled_setfont(int font) {
     case 8:
       u8g2.setFont(u8g2_font_7Segments_26x42_mn); // 7 Segments 42 Pixel Font
     break;
-    
     case 9:
       u8g2.setFont(u8g2_font_commodore64_tr);     // Commodore 64
     break;

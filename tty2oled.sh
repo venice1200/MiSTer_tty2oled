@@ -221,26 +221,24 @@ if [ -c "${TTYDEV}" ]; then # check for tty device
     if [ -r ${corenamefile} ]; then							# proceed if file exists and is readable (-r)
       if [ -f ${SLEEPFILE} ]; then							# Sleepmode = Yes
         dbug "The tty2oled daemon is sleeping!"
-        inotifywait -qq -t 60 -e delete "${SLEEPFILE}"		# Sleepmode is waiting it here for 60 secs
-        #inotifywait -qq -e delete "${SLEEPFILE}"			# Sleepmode is waiting it here
+        #inotifywait -qq -t 60 -e delete "${SLEEPFILE}"		  # Sleepmode is waiting it here for 60 secs
+        inotifywait -qq -e delete "${SLEEPFILE}"		  # Sleepmode is waiting it here
       fi
-      if [ ! -f ${SLEEPFILE} ]; then						# Sleepmode = No
-        newcore=$(<${corenamefile})							# get CORENAME
-        if [ "$newcore" != "$oldcore" ]; then
+      if [ ! -f ${SLEEPFILE} ]; then				  # Sleepmode = No
+        newcore=$(<${corenamefile})				  # get CORENAME
+        #if [ "$newcore" != "$oldcore" ]; then
           dbug "Read CORENAME: -${newcore}-"
           dbug "Send -${newcore}- to ${TTYDEV}."
-          senddata "${newcore}" 							# The "Magic"
-          if [ "${debug}" = "false" ]; then
-            # wait here for next change of corename, -qq for quietness
-            inotifywait -qq -e modify "${corenamefile}"
-          elif [ "${debug}" = "true" ]; then
-            # but not -qq when debugging
-            inotifywait -e modify "${corenamefile}"
-          fi
+          senddata "${newcore}" 				   # The "Magic"
           oldcore=$newcore
-		else
-          dbug "Core not changed!"
-        fi #newcore != oldcore
+          if [ "${debug}" = "false" ]; then
+            inotifywait -qq -e modify "${corenamefile}"            # wait here for next change of corename, -qq for quietness
+          elif [ "${debug}" = "true" ]; then
+            inotifywait -e modify "${corenamefile}"                # but not -qq when debugging
+          fi
+	#else
+        #  dbug "Core not changed!"
+        #fi #newcore != oldcore
       fi
     else # CORENAME file not found
       dbug "File ${corenamefile} not found!"

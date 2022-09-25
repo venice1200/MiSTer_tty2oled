@@ -44,14 +44,19 @@
 
   2022-09-18
   -Shorten the Date Format for the Screensaver. e.g. "19. September 2022" => "19-Sep-22".
+
+  2022-09-25
+  -Add Command "CMDSWSAVER" for just Switching the Screensaver On/Off
+  -Workaround for the detection of PCA9536 = d.ti Board v1.2
   
   ToDo
+  -Check why dtiv>=13 (Reason = POR of PCA9536)
   -Everything I forgot
    
 */
 
 // Set Version
-#define BuildVersion "220918T"                    // "T" for Testing
+#define BuildVersion "220925"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -331,7 +336,7 @@ void setup(void) {
   logoBytes4bpp = DispWidth * DispHeight / 2;              // SSD1322 = 8192 Bytes
   logoBin = (uint8_t *) malloc(logoBytes4bpp);             // Create Picture Buffer, better than permanent create (malloc) and destroy (free)
 
-// Activate Options
+// === Activate Options ===
 
   // Setup d.ti Board (Temp.Sensor/USER_LED/PCA9536)
 #ifdef USE_ESP32DEV                                             // Only for ESP-DEV (TTGO-T8/d.ti)
@@ -361,8 +366,8 @@ void setup(void) {
   Wire.beginTransmission(PCA9536_ADDR);                        // Check for PCA9536
   if (Wire.endTransmission() == 0) {                           // ..and wait for Answer
     pcaAvail=true;                                             // If Answer OK PCA available
+    dtiv=12;
   }
-
 #ifdef XDEBUG
   if (pcaAvail) {
     Serial.println("PCA9536 available.");
@@ -372,6 +377,7 @@ void setup(void) {
   }
 #endif  // XDEBUG
 
+/*
   if (pcaAvail) {                                               // If PCA9536 available..
     Wire.beginTransmission(PCA9536_ADDR);                       // start transmission and.. 
     Wire.write(PCA9536_IREG);                                   // read Register 0 (Input Register).
@@ -380,6 +386,7 @@ void setup(void) {
       if (Wire.available() == 1) {                              // If just one byte is available,
         pcaInputValue = Wire.read() & 0x0F;                     // read it and mask the higher bits out
         dtiv=12+pcaInputValue;                                  // d.ti Board >= 1.2
+        //dtiv=12;                                                // d.ti Board >= 1.2 Workaround as sometimes I see dtiv=13
 #ifdef XDEBUG
         Serial.print("PCA9536 Input Register Value: ");
         Serial.println(pcaInputValue);
@@ -393,7 +400,8 @@ void setup(void) {
       }
     }
   }
-  
+*/
+
   if (dtiv==11) {                                                  // If PCA9536 is not available = d.ti Board Rev 1.1
     pinMode(USER_LED, OUTPUT);                                     // Setup User LED
   }
@@ -652,8 +660,13 @@ void loop(void) {
     else if (newCommand.startsWith("CMDROT")) {                            // Command from Serial to set Rotation
       oled_readnsetrotation();                                             // Set Rotation
     }
+    
+    else if (newCommand.startsWith("CMDSWSAVER")) {                        // Command from Serial to set Screensaver
+      oled_switchscreensaver();                                          // Enable/Disable Screensaver
+    }
+    
     else if (newCommand.startsWith("CMDSAVER")) {                          // Command from Serial to set Screensaver
-      oled_readnsetscreensaver();                                          // Enable/Disable Screensaver
+      oled_readnsetscreensaver();                                          // Set Screensaver Settings & Enable/Disable
     }
 
 // ---------------------------------------------------
@@ -843,6 +856,7 @@ void oled_setcdelay(void) {
 #endif
 }
 
+
 // --------------------------------------------------------------
 // ------------- Show Command Delay on Screen -------------------
 // --------------------------------------------------------------
@@ -857,6 +871,44 @@ void oled_showcdelay(void) {
   u8g2.print("cDelay: ");
   u8g2.print(cDelay);
   oled.display();
+}
+
+
+// --------------------------------------------------------------
+// ---------------- Switch Screensaver On/Off -------------------
+// --------------------------------------------------------------
+void oled_switchscreensaver(void) {
+  String xT="";
+  int x;
+#ifdef XDEBUG
+  Serial.println("Called Command CMDSWSAVER");
+#endif
+  xT=newCommand.substring(newCommand.indexOf(',')+1);
+#ifdef XDEBUG
+  Serial.printf("\nReceived Text: %s\n", (char*)xT.c_str());
+#endif
+  
+  x=xT.toInt();                               // Convert Value
+  if (x<0) x=0;                               // Range checks
+  if (x>1) x=1;
+
+  if (x==0) {
+#ifdef XDEBUG
+    Serial.println("ScreenSaver Disabled!");
+#endif
+    ScreenSaverEnabled = false;
+    ScreenSaverTimer=0;                       // Reset Screensaver-Timer
+    ScreenSaverLogoTimer=0;                   // Reset ScreenSaverLogo-Timer
+  }  // endif
+
+  if (x==1) {
+#ifdef XDEBUG
+    Serial.println("ScreenSaver Enabled!");
+#endif
+    ScreenSaverEnabled = true;
+    ScreenSaverTimer=0;                       // Reset Screensaver-Timer
+    ScreenSaverLogoTimer=0;                   // Reset ScreenSaverLogo-Timer
+  }  //endif
 }
 
 

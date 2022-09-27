@@ -24,29 +24,29 @@
 
   2022-07-31
   -SSD1322 Minor change
-  -New Option "XOTA" for enabling the OTA functionality, Sketch consumption 65%->28%
+  -New Option "XOTA" for disable/enable the OTA functionality, Sketch consumption 65%->28%
 
   2022-08-07..12
   -Add RGB LED to Startup Screen (d.ti Board 1.2)
   -New Variable "dtiv" showing d.ti Board Revisions: 11=1.1 12=1.2...
 
   2022-08-23
-  -Replace some if (pcaAvail) with if (dtiv==12)
+  -Replace some "if (pcaAvail)" with "if (dtiv==12)"
 
   2022-08-26..28
-  -New Command CMDSHSYSHW shows Hardware & Software Infos on Screen
+  -New Command "CMDSHSYSHW" shows Hardware & Software Infos on Screen
 
   2022-09-01
-  -More usage of dtiv
+  -More usage of "dtiv"
 
   2022-09-02
-  -New functions oled_showcenterredtext and oled_setfont
+  -New functions "oled_showcenterredtext" and "oled_setfont"
 
   2022-09-18
   -Shorten the Date Format for the Screensaver. e.g. "19. September 2022" => "19-Sep-22".
 
-  2022-09-25
-  -Add Command "CMDSWSAVER" for just Switching the Screensaver On/Off
+  2022-09-25..27
+  -Add Command "CMDSWSAVER,[0/1]" for just Switching the Screensaver on/off
   -Workaround for the detection of PCA9536 = d.ti Board v1.2
   
   ToDo
@@ -56,7 +56,7 @@
 */
 
 // Set Version
-#define BuildVersion "220925T"                    // "T" for Testing
+#define BuildVersion "220927T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -231,7 +231,7 @@ bool ScreenSaverActive=false;
 int ScreenSaverTimer=0;                      // ScreenSaverTimer
 int ScreenSaverInterval=60;                  // Interval for ScreenSaverTimer
 bool ScreenSaverPos;                         // Positive Signal ScreenSaver
-int ScreenSaverMode=1;                       // ScreenSaver Drawing Color
+int ScreenSaverMode=0;                       // ScreenSaver Drawing Color
 int ScreenSaverLogoTimer=0;                  // ScreenSaverLogo-Timer
 int ScreenSaverLogoTime=60;                  // ScreenSaverLogoTime
 #ifdef ESP32
@@ -260,9 +260,11 @@ void oled_showStartScreen(void);
 void oled_setTime(void);
 void oled_setcdelay(void);
 void oled_showcdelay(void);
+void oled_switchscreensaver(void);
 void oled_readnsetscreensaver(void);
 void oled_showScreenSaverPicture(void);
 void oled_showSmallCorePicture(int xpos, int ypos);
+void oled_showSystemHardware(void);
 void oled_sendHardwareInfo(void);
 void oled_drawlogo64h(uint16_t w, const uint8_t *bitmap);
 void oled_showcorename();
@@ -894,7 +896,7 @@ void oled_switchscreensaver(void) {
 
   if (x==0) {
 #ifdef XDEBUG
-    Serial.println("ScreenSaver Disabled!");
+    Serial.println("Switch ScreenSaver off!");
 #endif
     ScreenSaverEnabled = false;
     ScreenSaverTimer=0;                       // Reset Screensaver-Timer
@@ -902,12 +904,19 @@ void oled_switchscreensaver(void) {
   }  // endif
 
   if (x==1) {
+    if (ScreenSaverMode>0) {
 #ifdef XDEBUG
-    Serial.println("ScreenSaver Enabled!");
+      Serial.println("Switch ScreenSaver on!");
 #endif
-    ScreenSaverEnabled = true;
-    ScreenSaverTimer=0;                       // Reset Screensaver-Timer
-    ScreenSaverLogoTimer=0;                   // Reset ScreenSaverLogo-Timer
+      ScreenSaverEnabled = true;
+      ScreenSaverTimer=0;                     // Reset Screensaver-Timer
+      ScreenSaverLogoTimer=0;                 // Reset ScreenSaverLogo-Timer
+    }
+    else {
+#ifdef XDEBUG
+      Serial.println("ScreenSaver unset!");
+#endif
+    }
   }  //endif
 }
 
@@ -1035,11 +1044,7 @@ void oled_showScreenSaverPicture(void) {
         u8g2.print(actTime);
       }
       else {
-        actTime="Time not set!";
-        //u8g2.setFont(u8g2_font_commodore64_tr);
-        //u8g2.setCursor(DispWidth/2-(u8g2.getUTF8Width(actTime.c_str())/2), DispHeight/2 + (u8g2.getFontAscent()/2));
-        //u8g2.print(actTime);
-        oled_showcenterredtext(actTime,9);
+        oled_showcenterredtext("Time not set!",9);
       }
       oled.display();
     break;
@@ -1047,7 +1052,6 @@ void oled_showScreenSaverPicture(void) {
       oled.clearDisplay();
       if (timeIsSet) {
         u8g2.setFont(u8g2_font_luBS14_tf);
-        //actTime=rtc.getTime("%d. %B %Y");
         actTime=rtc.getTime("%d-%b-%y");
         x=random(DispWidth - u8g2.getUTF8Width(actTime.c_str()));
         y=random(u8g2.getFontAscent(), DispHeight);
@@ -1055,11 +1059,7 @@ void oled_showScreenSaverPicture(void) {
         u8g2.print(actTime);
       }
       else {
-        actTime="Date not set!";
-        //u8g2.setFont(u8g2_font_commodore64_tr);
-        //u8g2.setCursor(DispWidth/2-(u8g2.getUTF8Width(actTime.c_str())/2), DispHeight/2 + (u8g2.getFontAscent()/2));
-        //u8g2.print(actTime);
-        oled_showcenterredtext(actTime,9);
+        oled_showcenterredtext("Date not set!",9);
       }
       oled.display();
     break;
@@ -1149,6 +1149,10 @@ void oled_showSmallCorePicture(int xpos, int ypos) {
 // --------------------------------------------------------------
 void oled_showSystemHardware(void) {
   int hwinfo=0;
+
+#ifdef XDEBUG
+  Serial.println("Called Command CMDSHSYSHW");
+#endif
 
 #ifdef USE_ESP32DEV                        // TTGO-T8 & d.ti Board
   hwinfo=1;
@@ -1278,13 +1282,6 @@ void oled_showcorename() {
   ScreenSaverTimer=0;                        // Reset ScreenSaver-Timer
   ScreenSaverLogoTimer=0;                    // Reset ScreenSaverLogo-Timer
   oled.setContrast(contrast);
-
-  //oled.clearDisplay();
-  //u8g2.setFont(u8g2_font_tenfatguys_tr);     // 10 Pixel Font
-  //u8g2.setFont(u8g2_font_commodore64_tr);      // Commodore 64 Font
-  //u8g2.setCursor(DispWidth/2-(u8g2.getUTF8Width(actCorename.c_str())/2), DispHeight/2 + (u8g2.getFontAscent()/2));
-  //u8g2.print(actCorename);
-  //oled.display();
   oled_showcenterredtext(actCorename,9);
 }
 

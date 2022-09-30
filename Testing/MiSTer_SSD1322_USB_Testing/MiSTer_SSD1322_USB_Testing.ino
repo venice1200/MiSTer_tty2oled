@@ -49,6 +49,10 @@
   -Add Command "CMDSWSAVER,[0/1]" for just Switching the Screensaver on/off
   -Workaround for the detection of PCA9536 = d.ti Board v1.2
   
+  2022-09-30
+  -Add the StarField Simulation
+   Code from https://github.com/sinoia/oled-starfield (MIT License) 
+  
   ToDo
   -Check why dtiv>=13 (Reason = POR of PCA9536)
   -Everything I forgot
@@ -56,7 +60,7 @@
 */
 
 // Set Version
-#define BuildVersion "220927T"                    // "T" for Testing
+#define BuildVersion "220930T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -237,7 +241,7 @@ int ScreenSaverLogoTime=60;                  // ScreenSaverLogoTime
 #ifdef ESP32
 const int ScreenSaverMaxScreens=5;           // Max ScreenSavers ESP32 => 5 (bit)
 #else
-const int ScreenSaverMaxScreens=3;           // Max ScreenSavers not ESP32 = ESP8266 => 3 (bit)
+const int ScreenSaverMaxScreens=3;           // Max ScreenSavers ESP8266 => 3 (bit)
 #endif
 int ScreenSaverActiveScreens[ScreenSaverMaxScreens]; // Array contains Pointer to Active ScreeenSavers (1=tty2oled,2=MiSTer,3=Core,4=Time,5=Date)
 int ScreenSaverCountScreens=0;               // How many ScreenSaver Screens are Active?
@@ -251,6 +255,12 @@ bool pcaAvail=false;                          // Is the PCA9536 Port-Extender Ch
 //byte pcaInputValue=255;                       // PCA9536 Input Pin State as Byte Value
 byte pcaInputValue=0;                         // PCA9536 Input Pin State as Byte Value
 byte dtiv=0;                                  // d.ti Board Version 11=1.1, 12=1.2
+
+// Star Field Simulation
+const int starCount = 512;                    // Number of Stars in the Star Field
+const int maxDepth = 32;                      // Maximum Distance away for a Star
+double stars[starCount][3];                   // The Star Field - StarCount Stars represented as X, Y and Z Cooordinates
+bool ShowScreenSaverStarField=false;          // Star Field ScreenSaver yes/no
 
 // =============================================================================================================
 // ========================================== FUNCTION PROTOTYPES ==============================================
@@ -291,6 +301,8 @@ void oled_playnote(void);
 void oled_playtone(void);
 void oled_showtime(void);
 void oled_enableOTA (void);
+int getRandom(int lower, int upper);
+void oled_drawScreenSaverStarField();
 
 // Info about overloading found here
 // https://stackoverflow.com/questions/1880866/can-i-set-a-default-argument-from-a-previous-argument
@@ -412,6 +424,12 @@ void setup(void) {
     FastLED.setBrightness(WS_BRIGHTNESS);                          // and set Brightness
   }
 #endif  // USE_ESP32DEV
+
+  for (int i = 0; i < starCount; i++) {                    // Initialise the StarField with random Stars
+    stars[i][0] = getRandom(-25, 25);
+    stars[i][1] = getRandom(-25, 25);
+    stars[i][2] = getRandom(0, maxDepth);
+  }
 
   // Tilt Sensor Rotation via Tilt-Sensor Pin
   RotationDebouncer.attach(TILT_PIN,INPUT_PULLUP);         // Attach the debouncer to a pin with INPUT mode
@@ -721,10 +739,12 @@ void loop(void) {
 #endif  // ESP32
 // ---------------------------------------------------
 
-    // -- Unidentified Core Name, just write it on screen
+// -- Unidentified Core Name, just write it on screen
     else {
       actCorename=newCommand;
       actPicType=NONE;
+      ScreenSaverTimer=0;                        // Reset ScreenSaver-Timer
+      ScreenSaverLogoTimer=0;                    // Reset ScreenSaverLogo-Timer
       oled_showcorename();
     }  // end ifs
 
@@ -735,10 +755,16 @@ void loop(void) {
     updateDisplay=false;                              // Clear Update-Display Flag
   } // endif updateDisplay
 
-  // ---------- ScreenSaver if Active -----------------
-  if (ScreenSaverActive && ScreenSaverPos) {              // Screensaver each 60secs
+// ---------- ScreenSaver if Active -----------------
+  if (ScreenSaverActive && !ShowScreenSaverStarField && ScreenSaverPos) {    // Screensaver each 60secs
     oled_showScreenSaverPicture();
   }
+  if (ScreenSaverActive && ShowScreenSaverStarField) {                       // StarField ScreenSaver
+    oled.clearDisplay();
+    oled_drawScreenSaverStarField();
+    oled.display();
+  }
+// -------------- ScreenSaver -----------------------
 
 } // End Main Loop
 
@@ -812,6 +838,48 @@ void oled_showStartScreen(void) {
   oled.display();
   startScreenActive=true;
 } // end mistertext
+
+
+// --------------------------------------------------------------
+// ------ Calculate Random Values, used by the StarField --------
+// --------------------------------------------------------------
+int getRandom(int lower, int upper) {
+    return lower + static_cast<int>(rand() % (upper - lower + 1));      // return a random number between lower and upper bound
+}
+
+
+// --------------------------------------------------------------
+// -------------- Draw the ScreenSaver StarField ----------------
+// --------------------------------------------------------------
+void oled_drawScreenSaverStarField() {
+  int origin_x = oled.width() / 2;
+  int origin_y = oled.height() / 2;
+  int x,y,s;
+  double k;
+  
+  // Iterate through the stars reducing the z co-ordinate in order to move the Star closer.
+  for (int i = 0; i < starCount; ++i) {
+    stars[i][2] -= 0.19;
+    // if the star has moved past the screen (z < 0) reposition it far away with random x and y positions.
+    if (stars[i][2] <= 0) {
+      stars[i][0] = getRandom(-25, 25);
+      stars[i][1] = getRandom(-25, 25);
+      stars[i][2] = maxDepth;
+    }
+
+    // Convert the 3D coordinates to 2D using perspective projection.
+    k = oled.width() / stars[i][2];
+    x = static_cast<int>(stars[i][0] * k + origin_x);
+    y = static_cast<int>(stars[i][1] * k + origin_y);
+
+    // Draw the star (if it is visible in the screen). Distant stars are smaller than closer stars.
+    if ((0 <= x and x < oled.width()) 
+      and (0 <= y and y < oled.height())) {
+      s = (1 - stars[i][2] / maxDepth) * 4;
+      oled.fillRect(x, y, s, s, 15);
+    }
+  }
+}
 
 
 // --------------------------------------------------------------
@@ -896,7 +964,7 @@ void oled_switchscreensaver(void) {
 
   if (x==0) {
 #ifdef XDEBUG
-    Serial.println("Switch ScreenSaver off!");
+    Serial.println("Switch ScreenSaver off.");
 #endif
     ScreenSaverEnabled = false;
     ScreenSaverTimer=0;                       // Reset Screensaver-Timer
@@ -906,7 +974,7 @@ void oled_switchscreensaver(void) {
   if (x==1) {
     if (ScreenSaverMode>0) {
 #ifdef XDEBUG
-      Serial.println("Switch ScreenSaver on!");
+      Serial.printf("Switch ScreenSaver on, Mode: %i.\n", ScreenSaverMode);
 #endif
       ScreenSaverEnabled = true;
       ScreenSaverTimer=0;                     // Reset Screensaver-Timer
@@ -934,7 +1002,6 @@ void oled_readnsetscreensaver(void) {
 #ifdef XDEBUG
   Serial.printf("Received Text: %s\n", (char*)TextIn.c_str());
 #endif
-
  
   //Searching for the "," delimiter
   d1 = TextIn.indexOf(',');                 // Find location of first ","
@@ -949,7 +1016,7 @@ void oled_readnsetscreensaver(void) {
   l=lT.toInt();                             // Convert Logo-Time
 
   if (m<0) m=0;                             // Check & Set Mode
-  if (m>31) m=31;                           // Check & Set Mode 5 Bits = 0..31
+  if (m>63) m=63;                           // Check & Set Mode 6 Bits = 0..63
   if (i<5) i=5;                             // Check&Set Minimum Interval
   if (i>600) i=600;                         // Check&Set Maximiun Interval
   if (l<20) l=20;                           // Check&Set Minimum Logo-Time
@@ -964,12 +1031,14 @@ void oled_readnsetscreensaver(void) {
       ScreenSaverCountScreens++;                                           // ...count up the Counter.
     }
   }
+  ShowScreenSaverStarField=bitRead(m,5);                                   // StarField ScreenSaver active ?
 
 #ifdef XDEBUG
   Serial.printf("Active ScreenSaverScreens: %i\n", ScreenSaverCountScreens);
   for (b=0; b<ScreenSaverMaxScreens; b++) {
     Serial.printf("ScreenSaver Array Value No.%i: %i\n", b, ScreenSaverActiveScreens[b]);
   }
+  if (ShowScreenSaverStarField) Serial.printf("ScreenSaver StarField active!\n");
 #endif
   
 #ifdef XDEBUG
@@ -977,24 +1046,28 @@ void oled_readnsetscreensaver(void) {
   Serial.printf("Values: M:%i T:%i L:%i\n", m, i, l);
 #endif
 
+  ScreenSaverMode=m;
+  ScreenSaverTimer=0;                       // Reset Screensaver-Timer
+  ScreenSaverLogoTimer=0;                   // Reset ScreenSaverLogo-Timer
+
   if (m==0) {
 #ifdef XDEBUG
     Serial.println("ScreenSaver Disabled!");
 #endif
-    ScreenSaverEnabled = false;
-    ScreenSaverTimer=0;                       // Reset Screensaver-Timer
-    ScreenSaverLogoTimer=0;                   // Reset ScreenSaverLogo-Timer
+    ScreenSaverEnabled=false;
   }
   else{
 #ifdef XDEBUG
     Serial.println("ScreenSaver Enabled!");
 #endif
-    ScreenSaverEnabled = true;
-    ScreenSaverMode = m;                      // Set ScreenSaver Mode
+    ScreenSaverEnabled=true;
     ScreenSaverInterval=i;                    // Set ScreenSaverTimer Interval
-    ScreenSaverTimer=0;                       // Reset Screensaver-Timer
-    ScreenSaverLogoTime=l-i;                  // Set ScreenSaverLogoTime (First Screensaver shown after ScreenSaverLogoTime-ScreenSaverInterval+ScreenSaverInterval)
-    ScreenSaverLogoTimer=0;                   // Reset ScreenSaverLogo-Timer
+    if (ShowScreenSaverStarField) {
+      ScreenSaverLogoTime=l;                  // Set ScreenSaverLogoTime (Screensaver shown after ScreenSaverLogoTime)
+    }
+    else {
+      ScreenSaverLogoTime=l-i;                // Set ScreenSaverLogoTime (First Screensaver shown after ScreenSaverLogoTime-ScreenSaverInterval+ScreenSaverInterval)
+    }
   }
 }
 
@@ -1279,8 +1352,8 @@ void oled_showcorename() {
   Serial.println("Called Command CMDSNAM");
 #endif
 
-  ScreenSaverTimer=0;                        // Reset ScreenSaver-Timer
-  ScreenSaverLogoTimer=0;                    // Reset ScreenSaverLogo-Timer
+  //ScreenSaverTimer=0;                        // Reset ScreenSaver-Timer
+  //ScreenSaverLogoTimer=0;                    // Reset ScreenSaverLogo-Timer
   oled.setContrast(contrast);
   oled_showcenterredtext(actCorename,9);
 }

@@ -510,7 +510,8 @@ void loop(void) {
   timer30pos = (timer % interval30 == 0) && blinkpos;
   timer60pos = (timer % interval60 == 0) && blinkpos;
   if (timer>=interval60) timer = 0;
-  
+
+/*
   // ScreenSaver Logo-Timer
   if (ScreenSaverEnabled && !ScreenSaverActive && blinkpos) ScreenSaverLogoTimer++;
   ScreenSaverActive = (ScreenSaverLogoTimer>=ScreenSaverLogoTime) && ScreenSaverEnabled;
@@ -519,6 +520,7 @@ void loop(void) {
   if (ScreenSaverActive && blinkpos) ScreenSaverTimer++;
   ScreenSaverPos = (ScreenSaverTimer == ScreenSaverInterval) && blinkpos;
   if (ScreenSaverTimer>=ScreenSaverInterval) ScreenSaverTimer=0;
+*/
 
 #ifdef XDEBUG
   //if (blinkpos) Serial.println("Blink-Pos");
@@ -737,9 +739,10 @@ void loop(void) {
     }
     
 #endif  // ESP32
-// ---------------------------------------------------
 
+// ---------------------------------------------------
 // -- Unidentified Core Name, just write it on screen
+// ---------------------------------------------------
     else {
       actCorename=newCommand;
       actPicType=NONE;
@@ -755,7 +758,18 @@ void loop(void) {
     updateDisplay=false;                              // Clear Update-Display Flag
   } // endif updateDisplay
 
+// ---------------------------------------------------
 // ---------- ScreenSaver if Active -----------------
+// ---------------------------------------------------
+  // ScreenSaver Logo-Timer
+  if (ScreenSaverEnabled && !ScreenSaverActive && blinkpos) ScreenSaverLogoTimer++;
+  ScreenSaverActive = (ScreenSaverLogoTimer>=ScreenSaverLogoTime) && ScreenSaverEnabled;
+  
+  // ScreenSaver Timer
+  if (ScreenSaverActive && blinkpos) ScreenSaverTimer++;
+  ScreenSaverPos = (ScreenSaverTimer == ScreenSaverInterval) && blinkpos;
+  if (ScreenSaverTimer>=ScreenSaverInterval) ScreenSaverTimer=0;
+
   if (ScreenSaverActive && !ShowScreenSaverStarField && ScreenSaverPos) {    // Screensaver each 60secs
     oled_showScreenSaverPicture();
   }
@@ -764,8 +778,8 @@ void loop(void) {
     oled_drawScreenSaverStarField();
     oled.display();
   }
-// -------------- ScreenSaver -----------------------
 
+// ---------------------------------------------------
 } // End Main Loop
 
 // =============================================================================================================

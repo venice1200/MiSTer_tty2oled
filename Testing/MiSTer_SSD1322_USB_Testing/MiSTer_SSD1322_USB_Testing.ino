@@ -52,6 +52,7 @@
   2022-09-30
   -Add the StarField Simulation
    Code from https://github.com/sinoia/oled-starfield (MIT License) 
+   8266 muss run at 160MHz!
   
   ToDo
   -Check why dtiv>=13 (Reason = POR of PCA9536)
@@ -60,7 +61,7 @@
 */
 
 // Set Version
-#define BuildVersion "220930T"                    // "T" for Testing
+#define BuildVersion "221001T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -257,7 +258,12 @@ byte pcaInputValue=0;                         // PCA9536 Input Pin State as Byte
 byte dtiv=0;                                  // d.ti Board Version 11=1.1, 12=1.2
 
 // Star Field Simulation
-const int starCount = 512;                    // Number of Stars in the Star Field
+#ifdef USE_NODEMCU
+//const int starCount = 256;                    // Number of Stars in the Star Field 8266
+const int starCount = 384;                    // Number of Stars in the Star Field 8266
+#else
+const int starCount = 512;                    // Number of Stars in the Star Field ESP32
+#endif
 const int maxDepth = 32;                      // Maximum Distance away for a Star
 double stars[starCount][3];                   // The Star Field - StarCount Stars represented as X, Y and Z Cooordinates
 bool ShowScreenSaverStarField=false;          // Star Field ScreenSaver yes/no

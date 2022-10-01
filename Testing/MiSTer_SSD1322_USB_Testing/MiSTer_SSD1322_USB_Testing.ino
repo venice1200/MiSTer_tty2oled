@@ -52,7 +52,7 @@
   2022-09-30
   -Add the StarField Simulation
    Code from https://github.com/sinoia/oled-starfield (MIT License) 
-   8266 muss run at 160MHz!
+   8266 must run at 160MHz!
   
   ToDo
   -Check why dtiv>=13 (Reason = POR of PCA9536)

@@ -21,16 +21,15 @@
   -NodeMCU 1.0
    
   See changelog.md in Sketch folder for more details
-
+  
   ToDo
-  -Byte/Float for d.ti Board Revisions 11=1.1 12=1.2 usw.
-      
+  -Check why dtiv>=13 (Reason = POR of PCA9536)
   -Everything I forgot
    
 */
 
 // Set Version
-#define BuildVersion "220723"                     // "T" for Testing
+#define BuildVersion "221006"                     // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -41,7 +40,6 @@
 
 
 // ---------------------------------------------------------------------------------------------------------------------
-// ----------------------------------------------- System Config -------------------------------------------------------
 // ------------------------------------------- Activate your Options ---------------------------------------------------
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -55,10 +53,12 @@
 // Uncomment for 180° StartUp Rotation (Display Connector up)
 //#define XROTATE
 
+// Uncomment for OTA Support
+//#define XOTA
 
 // ---------------------------------------------------------------------------------------------------------------------
 // ---------------------------------- Auto-Board-Config via Arduino IDE Board Selection --------------------------------
-// ------------------------------------ Make sure the Auto-Board-Config is not active ----------------------------------
+// ----------------------------------- Make sure the Manual-Board-Config is not active ---------------------------------
 // ---------------------------------------------------------------------------------------------------------------------
 
 #ifdef ARDUINO_ESP32_DEV          // Set Arduino Board to "ESP32 Dev Module"
@@ -140,11 +140,13 @@ Bounce RotationDebouncer = Bounce();     // Create Bounce class
 // OTA, Reset and RTC only for ESP32
 #ifdef ESP32
   #include "cred.h"                               // Load your WLAN Credentials for OTA
+#ifdef XOTA
   #include <WiFi.h>
   #include <ESPmDNS.h>
   #include <WiFiUdp.h>
   #include <ArduinoOTA.h>
   bool OTAEN=false;                               // Will be set to "true" by Command "CMDENOTA"
+#endif
   #include <ESP32Time.h>                          // Time-Library
   ESP32Time rtc;                                  // Create Real-Time-Clock Device
 #endif
@@ -202,13 +204,13 @@ bool ScreenSaverActive=false;
 int ScreenSaverTimer=0;                      // ScreenSaverTimer
 int ScreenSaverInterval=60;                  // Interval for ScreenSaverTimer
 bool ScreenSaverPos;                         // Positive Signal ScreenSaver
-int ScreenSaverMode=1;                       // ScreenSaver Drawing Color
+int ScreenSaverMode=0;                       // ScreenSaver Drawing Color
 int ScreenSaverLogoTimer=0;                  // ScreenSaverLogo-Timer
 int ScreenSaverLogoTime=60;                  // ScreenSaverLogoTime
 #ifdef ESP32
 const int ScreenSaverMaxScreens=5;           // Max ScreenSavers ESP32 => 5 (bit)
 #else
-const int ScreenSaverMaxScreens=3;           // Max ScreenSavers not ESP32 = ESP8266 => 3 (bit)
+const int ScreenSaverMaxScreens=3;           // Max ScreenSavers ESP8266 => 3 (bit)
 #endif
 int ScreenSaverActiveScreens[ScreenSaverMaxScreens]; // Array contains Pointer to Active ScreeenSavers (1=tty2oled,2=MiSTer,3=Core,4=Time,5=Date)
 int ScreenSaverCountScreens=0;               // How many ScreenSaver Screens are Active?
@@ -219,7 +221,21 @@ bool micAvail=false;                          // Is the MIC184 Sensor available?
 const byte PCA9536_ADDR = 0x41;               // PCA9536 Base Address
 const byte PCA9536_IREG = 0x00;               // PCA9536 Input Register
 bool pcaAvail=false;                          // Is the PCA9536 Port-Extender Chip available?
-byte pcaInputValue=255;                       // PCA9536 Input Pin State as Byte Value
+//byte pcaInputValue=255;                       // PCA9536 Input Pin State as Byte Value
+byte pcaInputValue=0;                         // PCA9536 Input Pin State as Byte Value
+byte dtiv=0;                                  // d.ti Board Version 11=1.1, 12=1.2
+
+// Star Field Simulation
+#ifdef USE_NODEMCU
+const int starCount = 128;                    // Number of Stars in the Star Field 8266
+//const int starCount = 256;                    // Number of Stars in the Star Field 8266
+//const int starCount = 384;                    // Number of Stars in the Star Field 8266
+#else
+const int starCount = 512;                    // Number of Stars in the Star Field ESP32
+#endif
+const int maxDepth = 32;                      // Maximum Distance away for a Star
+double stars[starCount][3];                   // The Star Field - StarCount Stars represented as X, Y and Z Cooordinates
+bool ShowScreenSaverStarField=false;          // Star Field ScreenSaver yes/no
 
 // =============================================================================================================
 // ========================================== FUNCTION PROTOTYPES ==============================================
@@ -229,9 +245,11 @@ void oled_showStartScreen(void);
 void oled_setTime(void);
 void oled_setcdelay(void);
 void oled_showcdelay(void);
+void oled_switchscreensaver(void);
 void oled_readnsetscreensaver(void);
 void oled_showScreenSaverPicture(void);
 void oled_showSmallCorePicture(int xpos, int ypos);
+void oled_showSystemHardware(void);
 void oled_sendHardwareInfo(void);
 void oled_drawlogo64h(uint16_t w, const uint8_t *bitmap);
 void oled_showcorename();
@@ -240,6 +258,8 @@ void oled_displayon(void);
 void oled_updatedisplay(void);
 void oled_readnsetcontrast(void);
 void oled_showperror(void);
+void oled_showcenterredtext(String text, int font);
+void oled_setfont(int font);
 void oled_readnsetrotation(void);
 void oled_clswithtransition();
 void oled_showpic(void);
@@ -256,6 +276,8 @@ void oled_playnote(void);
 void oled_playtone(void);
 void oled_showtime(void);
 void oled_enableOTA (void);
+int getRandom(int lower, int upper);
+void oled_drawScreenSaverStarField();
 
 // Info about overloading found here
 // https://stackoverflow.com/questions/1880866/can-i-set-a-default-argument-from-a-previous-argument
@@ -303,7 +325,7 @@ void setup(void) {
   logoBytes4bpp = DispWidth * DispHeight / 2;              // SSD1322 = 8192 Bytes
   logoBin = (uint8_t *) malloc(logoBytes4bpp);             // Create Picture Buffer, better than permanent create (malloc) and destroy (free)
 
-// Activate Options
+// === Activate Options ===
 
   // Setup d.ti Board (Temp.Sensor/USER_LED/PCA9536)
 #ifdef USE_ESP32DEV                                             // Only for ESP-DEV (TTGO-T8/d.ti)
@@ -313,8 +335,9 @@ void setup(void) {
   Wire.begin(int(I2C1_SDA), int(I2C1_SCL), uint32_t(100000));   // Setup I2C-1 Port
   
   Wire.beginTransmission (MIC184_BASE_ADDRESS);                 // Check for MIC184 Sensor...
-  if (Wire.endTransmission() == 0) {                           // ..and wait for Answer
+  if (Wire.endTransmission() == 0) {                            // ..and wait for Answer
     micAvail=true;                                              // If Answer OK Sensor available
+    dtiv=11;                                                    // d.ti Board >= 1.1
   }
   //tSensor.setZone(MIC184_ZONE_REMOTE);                        // Remote = use External Sensor using LM3906/MMBT3906
 #ifdef XDEBUG
@@ -332,8 +355,8 @@ void setup(void) {
   Wire.beginTransmission(PCA9536_ADDR);                        // Check for PCA9536
   if (Wire.endTransmission() == 0) {                           // ..and wait for Answer
     pcaAvail=true;                                             // If Answer OK PCA available
+    dtiv=12;
   }
-
 #ifdef XDEBUG
   if (pcaAvail) {
     Serial.println("PCA9536 available.");
@@ -343,13 +366,16 @@ void setup(void) {
   }
 #endif  // XDEBUG
 
+/*
   if (pcaAvail) {                                               // If PCA9536 available..
     Wire.beginTransmission(PCA9536_ADDR);                       // start transmission and.. 
     Wire.write(PCA9536_IREG);                                   // read Register 0 (Input Register).
     if (Wire.endTransmission() == 0) {                          // If OK...
       Wire.requestFrom(PCA9536_ADDR, byte(1));                  // request one byte from PCA
       if (Wire.available() == 1) {                              // If just one byte is available,
-        pcaInputValue = Wire.read() & 0x0F;                     // read it and mask the high bits out.
+        pcaInputValue = Wire.read() & 0x0F;                     // read it and mask the higher bits out
+        dtiv=12+pcaInputValue;                                  // d.ti Board >= 1.2
+        //dtiv=12;                                                // d.ti Board >= 1.2 Workaround as sometimes I see dtiv=13
 #ifdef XDEBUG
         Serial.print("PCA9536 Input Register Value: ");
         Serial.println(pcaInputValue);
@@ -363,15 +389,22 @@ void setup(void) {
       }
     }
   }
-  
-  if (!pcaAvail) {                                                 // If PCA9536 is not available = d.ti Board Rev 1.1
+*/
+
+  if (dtiv==11) {                                                  // If PCA9536 is not available = d.ti Board Rev 1.1
     pinMode(USER_LED, OUTPUT);                                     // Setup User LED
   }
-  else {                                                           // If PCA9536 is available = d.ti Board Rev 1.2 or greater
+  if (dtiv==12) {                                                  // If PCA9536 is available = d.ti Board Rev 1.2 or greater
     FastLED.addLeds<WS2812B, USER_LED, GRB>(wsleds, NUM_WSLEDS);   // Setup User WS2812B LED
     FastLED.setBrightness(WS_BRIGHTNESS);                          // and set Brightness
   }
 #endif  // USE_ESP32DEV
+
+  for (int i = 0; i < starCount; i++) {                    // Initialise the StarField with random Stars
+    stars[i][0] = getRandom(-25, 25);
+    stars[i][1] = getRandom(-25, 25);
+    stars[i][2] = getRandom(0, maxDepth);
+  }
 
   // Tilt Sensor Rotation via Tilt-Sensor Pin
   RotationDebouncer.attach(TILT_PIN,INPUT_PULLUP);         // Attach the debouncer to a pin with INPUT mode
@@ -404,8 +437,10 @@ void loop(void) {
   unsigned long currentMillis = millis();
 
   // ESP32 OTA
+#ifdef XOTA
 #ifdef ESP32  // OTA and Reset only for ESP32
   if (OTAEN) ArduinoOTA.handle();                            // OTA active?
+#endif
 #endif
 
   // Tilt Sensor/Auto-Rotation
@@ -450,7 +485,8 @@ void loop(void) {
   timer30pos = (timer % interval30 == 0) && blinkpos;
   timer60pos = (timer % interval60 == 0) && blinkpos;
   if (timer>=interval60) timer = 0;
-  
+
+/*
   // ScreenSaver Logo-Timer
   if (ScreenSaverEnabled && !ScreenSaverActive && blinkpos) ScreenSaverLogoTimer++;
   ScreenSaverActive = (ScreenSaverLogoTimer>=ScreenSaverLogoTime) && ScreenSaverEnabled;
@@ -459,6 +495,7 @@ void loop(void) {
   if (ScreenSaverActive && blinkpos) ScreenSaverTimer++;
   ScreenSaverPos = (ScreenSaverTimer == ScreenSaverInterval) && blinkpos;
   if (ScreenSaverTimer>=ScreenSaverInterval) ScreenSaverTimer=0;
+*/
 
 #ifdef XDEBUG
   //if (blinkpos) Serial.println("Blink-Pos");
@@ -544,6 +581,10 @@ void loop(void) {
       oled_showcdelay();
     }
 
+    else if (newCommand=="CMDSHSYSHW") {                                    // Show System HW
+      oled_showSystemHardware();
+    }
+
     else if (newCommand=="CMDHWINF") {                                      // Send HW Info
       oled_sendHardwareInfo();
     }
@@ -616,8 +657,13 @@ void loop(void) {
     else if (newCommand.startsWith("CMDROT")) {                            // Command from Serial to set Rotation
       oled_readnsetrotation();                                             // Set Rotation
     }
+    
+    else if (newCommand.startsWith("CMDSWSAVER")) {                        // Command from Serial to set Screensaver
+      oled_switchscreensaver();                                          // Enable/Disable Screensaver
+    }
+    
     else if (newCommand.startsWith("CMDSAVER")) {                          // Command from Serial to set Screensaver
-      oled_readnsetscreensaver();                                          // Enable/Disable Screensaver
+      oled_readnsetscreensaver();                                          // Set Screensaver Settings & Enable/Disable
     }
 
 // ---------------------------------------------------
@@ -654,10 +700,11 @@ void loop(void) {
 // The following Commands are only for ESP32 Boards
 // ---------------------------------------------------
 #ifdef ESP32  // OTA and Reset only for ESP32
+#ifdef XOTA
     else if (newCommand=="CMDENOTA") {                                      // Command from Serial to enable OTA on the ESP
       oled_enableOTA();                                                     // Setup Wireless and enable OTA
     }
-
+#endif
     else if (newCommand=="CMDRESET") {                                      // Command from Serial for Resetting the ESP
       ESP.restart();                                                        // Reset ESP
     }
@@ -667,12 +714,15 @@ void loop(void) {
     }
     
 #endif  // ESP32
-// ---------------------------------------------------
 
-    // -- Unidentified Core Name, just write it on screen
+// ---------------------------------------------------
+// -- Unidentified Core Name, just write it on screen
+// ---------------------------------------------------
     else {
       actCorename=newCommand;
       actPicType=NONE;
+      ScreenSaverTimer=0;                        // Reset ScreenSaver-Timer
+      ScreenSaverLogoTimer=0;                    // Reset ScreenSaverLogo-Timer
       oled_showcorename();
     }  // end ifs
 
@@ -683,11 +733,28 @@ void loop(void) {
     updateDisplay=false;                              // Clear Update-Display Flag
   } // endif updateDisplay
 
-  // ---------- ScreenSaver if Active -----------------
-  if (ScreenSaverActive && ScreenSaverPos) {              // Screensaver each 60secs
+// ---------------------------------------------------
+// ---------- ScreenSaver if Active -----------------
+// ---------------------------------------------------
+  // ScreenSaver Logo-Timer
+  if (ScreenSaverEnabled && !ScreenSaverActive && blinkpos) ScreenSaverLogoTimer++;
+  ScreenSaverActive = (ScreenSaverLogoTimer>=ScreenSaverLogoTime) && ScreenSaverEnabled;
+  
+  // ScreenSaver Timer
+  if (ScreenSaverActive && blinkpos) ScreenSaverTimer++;
+  ScreenSaverPos = (ScreenSaverTimer == ScreenSaverInterval) && blinkpos;
+  if (ScreenSaverTimer>=ScreenSaverInterval) ScreenSaverTimer=0;
+
+  if (ScreenSaverActive && !ShowScreenSaverStarField && ScreenSaverPos) {    // Screensaver each 60secs
     oled_showScreenSaverPicture();
   }
+  if (ScreenSaverActive && ShowScreenSaverStarField) {                       // StarField ScreenSaver
+    oled.clearDisplay();
+    oled_drawScreenSaverStarField();
+    oled.display();
+  }
 
+// ---------------------------------------------------
 } // End Main Loop
 
 // =============================================================================================================
@@ -707,25 +774,44 @@ void oled_showStartScreen(void) {
   oled.drawXBitmap(82, 0, tty2oled_logo, tty2oled_logo_width, tty2oled_logo_height, SSD1322_WHITE);
   oled.display();
   delay(1000);
-  //oled.setFont();
-  for (int i=0; i<DispWidth; i+=16) {
+  for (int i=0; i<DispWidth; i+=16) {            // Some Animation
     oled.fillRect(i,55,16,8,color);
     color++;
     oled.display();
+#ifdef USE_ESP32DEV
+    if (dtiv==12) {                              // Let the RGB LED light up
+      wsleds[0] = CHSV(i,255,255);
+      FastLED.show();
+    }
+#endif
     delay(20);
   }
-  for (int i=0; i<DispWidth; i+=16) {
+  for (int i=0; i<DispWidth; i+=16) {            // Remove Animation Line
     oled.fillRect(i,55,16,8,SSD1322_BLACK);
     oled.display();
+#ifdef USE_ESP32DEV
+    if (dtiv==12) {                              // Let the RGB LED light up
+      wsleds[0] = CHSV(255-i,255,255);
+      FastLED.show();
+    }
+#endif
     delay(20);
   }
+#ifdef USE_ESP32DEV
+  if (dtiv==12) {
+    digitalWrite(POWER_LED,1);                   // Power off Power LED's D2 & D3
+    wsleds[0] = CRGB::Black;                     // RGB LED off
+    FastLED.show();
+  }
+#endif
   delay(500);
-  u8g2.setFont(u8g2_font_5x7_mf);            // 6 Pixel Font
+  u8g2.setFont(u8g2_font_5x7_mf);               // 6 Pixel Font
   u8g2.setCursor(0,63);
   u8g2.print(BuildVersion);
 #ifdef XDEBUG	
   if (micAvail) u8g2.print("M");
   if (pcaAvail) u8g2.print("P");
+  if (dtiv>=11) u8g2.print(dtiv);
 #endif	
   oled.drawXBitmap(DispWidth-usb_icon_width, DispHeight-usb_icon_height, usb_icon, usb_icon_width, usb_icon_height, SSD1322_WHITE);
 
@@ -736,14 +822,53 @@ void oled_showStartScreen(void) {
     u8g2.print("\xb0");
     u8g2.print("C");
   }
-  if (pcaAvail) {
-    digitalWrite(POWER_LED,1);           // Power off Power LED's D2 & D3
-  }
 #endif
 
   oled.display();
   startScreenActive=true;
 } // end mistertext
+
+
+// --------------------------------------------------------------
+// ------ Calculate Random Values, used by the StarField --------
+// --------------------------------------------------------------
+int getRandom(int lower, int upper) {
+    return lower + static_cast<int>(rand() % (upper - lower + 1));      // return a random number between lower and upper bound
+}
+
+
+// --------------------------------------------------------------
+// -------------- Draw the ScreenSaver StarField ----------------
+// --------------------------------------------------------------
+void oled_drawScreenSaverStarField() {
+  int origin_x = oled.width() / 2;
+  int origin_y = oled.height() / 2;
+  int x,y,s;
+  double k;
+  
+  // Iterate through the stars reducing the z co-ordinate in order to move the Star closer.
+  for (int i = 0; i < starCount; ++i) {
+    stars[i][2] -= 0.19;
+    // if the star has moved past the screen (z < 0) reposition it far away with random x and y positions.
+    if (stars[i][2] <= 0) {
+      stars[i][0] = getRandom(-25, 25);
+      stars[i][1] = getRandom(-25, 25);
+      stars[i][2] = maxDepth;
+    }
+
+    // Convert the 3D coordinates to 2D using perspective projection.
+    k = oled.width() / stars[i][2];
+    x = static_cast<int>(stars[i][0] * k + origin_x);
+    y = static_cast<int>(stars[i][1] * k + origin_y);
+
+    // Draw the star (if it is visible in the screen). Distant stars are smaller than closer stars.
+    if ((0 <= x and x < oled.width()) 
+      and (0 <= y and y < oled.height())) {
+      s = (1 - stars[i][2] / maxDepth) * 4;
+      oled.fillRect(x, y, s, s, 15);
+    }
+  }
+}
 
 
 // --------------------------------------------------------------
@@ -790,6 +915,7 @@ void oled_setcdelay(void) {
 #endif
 }
 
+
 // --------------------------------------------------------------
 // ------------- Show Command Delay on Screen -------------------
 // --------------------------------------------------------------
@@ -808,6 +934,51 @@ void oled_showcdelay(void) {
 
 
 // --------------------------------------------------------------
+// ---------------- Switch Screensaver On/Off -------------------
+// --------------------------------------------------------------
+void oled_switchscreensaver(void) {
+  String xT="";
+  int x;
+#ifdef XDEBUG
+  Serial.println("Called Command CMDSWSAVER");
+#endif
+  xT=newCommand.substring(newCommand.indexOf(',')+1);
+#ifdef XDEBUG
+  Serial.printf("\nReceived Text: %s\n", (char*)xT.c_str());
+#endif
+  
+  x=xT.toInt();                               // Convert Value
+  if (x<0) x=0;                               // Range checks
+  if (x>1) x=1;
+
+  if (x==0) {
+#ifdef XDEBUG
+    Serial.println("Switch ScreenSaver off.");
+#endif
+    ScreenSaverEnabled = false;
+    ScreenSaverTimer=0;                       // Reset Screensaver-Timer
+    ScreenSaverLogoTimer=0;                   // Reset ScreenSaverLogo-Timer
+  }  // endif
+
+  if (x==1) {
+    if (ScreenSaverMode>0) {
+#ifdef XDEBUG
+      Serial.printf("Switch ScreenSaver on, Mode: %i.\n", ScreenSaverMode);
+#endif
+      ScreenSaverEnabled = true;
+      ScreenSaverTimer=0;                     // Reset Screensaver-Timer
+      ScreenSaverLogoTimer=0;                 // Reset ScreenSaverLogo-Timer
+    }
+    else {
+#ifdef XDEBUG
+      Serial.println("ScreenSaver unset!");
+#endif
+    }
+  }  //endif
+}
+
+
+// --------------------------------------------------------------
 // ----------------- Set ScreenSaver Mode -----------------------
 // --------------------------------------------------------------
 void oled_readnsetscreensaver(void) {
@@ -820,7 +991,6 @@ void oled_readnsetscreensaver(void) {
 #ifdef XDEBUG
   Serial.printf("Received Text: %s\n", (char*)TextIn.c_str());
 #endif
-
  
   //Searching for the "," delimiter
   d1 = TextIn.indexOf(',');                 // Find location of first ","
@@ -835,7 +1005,7 @@ void oled_readnsetscreensaver(void) {
   l=lT.toInt();                             // Convert Logo-Time
 
   if (m<0) m=0;                             // Check & Set Mode
-  if (m>31) m=31;                           // Check & Set Mode 5 Bits = 0..31
+  if (m>63) m=63;                           // Check & Set Mode 6 Bits = 0..63
   if (i<5) i=5;                             // Check&Set Minimum Interval
   if (i>600) i=600;                         // Check&Set Maximiun Interval
   if (l<20) l=20;                           // Check&Set Minimum Logo-Time
@@ -850,12 +1020,14 @@ void oled_readnsetscreensaver(void) {
       ScreenSaverCountScreens++;                                           // ...count up the Counter.
     }
   }
+  ShowScreenSaverStarField=bitRead(m,5);                                   // StarField ScreenSaver active ?
 
 #ifdef XDEBUG
   Serial.printf("Active ScreenSaverScreens: %i\n", ScreenSaverCountScreens);
   for (b=0; b<ScreenSaverMaxScreens; b++) {
     Serial.printf("ScreenSaver Array Value No.%i: %i\n", b, ScreenSaverActiveScreens[b]);
   }
+  if (ShowScreenSaverStarField) Serial.printf("ScreenSaver StarField active!\n");
 #endif
   
 #ifdef XDEBUG
@@ -863,24 +1035,28 @@ void oled_readnsetscreensaver(void) {
   Serial.printf("Values: M:%i T:%i L:%i\n", m, i, l);
 #endif
 
+  ScreenSaverMode=m;
+  ScreenSaverTimer=0;                       // Reset Screensaver-Timer
+  ScreenSaverLogoTimer=0;                   // Reset ScreenSaverLogo-Timer
+
   if (m==0) {
 #ifdef XDEBUG
     Serial.println("ScreenSaver Disabled!");
 #endif
-    ScreenSaverEnabled = false;
-    ScreenSaverTimer=0;                       // Reset Screensaver-Timer
-    ScreenSaverLogoTimer=0;                   // Reset ScreenSaverLogo-Timer
+    ScreenSaverEnabled=false;
   }
   else{
 #ifdef XDEBUG
     Serial.println("ScreenSaver Enabled!");
 #endif
-    ScreenSaverEnabled = true;
-    ScreenSaverMode = m;                      // Set ScreenSaver Mode
+    ScreenSaverEnabled=true;
     ScreenSaverInterval=i;                    // Set ScreenSaverTimer Interval
-    ScreenSaverTimer=0;                       // Reset Screensaver-Timer
-    ScreenSaverLogoTime=l-i;                  // Set ScreenSaverLogoTime (First Screensaver shown after ScreenSaverLogoTime-ScreenSaverInterval+ScreenSaverInterval)
-    ScreenSaverLogoTimer=0;                   // Reset ScreenSaverLogo-Timer
+    if (ShowScreenSaverStarField) {
+      ScreenSaverLogoTime=l;                  // Set ScreenSaverLogoTime (Screensaver shown after ScreenSaverLogoTime)
+    }
+    else {
+      ScreenSaverLogoTime=l-i;                // Set ScreenSaverLogoTime (First Screensaver shown after ScreenSaverLogoTime-ScreenSaverInterval+ScreenSaverInterval)
+    }
   }
 }
 
@@ -930,10 +1106,7 @@ void oled_showScreenSaverPicture(void) {
         u8g2.print(actTime);
       }
       else {
-        u8g2.setFont(u8g2_font_commodore64_tr);
-        actTime="Time not set!";
-        u8g2.setCursor(DispWidth/2-(u8g2.getUTF8Width(actTime.c_str())/2), DispHeight/2 + (u8g2.getFontAscent()/2));
-        u8g2.print(actTime);
+        oled_showcenterredtext("Time not set!",9);
       }
       oled.display();
     break;
@@ -941,17 +1114,14 @@ void oled_showScreenSaverPicture(void) {
       oled.clearDisplay();
       if (timeIsSet) {
         u8g2.setFont(u8g2_font_luBS14_tf);
-        actTime=rtc.getTime("%d. %B %Y");
+        actTime=rtc.getTime("%d-%b-%y");
         x=random(DispWidth - u8g2.getUTF8Width(actTime.c_str()));
         y=random(u8g2.getFontAscent(), DispHeight);
         u8g2.setCursor(x,y);
         u8g2.print(actTime);
       }
       else {
-        u8g2.setFont(u8g2_font_commodore64_tr);
-        actTime="Date not set!";
-        u8g2.setCursor(DispWidth/2-(u8g2.getUTF8Width(actTime.c_str())/2), DispHeight/2 + (u8g2.getFontAscent()/2));
-        u8g2.print(actTime);
+        oled_showcenterredtext("Date not set!",9);
       }
       oled.display();
     break;
@@ -976,10 +1146,7 @@ void oled_showSmallCorePicture(int xpos, int ypos) {
   unsigned char b1,b2,br;
 
 #ifdef XDEBUG
-  Serial.printf("Show 1/4 Pic\n",actPicType);
-  actPicType = XBM;
-  actPicType = GSC;
-  Serial.printf("ActPicType: %d\n",actPicType);
+  Serial.printf("Show 1/4 Pic, ActPicType: %d\n",actPicType);
 #endif
   
   oled.clearDisplay();
@@ -988,7 +1155,7 @@ void oled_showSmallCorePicture(int xpos, int ypos) {
       x=0;y=0;
       for (py=0; py<DispHeight; py=py+2) {
         for (px=0; px<DispLineBytes1bpp; px++) {
-          b1=logoBin[px+py*DispLineBytes1bpp];                // Get Data Byte for 8 Pixels
+          b1=logoBin[px+py*DispLineBytes1bpp];                       // Get Data Byte for 8 Pixels
           for (i=0; i<8; i=i+2){
             if (bitRead(b1, i)) {
               oled.drawPixel(xpos+x, ypos+y, SSD1322_WHITE);         // Draw Pixel if "1"
@@ -1040,6 +1207,77 @@ void oled_showSmallCorePicture(int xpos, int ypos) {
 
 
 // --------------------------------------------------------------
+// ----------- Show System Hardware Info on Screen --------------
+// --------------------------------------------------------------
+void oled_showSystemHardware(void) {
+  int hwinfo=0;
+
+#ifdef XDEBUG
+  Serial.println("Called Command CMDSHSYSHW");
+#endif
+
+#ifdef USE_ESP32DEV                        // TTGO-T8 & d.ti Board
+  hwinfo=1;
+#endif
+
+#ifdef USE_LOLIN32                         // Wemos LOLIN32, LOLIN32, DevKit_V4 (Wemos Lolin32)
+  hwinfo=2;
+#endif
+
+#ifdef USE_NODEMCU                         // ESP8266 NodeMCU
+  hwinfo=3;
+#endif
+
+  oled.clearDisplay();
+  u8g2.setFont(u8g2_font_luBS10_tf);
+  u8g2.setCursor(0,10);
+  u8g2.print("SysInfo");
+
+  u8g2.setFont(u8g2_font_luBS08_tf);
+  u8g2.setCursor(0,25);
+  u8g2.print("FW Version: " BuildVersion);
+
+  u8g2.setCursor(0,35);
+  u8g2.print("Board Type: ");
+  
+  switch (hwinfo) {
+    case 0:
+      u8g2.print("Unknown");                 // Unknow Hardware
+    break;
+    case 1:
+      u8g2.print("ESP32-DEV");               // ESP32-DEV, TTGO, DTI-Board
+      if (dtiv>=11) {
+        u8g2.printf(", d.ti v%.1f", (float)dtiv/10);
+      }
+    break;
+    case 2:
+      u8g2.print("WEMOS LOLIN32");           // Wemos,Lolin,DevKit_V4
+    break;
+    case 3:
+      u8g2.print("NodeMCU 1.0");             // ESP8266
+    break;
+    default:
+      u8g2.print("Other");                   // Everything else
+    break;
+  }
+
+  u8g2.setCursor(0,50);
+  u8g2.print("Board Options: ");
+  u8g2.setCursor(0,60);
+  if (dtiv>=11) {
+    if (micAvail) u8g2.print("MIC184");
+    if (pcaAvail) u8g2.print(",PCA9536");
+    if (dtiv==11) u8g2.print(",LED");
+    if (dtiv==12) u8g2.print(",WS2812-LED,Buzzer");
+  }
+  else {
+    u8g2.print("None");
+  }
+
+  oled.display();  
+}
+
+// --------------------------------------------------------------
 // ----------- Send Hardware Info Back to the MiSTer ------------
 // --------------------------------------------------------------
 void oled_sendHardwareInfo(void) {
@@ -1056,7 +1294,6 @@ void oled_sendHardwareInfo(void) {
 #ifdef USE_NODEMCU                         // ESP8266 NodeMCU
   hwinfo=3;
 #endif
-
  
   delay(hwDelay);                          // Small Delay
 
@@ -1104,16 +1341,10 @@ void oled_showcorename() {
   Serial.println("Called Command CMDSNAM");
 #endif
 
-  ScreenSaverTimer=0;                        // Reset ScreenSaver-Timer
-  ScreenSaverLogoTimer=0;                    // Reset ScreenSaverLogo-Timer
+  //ScreenSaverTimer=0;                        // Reset ScreenSaver-Timer
+  //ScreenSaverLogoTimer=0;                    // Reset ScreenSaverLogo-Timer
   oled.setContrast(contrast);
-
-  oled.clearDisplay();
-  //u8g2.setFont(u8g2_font_tenfatguys_tr);     // 10 Pixel Font
-  u8g2.setFont(u8g2_font_commodore64_tr);      // Commodore 64 Font
-  u8g2.setCursor(DispWidth/2-(u8g2.getUTF8Width(actCorename.c_str())/2), DispHeight/2 + (u8g2.getFontAscent()/2));
-  u8g2.print(actCorename);
-  oled.display();
+  oled_showcenterredtext(actCorename,9);
 }
 
 
@@ -1148,6 +1379,7 @@ void oled_updatedisplay(void) {
 #ifdef XDEBUG
   Serial.println("Called Command CMDDUPD");
 #endif
+
   oled.display();                 // Update Display Content
 }
 
@@ -1171,17 +1403,80 @@ void oled_readnsetcontrast(void) {
 }
 
 // --------------------------------------------------------------
-// ---------------- Show Parameter Error ------------------------
+// ---------------- Show "Parameter Error" ----------------------
 // --------------------------------------------------------------
 void oled_showperror(void) {
+  String actText="Parameter Error";
+  
   oled.clearDisplay();
   u8g2.setFont(u8g2_font_luBS14_tf);
-  u8g2.setCursor(5, 20);
-  u8g2.print("Parameter Error!");
+  u8g2.setCursor(DispWidth/2-(u8g2.getUTF8Width(actText.c_str())/2), 20);
+  //u8g2.setCursor(5, 20);
+  u8g2.print(actText);
+  
   u8g2.setFont(u8g2_font_luBS10_tf);
-  u8g2.setCursor(5, 40);
+  u8g2.setCursor(DispWidth/2-(u8g2.getUTF8Width(newCommand.c_str())/2), 40);
+  //u8g2.setCursor(5, 40);
   u8g2.print(newCommand);
   oled.display();
+}
+
+// --------------------------------------------------------------
+// ------------------ Show centerred Text -----------------------
+// --------------------------------------------------------------
+void oled_showcenterredtext(String text, int font) {
+  
+  oled.clearDisplay();
+  oled_setfont(font);
+  u8g2.setCursor(DispWidth/2-(u8g2.getUTF8Width(text.c_str())/2), DispHeight/2 + (u8g2.getFontAscent()/2));
+  u8g2.print(text);
+  oled.display();
+}
+
+
+// --------------------------------------------------------------
+// -------------------------- Set Font --------------------------
+// --------------------------------------------------------------
+void oled_setfont(int font) {
+  switch (font) {
+    case 0:
+      u8g2.setFont(u8g2_font_5x7_mf);             // Transparent 6 Pixel Font
+    break;
+    case 1:
+      u8g2.setFont(u8g2_font_luBS08_tf);          // Transparent Font 20x12, 8 Pixel A
+    break;
+    case 2:
+      u8g2.setFont(u8g2_font_luBS10_tf);          // Transparent Font 26x15, 10 Pixel A
+    break;
+    case 3:
+      u8g2.setFont(u8g2_font_luBS14_tf);          // Transparent Font 35x22, 14 Pixel A
+    break;
+    case 4:
+      u8g2.setFont(u8g2_font_luBS18_tf);          // Transparent Font 44x28, 18 Pixel A
+    break;
+    case 5:
+      u8g2.setFont(u8g2_font_luBS24_tf);          // Transparent Font 61x40, 24 Pixel A
+    break;
+    case 6:
+      u8g2.setFont(u8g2_font_lucasarts_scumm_subtitle_o_tf); // Nice 12 Pixel Font
+    break;
+    case 7:
+      u8g2.setFont(u8g2_font_tenfatguys_tr);      // Nice 10 Pixel Font
+    break;
+    case 8:
+      u8g2.setFont(u8g2_font_7Segments_26x42_mn); // 7 Segments 42 Pixel Font
+    break;
+    case 9:
+      u8g2.setFont(u8g2_font_commodore64_tr);     // Commodore 64
+    break;
+    case 10:
+      u8g2.setFont(u8g2_font_8bitclassic_tf);     // 8bitclassic
+    break;
+
+    default:
+      u8g2.setFont(u8g2_font_tenfatguys_tr);      // Nice 10 Pixel Font
+    break;
+  }
 }
 
 
@@ -1877,47 +2172,8 @@ void oled_readnwritetext(void) {
   }
 #endif
   
-  //Set Font
-  switch (f) {
-    case 0:
-      u8g2.setFont(u8g2_font_5x7_mf);             // Transparent 6 Pixel Font
-    break;
-    case 1:
-      u8g2.setFont(u8g2_font_luBS08_tf);          // Transparent Font 20x12, 8 Pixel A
-    break;
-    case 2:
-      u8g2.setFont(u8g2_font_luBS10_tf);          // Transparent Font 26x15, 10 Pixel A
-    break;
-    case 3:
-      u8g2.setFont(u8g2_font_luBS14_tf);          // Transparent Font 35x22, 14 Pixel A
-    break;
-    case 4:
-      u8g2.setFont(u8g2_font_luBS18_tf);          // Transparent Font 44x28, 18 Pixel A
-    break;
-    case 5:
-      u8g2.setFont(u8g2_font_luBS24_tf);          // Transparent Font 61x40, 24 Pixel A
-    break;
-    case 6:
-      u8g2.setFont(u8g2_font_lucasarts_scumm_subtitle_o_tf); // Nice 12 Pixel Font
-    break;
-    case 7:
-      u8g2.setFont(u8g2_font_tenfatguys_tr);      // Nice 10 Pixel Font
-    break;
-    case 8:
-      u8g2.setFont(u8g2_font_7Segments_26x42_mn); // 7 Segments 42 Pixel Font
-    break;
-    
-    case 9:
-      u8g2.setFont(u8g2_font_commodore64_tr);     // Commodore 64
-    break;
-    case 10:
-      u8g2.setFont(u8g2_font_8bitclassic_tf);     // 8bitclassic
-    break;
-
-    default:
-      u8g2.setFont(u8g2_font_tenfatguys_tr);      // Nice 10 Pixel Font
-    break;
-  }
+  oled_setfont(f);
+  
   if (!pError) {
     // Write or Clear Text
     u8g2.setForegroundColor(c);                           // Set Font Color
@@ -2090,11 +2346,11 @@ void oled_readnsetuserled(void) {
   x=xT.toInt();                                  // Convert Value
   if (x<0) x=0;
   
-  if (!pcaAvail) {                               // PCA not avail = Board Rev 1.1 = LED
+  if (dtiv==11) {                               // d.ti Board Rev 1.1 = LED
     if (x>1) x=1;
     digitalWrite(USER_LED,x);  
   }
-  else {                                         // PCA avail = Board Rev 1.2 = WS2812B LED
+  if (dtiv==12){                                // d.ti Board Rev 1.2 = WS2812B LED
     if (x>255) x=255;
     if (x==0) {
       wsleds[0] = CRGB::Black;                   // off
@@ -2146,7 +2402,7 @@ void oled_readnsetpowerled(void) {
   
   x=xT.toInt();                                 // Convert Value
   
-  if (pcaAvail) {                               // PCA not avail = Board Rev 1.1 = LED
+  if (dtiv==12) {                               // PCA not avail = Board Rev 1.1 = LED
     if (x<0) x=0;
     if (x>1) x=1;
     digitalWrite(POWER_LED,!x);                 // Need to negate Signal, Pin = 1 LED's off
@@ -2166,97 +2422,97 @@ void oled_playnote(void) {
   Serial.println("Called Command CMDPNOTE");
 #endif  
   
-  //TextIn=newCommand.substring(8);               // Start to find the first "," after the command
   TextIn=newCommand.substring(newCommand.indexOf(','));  // Find the first "," after the command
-
-#ifdef XDEBUG
-  Serial.printf("\nReceived Text: %s\n", (char*)TextIn.c_str());
-#endif
-  
   d0 = TextIn.indexOf(',');                 // Find location of the Starting ","
 
 #ifdef XDEBUG
-    Serial.printf("Find first delimeter at: %d\n", d0);
-#endif  
- 
-  ledcAttachPin(BUZZER, TONE_PWM_CHANNEL);
- 
-#ifdef XDEBUG
   Serial.printf("\nReceived Text: %s\n", (char*)TextIn.c_str());
+  Serial.printf("Find first delimeter at: %d\n", d0);
 #endif  
 
-  do {
-    // find ","
-    d1 = TextIn.indexOf(',', d0+1 );          // Find location of first ","
-    d2 = TextIn.indexOf(',', d1+1 );          // Find location of second ","
-    d3 = TextIn.indexOf(',', d2+1 );          // Find location of third ","
-    d4 = TextIn.indexOf(',', d3+1 );          // Find location of fourth "," - Value = "-1" if not found = no more Notes available
+  if (dtiv==12){                                // only on d.ti Board Rev 1.2
+    ledcAttachPin(BUZZER, TONE_PWM_CHANNEL);
+
+    do {
+      // find ","
+      d1 = TextIn.indexOf(',', d0+1 );          // Find location of first ","
+      d2 = TextIn.indexOf(',', d1+1 );          // Find location of second ","
+      d3 = TextIn.indexOf(',', d2+1 );          // Find location of third ","
+      d4 = TextIn.indexOf(',', d3+1 );          // Find location of fourth "," - Value = "-1" if not found = no more Notes available
 
 #ifdef XDEBUG
-    Serial.printf("Find delimeters at: %d %d %d %d\n", d1,d2,d3,d4);
+      Serial.printf("Find delimeters at: %d %d %d %d\n", d1,d2,d3,d4);
 #endif  
 
-    //Create Substrings
-    nT = TextIn.substring(d0+1, d1);          // Get String for Note
-    oT = TextIn.substring(d1+1, d2);          // Get String for Octave
-    dT = TextIn.substring(d2+1, d3);          // Get String for Duration
-    if (d4 == -1) {                           // String finished
-      pT = TextIn.substring(d3+1);            // Get String for Pause
-    }
-    else if (d3 == -1 || d2 == -1 || d1 == -1) {  // Parameter missing = pError
-      pError=true;
-    }
-    else {                                    // String not finished
-      pT = TextIn.substring(d3+1, d4);        // Get String for Pause
-      d0=d4;                                  // Set Index for next Note
-    }
+      //Create Substrings
+      nT = TextIn.substring(d0+1, d1);          // Get String for Note
+      oT = TextIn.substring(d1+1, d2);          // Get String for Octave
+      dT = TextIn.substring(d2+1, d3);          // Get String for Duration
+      if (d4 == -1) {                           // String finished
+        pT = TextIn.substring(d3+1);            // Get String for Pause
+      }
+      else if (d3 == -1 || d2 == -1 || d1 == -1) {  // Parameter missing = pError
+        pError=true;
+      }
+      else {                                    // String not finished
+        pT = TextIn.substring(d3+1, d4);        // Get String for Pause
+        d0=d4;                                  // Set Index for next Note
+      }
 
 #ifdef XDEBUG
-    Serial.printf("Found strings: %s %s %s %s\n", (char*)nT.c_str(), (char*)oT.c_str(), (char*)dT.c_str(), (char*)pT.c_str());
+      Serial.printf("Found strings: %s %s %s %s\n", (char*)nT.c_str(), (char*)oT.c_str(), (char*)dT.c_str(), (char*)pT.c_str());
 #endif  
 
-    // Build Note and convert Substrings to Integers
-    // See https://github.com/espressif/arduino-esp32/blob/6a7bcabd6b7a33f074f93ed60e5cc4378d350b81/cores/esp32/esp32-hal-ledc.c#L141
-    // NOTE_C, NOTE_Cs, NOTE_D, NOTE_Eb, NOTE_E, NOTE_F, NOTE_Fs, NOTE_G, NOTE_Gs, NOTE_A, NOTE_Bb, NOTE_B, NOTE_MAX
-    nT.toUpperCase();                         // Set Note
-    if (nT == "C")   n = NOTE_C;
-    if (nT == "CS")  n = NOTE_Cs;
-    if (nT == "D")   n = NOTE_D;
-    if (nT == "EB")  n = NOTE_Eb;
-    if (nT == "E")   n = NOTE_E;
-    if (nT == "F")   n = NOTE_F;
-    if (nT == "FS")  n = NOTE_Fs;
-    if (nT == "G")   n = NOTE_G;
-    if (nT == "GS")  n = NOTE_Gs;
-    if (nT == "A")   n = NOTE_A;
-    if (nT == "BB")  n = NOTE_Bb;
-    if (nT == "B")   n = NOTE_B;
-    if (nT == "MAX") n = NOTE_MAX;
-    o = oT.toInt();                           // Octave
-    d = dT.toInt();                           // Duration
-    p = pT.toInt();                           // Pause after playing tone
+      // Build Note and convert Substrings to Integers
+      // See https://github.com/espressif/arduino-esp32/blob/6a7bcabd6b7a33f074f93ed60e5cc4378d350b81/cores/esp32/esp32-hal-ledc.c#L141
+      // NOTE_C, NOTE_Cs, NOTE_D, NOTE_Eb, NOTE_E, NOTE_F, NOTE_Fs, NOTE_G, NOTE_Gs, NOTE_A, NOTE_Bb, NOTE_B, NOTE_MAX
+      nT.toUpperCase();                         // Set Note
+      if (nT == "C")   n = NOTE_C;
+      if (nT == "CS")  n = NOTE_Cs;
+      if (nT == "D")   n = NOTE_D;
+      if (nT == "EB")  n = NOTE_Eb;
+      if (nT == "E")   n = NOTE_E;
+      if (nT == "F")   n = NOTE_F;
+      if (nT == "FS")  n = NOTE_Fs;
+      if (nT == "G")   n = NOTE_G;
+      if (nT == "GS")  n = NOTE_Gs;
+      if (nT == "A")   n = NOTE_A;
+      if (nT == "BB")  n = NOTE_Bb;
+      if (nT == "B")   n = NOTE_B;
+      if (nT == "MAX") n = NOTE_MAX;
+      o = oT.toInt();                           // Octave
+      d = dT.toInt();                           // Duration
+      p = pT.toInt();                           // Pause after playing tone
 
-    if (o == 0 || d == 0 || p == 0) pError=true;
+      if (o == 0 || d == 0 || p == 0) pError=true;
     
 #ifdef XDEBUG
-    Serial.printf("Values to Play: %s %d %d %d\n", (char*)nT.c_str(), o, d, p);
+      Serial.printf("Values to Play: %s %d %d %d\n", (char*)nT.c_str(), o, d, p);
 #endif  
 
-    if (!pError) {
-      ledcWriteNote(TONE_PWM_CHANNEL, n, o);    // Play Note
-      delay(d);                                 // Duration
-      ledcWriteTone(TONE_PWM_CHANNEL, 0);       // Buzzer off
-      delay(p);                                 // Pause
-    }
-    else {
-      oled_showperror(); 
+      if (!pError) {
+        ledcWriteNote(TONE_PWM_CHANNEL, n, o);    // Play Note
+        delay(d);                                 // Duration
+        ledcWriteTone(TONE_PWM_CHANNEL, 0);       // Buzzer off
+        delay(p);                                 // Pause
+      }
+      else {
+        oled_showperror(); 
 #ifdef XDEBUG
-      Serial.printf("Parameter Error!\n");
+        Serial.printf("Parameter Error!\n");
 #endif  
-    }
-  } while (d4 != -1 && !pError);                         // Repeat as long a fourth "," is found
+      }
+    } while (d4 != -1 && !pError);                         // Repeat as long a fourth "," is found
 
-  ledcDetachPin(BUZZER);
+    ledcDetachPin(BUZZER);
+
+  }  // endif dtiv==12
+  else {
+    oled_showcenterredtext("No Buzzer!",3);
+#ifdef XDEBUG
+    Serial.printf("No Buzzer!\n");
+#endif  
+  }
 }
 
 // --------------------------------------------------------------
@@ -2271,66 +2527,72 @@ void oled_playtone(void) {
   Serial.println("Called Command CMDPTONE");
 #endif  
 
-  //TextIn=newCommand.substring(8);               // Start to find the first "," after the command
   TextIn=newCommand.substring(newCommand.indexOf(','));  // Find the first "," after the command
+  d0 = TextIn.indexOf(',');                 // Find location of the Starting ","
 
 #ifdef XDEBUG
   Serial.printf("\nReceived Text: %s\n", (char*)TextIn.c_str());
-#endif
-  
-  d0 = TextIn.indexOf(',');                 // Find location of the Starting ","
- 
-  ledcAttachPin(BUZZER, TONE_PWM_CHANNEL);
- 
-#ifdef XDEBUG
-  Serial.printf("\nReceived Text: %s\n", (char*)TextIn.c_str());
+  Serial.printf("Find first delimeter at: %d\n", d0);
 #endif  
 
-  do {
-    // find ","
-    d1 = TextIn.indexOf(',', d0+1 );          // Find location of first ","
-    d2 = TextIn.indexOf(',', d1+1 );          // Find location of second ","
-    d3 = TextIn.indexOf(',', d2+1 );          // Find location of third "," - Value = "-1" if not found = no more Notes available
+  if (dtiv==12){                                // only on d.ti Board Rev 1.2
+    ledcAttachPin(BUZZER, TONE_PWM_CHANNEL);
 
-    //Create Substrings
-    fT = TextIn.substring(d0+1, d1);          // Get String for Frequency
-    dT = TextIn.substring(d1+1, d2);          // Get String for Duration
-    if (d3 == -1) {                           // String finished
-      pT = TextIn.substring(d2+1);            // Get String for Pause
-    }
-    else if (d2 == -1 || d1 == -1) {          // Parameter missing = pError
-      pError=true;
-    }
-    else {                                    // String not finished
-      pT = TextIn.substring(d2+1, d3);        // Get String for Pause
-      d0=d3;                                  // Set Index for next Tone
-    }
+    do {
+      // find ","
+      d1 = TextIn.indexOf(',', d0+1 );          // Find location of first ","
+      d2 = TextIn.indexOf(',', d1+1 );          // Find location of second ","
+      d3 = TextIn.indexOf(',', d2+1 );          // Find location of third "," - Value = "-1" if not found = no more Notes available
 
+      //Create Substrings
+      fT = TextIn.substring(d0+1, d1);          // Get String for Frequency
+      dT = TextIn.substring(d1+1, d2);          // Get String for Duration
+      if (d3 == -1) {                           // String finished
+        pT = TextIn.substring(d2+1);            // Get String for Pause
+      }
+      else if (d2 == -1 || d1 == -1) {          // Parameter missing = pError
+        pError=true;
+      }
+      else {                                    // String not finished
+        pT = TextIn.substring(d2+1, d3);        // Get String for Pause
+        d0=d3;                                  // Set Index for next Tone
+      }
 
-    f = fT.toInt();                           // Octave
-    d = dT.toInt();                           // Duration
-    p = pT.toInt();                           // Pause after playing tone
+      f = fT.toInt();                           // Octave
+      d = dT.toInt();                           // Duration
+      p = pT.toInt();                           // Pause after playing tone
 
-    if (f == 0 || d == 0 || p == 0) pError=true;
+      if (f == 0 || d == 0 || p == 0) pError=true;
     
 #ifdef XDEBUG
-    Serial.printf("Values to Play: %d %d %d\n", f, d, p);
+      Serial.printf("Values to Play: %d %d %d\n", f, d, p);
 #endif  
-    if (!pError) {
-      ledcWriteTone(TONE_PWM_CHANNEL, f);       // Play Frequency
-      delay(d);                                 // Duration
-      ledcWriteTone(TONE_PWM_CHANNEL, 0);       // Buzzer off
-      delay(p);                                 // Pause
-    }
-    else {
-      oled_showperror();      
-    }
-  } while (d3 != -1 && !pError);                         // Repeat as long as a third "," is found
+      if (!pError) {
+        ledcWriteTone(TONE_PWM_CHANNEL, f);       // Play Frequency
+        delay(d);                                 // Duration
+        ledcWriteTone(TONE_PWM_CHANNEL, 0);       // Buzzer off
+        delay(p);                                 // Pause
+      }
+      else {
+        oled_showperror();      
+#ifdef XDEBUG
+        Serial.printf("Parameter Error!\n");
+#endif  
+      }
+    } while (d3 != -1 && !pError);                         // Repeat as long as a third "," is found
 
-  ledcDetachPin(BUZZER);
+    ledcDetachPin(BUZZER);
+
+  }  // endif dtiv==12
+  else {
+    oled_showcenterredtext("No Buzzer!",3);
+#ifdef XDEBUG
+    Serial.printf("No Buzzer!\n");
+#endif  
+  }
 }
 
-#endif  // ----------- d.ti functions---------------
+#endif  // ----------- d.ti functions endif ESP32DEV---------------
 
 
 // -------------- ESP32 Functions -------------------- 
@@ -2358,6 +2620,7 @@ void oled_showtime(void) {
   oled.display();                                         // Output Text
 }
 
+#ifdef XOTA
 // --------------------------------------------------
 // ---------------- Enable OTA ---------------------- 
 // --------------------------------------------------
@@ -2449,6 +2712,8 @@ void oled_enableOTA (void) {
   
   OTAEN = true;  // Set OTA Enabled to True for the "Handler" in "loop"
 }
+#endif
+
 #endif
 
 //========================== The end ================================

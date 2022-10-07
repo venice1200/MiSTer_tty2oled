@@ -21,38 +21,6 @@
   -NodeMCU 1.0
    
   See changelog.md in Sketch folder for more details
-
-  2022-07-31
-  -SSD1322 Minor change
-  -New Option "XOTA" for disable/enable the OTA functionality, Sketch consumption 65%->28%
-
-  2022-08-07..12
-  -Add RGB LED to Startup Screen (d.ti Board 1.2)
-  -New Variable "dtiv" showing d.ti Board Revisions: 11=1.1 12=1.2...
-
-  2022-08-23
-  -Replace some "if (pcaAvail)" with "if (dtiv==12)"
-
-  2022-08-26..28
-  -New Command "CMDSHSYSHW" shows Hardware & Software Infos on Screen
-
-  2022-09-01
-  -More usage of "dtiv"
-
-  2022-09-02
-  -New functions "oled_showcenterredtext" and "oled_setfont"
-
-  2022-09-18
-  -Shorten the Date Format for the Screensaver. e.g. "19. September 2022" => "19-Sep-22".
-
-  2022-09-25..27
-  -Add Command "CMDSWSAVER,[0/1]" for just Switching the Screensaver on/off
-  -Workaround for the detection of PCA9536 = d.ti Board v1.2
-  
-  2022-09-30
-  -Add the StarField Simulation
-   Code from https://github.com/sinoia/oled-starfield (MIT License) 
-   8266 must run at 160MHz!
   
   ToDo
   -Check why dtiv>=13 (Reason = POR of PCA9536)
@@ -61,7 +29,7 @@
 */
 
 // Set Version
-#define BuildVersion "221001T"                    // "T" for Testing
+#define BuildVersion "221007T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -248,6 +216,14 @@ int ScreenSaverActiveScreens[ScreenSaverMaxScreens]; // Array contains Pointer t
 int ScreenSaverCountScreens=0;               // How many ScreenSaver Screens are Active?
 const int ScreenSaverContrast=1;             // Contrast Value for ScreenSaver Mode
 
+// Star Field Simulation
+bool ShowScreenSaverStarField=false;          // Star Field ScreenSaver yes/no
+#ifdef ESP32
+const int starCount = 512;                    // Number of Stars in the Star Field ESP32
+const int maxDepth = 32;                      // Maximum Distance away for a Star
+double stars[starCount][3];                   // The Star Field - StarCount Stars represented as X, Y and Z Cooordinates
+#endif
+
 // I2C Hardware
 bool micAvail=false;                          // Is the MIC184 Sensor available?
 const byte PCA9536_ADDR = 0x41;               // PCA9536 Base Address
@@ -257,16 +233,6 @@ bool pcaAvail=false;                          // Is the PCA9536 Port-Extender Ch
 byte pcaInputValue=0;                         // PCA9536 Input Pin State as Byte Value
 byte dtiv=0;                                  // d.ti Board Version 11=1.1, 12=1.2
 
-// Star Field Simulation
-#ifdef USE_NODEMCU
-//const int starCount = 256;                    // Number of Stars in the Star Field 8266
-const int starCount = 384;                    // Number of Stars in the Star Field 8266
-#else
-const int starCount = 512;                    // Number of Stars in the Star Field ESP32
-#endif
-const int maxDepth = 32;                      // Maximum Distance away for a Star
-double stars[starCount][3];                   // The Star Field - StarCount Stars represented as X, Y and Z Cooordinates
-bool ShowScreenSaverStarField=false;          // Star Field ScreenSaver yes/no
 
 // =============================================================================================================
 // ========================================== FUNCTION PROTOTYPES ==============================================
@@ -431,11 +397,13 @@ void setup(void) {
   }
 #endif  // USE_ESP32DEV
 
+#ifdef ESP32
   for (int i = 0; i < starCount; i++) {                    // Initialise the StarField with random Stars
     stars[i][0] = getRandom(-25, 25);
     stars[i][1] = getRandom(-25, 25);
     stars[i][2] = getRandom(0, maxDepth);
   }
+#endif
 
   // Tilt Sensor Rotation via Tilt-Sensor Pin
   RotationDebouncer.attach(TILT_PIN,INPUT_PULLUP);         // Attach the debouncer to a pin with INPUT mode
@@ -779,11 +747,13 @@ void loop(void) {
   if (ScreenSaverActive && !ShowScreenSaverStarField && ScreenSaverPos) {    // Screensaver each 60secs
     oled_showScreenSaverPicture();
   }
+#ifdef ESP32
   if (ScreenSaverActive && ShowScreenSaverStarField) {                       // StarField ScreenSaver
     oled.clearDisplay();
     oled_drawScreenSaverStarField();
     oled.display();
   }
+#endif
 
 // ---------------------------------------------------
 } // End Main Loop
@@ -871,6 +841,7 @@ int getRandom(int lower, int upper) {
 // --------------------------------------------------------------
 // -------------- Draw the ScreenSaver StarField ----------------
 // --------------------------------------------------------------
+#ifdef ESP32
 void oled_drawScreenSaverStarField() {
   int origin_x = oled.width() / 2;
   int origin_y = oled.height() / 2;
@@ -900,7 +871,7 @@ void oled_drawScreenSaverStarField() {
     }
   }
 }
-
+#endif
 
 // --------------------------------------------------------------
 // ---------------- Read and set RTC Time -----------------------
@@ -1051,7 +1022,9 @@ void oled_readnsetscreensaver(void) {
       ScreenSaverCountScreens++;                                           // ...count up the Counter.
     }
   }
+#ifdef ESP32    
   ShowScreenSaverStarField=bitRead(m,5);                                   // StarField ScreenSaver active ?
+#endif
 
 #ifdef XDEBUG
   Serial.printf("Active ScreenSaverScreens: %i\n", ScreenSaverCountScreens);

@@ -1,10 +1,50 @@
-******************************** New to Old ***********************
+*************************** tty2oled Arduino-FW Changelog ***********************
 
-  2022-07-23 Release to stable 220723 (based on 220714T)
+  2022-10-09
+  ***** Release to stable 221009 ******
+
+  2202-10-07
+  -Fix for 8266 which don't get the Starfield Screensaver to prevent stability issues
+
+  2022-09-30
+  -Add the StarField Simulation as ScreenSaver
+   Code from https://github.com/sinoia/oled-starfield (MIT License) 
+   8266 must run at 160MHz!
+   Screensaver Bits: Bit 0=tty2oled Logo (Value 1), 1=MiSTer Logo (=Value 2), 2=Core Logo (Value 4), 3=Time (Value 8), 4=Date (Value 16), 5=Stars (Value32)
+
+  2022-09-25..27
+  -New Command "CMDSWSAVER,[0/1]" for just Switching the Screensaver on/off
+  -Workaround for the detection of PCA9536 = d.ti Board v1.2
+  
+  2022-09-02
+  -New functions "oled_showcenterredtext" and "oled_setfont"
+
+  2022-09-01
+  -More usage of "dtiv"
+
+  2022-08-26..28
+  -New Command "CMDSHSYSHW" shows Hardware & Software Infos on Screen
+
+  2022-09-18
+  -Shorten the Date Format for the Screensaver. e.g. "19. September 2022" => "19-Sep-22".
+
+  2022-08-07..12
+  -Add RGB LED to Startup Screen (d.ti Board 1.2)
+  -New Variable "dtiv" showing d.ti Board Revisions: 11=1.1 12=1.2...
+
+  2022-08-23
+  -Replace some "if (pcaAvail)" with "if (dtiv==12)"
+
+  2022-07-31
+  -SSD1322 Minor change
+  -New Option "XOTA" for disable/enable the OTA functionality, Sketch consumption 65%->28%
+
+  2022-07-23 
+  ***** Release ***** to stable 220723 (based on 220714T)
 
   2022-07-12..14
   -Introduce ScreenSaver "Screens" which can be selected separatly (bitwise)
-   Bit 0=tty2oled Logo=Value 1, 1=MiSTer Logo=Value 2, 2=Core Logo=Value 4, 3=Time=Value 8, 4=Date=Value 16
+   Bit 0=tty2oled Logo (Value 1), 1=MiSTer Logo (=Value 2), 2=Core Logo (Value 4), 3=Time (Value 8), 4=Date (Value 16)
    Examples: 12=4+8=Core+Time, 5=1+4=tty2oled+Core, 13=1+4+8=tty2oled+Core+Time
 
   2022-07-09

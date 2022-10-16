@@ -1,12 +1,19 @@
 *************************** tty2oled Arduino-FW Changelog ***********************
+  2022-10-15
+  -Add short delay after Rotation-Pin Initialization (try to prevent false Rotation on 8266)
+  -Add ScreenSaver Flying Toasters
 
-  ***** Release to stable 2210xx ******
+  2022-10-14
+  -Changed filename logo.h to bitmaps.h
+  
+  2022-10-12
+  -Modifying "Stars", adding Star-Depth-Color calculation
+
+  2022-10-09
+  ***** Release to stable 221009 ******
 
   2202-10-07
-  -Fixes for 8266 (no Starfield)
-
-  2022-10-06 
-  ***** Release to stable 221006 ******
+  -Fix for 8266 which don't get the Starfield Screensaver to prevent stability issues
 
   2022-09-30
   -Add the StarField Simulation as ScreenSaver

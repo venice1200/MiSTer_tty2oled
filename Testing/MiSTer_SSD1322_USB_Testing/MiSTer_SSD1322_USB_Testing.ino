@@ -29,7 +29,7 @@
 */
 
 // Set Version
-#define BuildVersion "221015T"                    // "T" for Testing
+#define BuildVersion "221020T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -207,35 +207,41 @@ bool ScreenSaverPos;                         // Positive Signal ScreenSaver
 int ScreenSaverMode=0;                       // ScreenSaver Drawing Color
 int ScreenSaverLogoTimer=0;                  // ScreenSaverLogo-Timer
 int ScreenSaverLogoTime=60;                  // ScreenSaverLogoTime
+#ifndef ESP32
+const int ScreenSaverMaxScreens=3;           // Max ScreenSavers ESP8266 => 3 (bit)
+#endif
 #ifdef ESP32
 const int ScreenSaverMaxScreens=5;           // Max ScreenSavers ESP32 => 5 (bit)
-#else
-const int ScreenSaverMaxScreens=3;           // Max ScreenSavers ESP8266 => 3 (bit)
 #endif
 int ScreenSaverActiveScreens[ScreenSaverMaxScreens]; // Array contains Pointer to Active ScreeenSavers (1=tty2oled,2=MiSTer,3=Core,4=Time,5=Date)
 int ScreenSaverCountScreens=0;               // How many ScreenSaver Screens are Active?
 const int ScreenSaverContrast=1;             // Contrast Value for ScreenSaver Mode
 
+// Animated Screensaver only for ESP32
+#ifdef ESP32
 // Star Field Simulation
 bool ShowScreenSaverStarField=false;          // Star Field ScreenSaver yes/no
-#ifdef ESP32
 const int starCount = 512;                    // Number of Stars in the Star Field ESP32
 const int maxDepth = 32;                      // Maximum Distance away for a Star
 double stars[starCount][3];                   // The Star Field - StarCount Stars represented as X, Y and Z Cooordinates
-#endif
+#define SCRSTARS 1
 
-// Flaying Toaster
+// Flying Toaster
 bool ShowScreenSaverToaster=false;            // Flying Toasters ScreenSaver yes/no
-#ifdef ESP32
 #define TOAST_FLYERS   5 // Number of flying things
 #define TOAST_MPIX 16    // Micropixel
 #define TOAST_DELAY 50   // Toaster Delay
-
 struct Flyer {       // Array of flying things
   int16_t x, y;      // Top-left position * 16 (for subpixel pos updates)
   int8_t  depth;     // Stacking order is also speed, 12-24 subpixels/frame
   uint8_t frame;     // Animation frame; Toasters cycle 0-3, Toast=255
 } flyer[TOAST_FLYERS];
+#define SCRTOASTER 2
+
+bool ShowScreenSaverAnimated=false;
+#define MinAnimatedScreenSaver 1
+#define MaxAnimatedScreenSaver 2
+int ShowAnimatedScreenSaverNo=MinAnimatedScreenSaver;
 #endif
 
 // I2C Hardware
@@ -508,17 +514,6 @@ void loop(void) {
   timer60pos = (timer % interval60 == 0) && blinkpos;
   if (timer>=interval60) timer = 0;
 
-/*
-  // ScreenSaver Logo-Timer
-  if (ScreenSaverEnabled && !ScreenSaverActive && blinkpos) ScreenSaverLogoTimer++;
-  ScreenSaverActive = (ScreenSaverLogoTimer>=ScreenSaverLogoTime) && ScreenSaverEnabled;
-  
-  // ScreenSaver Timer
-  if (ScreenSaverActive && blinkpos) ScreenSaverTimer++;
-  ScreenSaverPos = (ScreenSaverTimer == ScreenSaverInterval) && blinkpos;
-  if (ScreenSaverTimer>=ScreenSaverInterval) ScreenSaverTimer=0;
-*/
-
 #ifdef XDEBUG
   //if (blinkpos) Serial.println("Blink-Pos");
   //if (blinkneg) Serial.println("Blink-Neg");
@@ -767,14 +762,20 @@ void loop(void) {
   ScreenSaverPos = (ScreenSaverTimer == ScreenSaverInterval) && blinkpos;
   if (ScreenSaverTimer>=ScreenSaverInterval) ScreenSaverTimer=0;
 
-  if (ScreenSaverActive && !ShowScreenSaverStarField && !ShowScreenSaverToaster && ScreenSaverPos) {    // Screensaver each 60secs
+#ifndef ESP32
+  if (ScreenSaverActive && ScreenSaverPos) {    // Screensaver each 60secs
     oled_showScreenSaverPicture();
   }
+#endif
+
 #ifdef ESP32
-  if (ScreenSaverActive && ShowScreenSaverStarField) {                       // StarField ScreenSaver
+  if (ScreenSaverActive && !ShowScreenSaverStarField && !ShowScreenSaverToaster && !ShowScreenSaverAnimated && ScreenSaverPos) {    // Screensaver each 60secs
+    oled_showScreenSaverPicture();
+  }
+  if (ScreenSaverActive && (ShowScreenSaverStarField || (ShowScreenSaverAnimated && (ShowAnimatedScreenSaverNo==SCRSTARS) ))) {                       // StarField ScreenSaver
     oled_drawScreenSaverStarField();
   }
-  if (ScreenSaverActive && ShowScreenSaverToaster) {                         // Flying Toasters ScreenSaver
+  if (ScreenSaverActive && (ShowScreenSaverToaster || (ShowScreenSaverAnimated && (ShowAnimatedScreenSaverNo==SCRTOASTER) ))) {                         // Flying Toasters ScreenSaver
     oled_drawScreenSaverToaster();
   }
 #endif
@@ -1004,8 +1005,9 @@ void oled_readnsetscreensaver(void) {
     }
   }
 #ifdef ESP32    
-  ShowScreenSaverStarField=bitRead(m,5);                                   // StarField ScreenSaver active ?
-  ShowScreenSaverToaster=bitRead(m,6);                                     // Toaster ScreenSaver active ?
+  ShowScreenSaverStarField=bitRead(m,5) && !bitRead(m,6);                  // StarField ScreenSaver active ?
+  ShowScreenSaverToaster=!bitRead(m,5) && bitRead(m,6);                    // Toaster ScreenSaver active ?
+  ShowScreenSaverAnimated=bitRead(m,5) && bitRead(m,6);                    // All Animated ScreenSaver
 #endif
 
 #ifdef XDEBUG
@@ -1037,12 +1039,17 @@ void oled_readnsetscreensaver(void) {
 #endif
     ScreenSaverEnabled=true;
     ScreenSaverInterval=i;                    // Set ScreenSaverTimer Interval
-    if (ShowScreenSaverStarField) {
+#ifndef ESP32
+    ScreenSaverLogoTime=l-i;                  // Set ScreenSaverLogoTime (First Screensaver shown after ScreenSaverLogoTime-ScreenSaverInterval+ScreenSaverInterval)
+#endif
+#ifdef ESP32
+    if (ShowScreenSaverStarField || ShowScreenSaverToaster || ShowScreenSaverAnimated) {
       ScreenSaverLogoTime=l;                  // Set ScreenSaverLogoTime (Screensaver shown after ScreenSaverLogoTime)
     }
     else {
       ScreenSaverLogoTime=l-i;                // Set ScreenSaverLogoTime (First Screensaver shown after ScreenSaverLogoTime-ScreenSaverInterval+ScreenSaverInterval)
     }
+#endif
   }
 }
 
@@ -1666,6 +1673,9 @@ void oled_drawlogo(uint8_t e) {
 
   ScreenSaverTimer=0;                        // Reset ScreenSaver-Timer
   ScreenSaverLogoTimer=0;                    // Reset ScreenSaverLogo-Timer
+#ifdef ESP32  
+  ShowAnimatedScreenSaverNo=random(MinAnimatedScreenSaver, MaxAnimatedScreenSaver+1);
+#endif
   oled.setContrast(contrast);
 
   switch (e) {

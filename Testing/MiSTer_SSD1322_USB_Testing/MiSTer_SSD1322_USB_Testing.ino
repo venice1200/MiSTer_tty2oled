@@ -29,7 +29,7 @@
 */
 
 // Set Version
-#define BuildVersion "221020T"                    // "T" for Testing
+#define BuildVersion "221024T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -175,7 +175,8 @@ int logoBytes4bpp=0;
 //unsigned int logoBytes4bpp=0;
 const int hwDelay=100;                        // Delay for HWINFO Request
 size_t bytesReadCount=0;
-uint8_t *logoBin;                             // <<== For malloc in Setup
+//uint8_t *logoBin;                             // <<== For malloc in Setup
+uint8_t logoBin[8192];                        // fixed definition
 enum picType {NONE, XBM, GSC, TXT};           // Enum Picture Type
 int actPicType=NONE;
 int16_t xs, ys;
@@ -219,6 +220,11 @@ const int ScreenSaverContrast=1;             // Contrast Value for ScreenSaver M
 
 // Animated Screensaver only for ESP32
 #ifdef ESP32
+bool ShowScreenSaverAnimated=false;
+#define MinAnimatedScreenSaver 1
+#define MaxAnimatedScreenSaver 2
+int ShowAnimatedScreenSaverNo=MinAnimatedScreenSaver;
+
 // Star Field Simulation
 bool ShowScreenSaverStarField=false;          // Star Field ScreenSaver yes/no
 const int starCount = 512;                    // Number of Stars in the Star Field ESP32
@@ -237,11 +243,6 @@ struct Flyer {       // Array of flying things
   uint8_t frame;     // Animation frame; Toasters cycle 0-3, Toast=255
 } flyer[TOAST_FLYERS];
 #define SCRTOASTER 2
-
-bool ShowScreenSaverAnimated=false;
-#define MinAnimatedScreenSaver 1
-#define MaxAnimatedScreenSaver 2
-int ShowAnimatedScreenSaverNo=MinAnimatedScreenSaver;
 #endif
 
 // I2C Hardware
@@ -341,7 +342,7 @@ void setup(void) {
   DispLineBytes4bpp = DispWidth / 2;                       // How many Bytes uses each Display Line at 4bpp (128 byte for width 256 Pixel)
   logoBytes1bpp = DispWidth * DispHeight / 8;              // SSD1322 = 2048 Bytes
   logoBytes4bpp = DispWidth * DispHeight / 2;              // SSD1322 = 8192 Bytes
-  logoBin = (uint8_t *) malloc(logoBytes4bpp);             // Create Picture Buffer, better than permanent create (malloc) and destroy (free)
+  //logoBin = (uint8_t *) malloc(logoBytes4bpp);             // Create Picture Buffer, better than permanent create (malloc) and destroy (free)
 
 // === Activate Options ===
 

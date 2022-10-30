@@ -1,5 +1,26 @@
 *************************** tty2oled Arduino-FW Changelog ***********************
 
+  2022-10-30
+  ***** Release to stable 221030 ******
+
+  2022-10-24
+  -Change Picture Array logoBin from "malloc" to "normal" defined type.
+
+  2022-10-20
+  -Add randomly chosen animated ScreenSaver after Corechange
+
+  2022-10-15
+  -Add short delay after Rotation-Pin Initialization (try to prevent false Rotation detection on 8266)
+  -Add ScreenSaver Flying Toasters by Phillip Burgess/Adafruit
+   https://learn.adafruit.com/animated-flying-toaster-oled-jewelry/code (MIT License) 
+   Screensaver Bits: Bit 0=tty2oled Logo (Value 1), 1=MiSTer Logo (2), 2=Core Logo (4), 3=Time (8), 4=Date (16), 5=Stars (32), 6=Toast (64)
+
+  2022-10-14
+  -Changed filename logo.h to bitmaps.h
+  
+  2022-10-12
+  -Modifying "Stars", adding Star-Depth-Color calculation
+
   2022-10-09
   ***** Release to stable 221009 ******
 

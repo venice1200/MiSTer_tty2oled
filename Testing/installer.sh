@@ -31,7 +31,7 @@ flash() {
 }
 
 checkesp() {
-  MAC=$(${TMPDIR}/esptool.py --chip auto --port ${TTYDEV} --baud ${DBAUD} --after no_reset flash_id | grep MAC | awk '{print $2}')
+  MAC=$(${TMPDIR}/esptool.py --chip auto --port ${TTYDEV} --baud ${DBAUD} flash_id | grep MAC | awk '{print $2}')
   MAC=${MAC^^}
 }
 

@@ -98,13 +98,13 @@ if  ! [ -f ${INITSCRIPT} ]; then
     echo -e "${fyellow}Found disabled init script, skipping Install${freset}"
   else
     echo -e "${fyellow}Installing init script ${fmagenta}S60tty2oled${freset}"
-    mv -f /tmp/S60tty2oled ${INITSCRIPT}
+    [ -s /tmp/S60tty2oled ] && mv -f /tmp/S60tty2oled ${INITSCRIPT}
     chmod +x ${INITSCRIPT}
   fi
 elif ! cmp -s /tmp/S60tty2oled ${INITSCRIPT}; then
   if [ "${SCRIPT_UPDATE}" = "yes" ]; then
     echo -e "${fyellow}Updating init script ${fmagenta}S60tty2oled${freset}"
-    mv -f /tmp/S60tty2oled ${INITSCRIPT}
+    [ -s /tmp/S60tty2oled ] && mv -f /tmp/S60tty2oled ${INITSCRIPT}
     chmod +x ${INITSCRIPT}
   else
     echo -e "${fblink}Skipping${fyellow} available init script update because of the ${fcyan}SCRIPT_UPDATE${fyellow} INI-Option${freset}"
@@ -117,12 +117,12 @@ fi
 wget ${NODEBUG} "${REPOSITORY_URL}/${DAEMONNAME}" -O /tmp/${DAEMONNAME}
 if  ! [ -f ${DAEMONSCRIPT} ]; then
   echo -e "${fyellow}Installing daemon script ${fmagenta}tty2oled${freset}"
-  mv -f /tmp/${DAEMONNAME} ${DAEMONSCRIPT}
+  [ -s /tmp/${DAEMONNAME} ] && mv -f /tmp/${DAEMONNAME} ${DAEMONSCRIPT}
   chmod +x ${DAEMONSCRIPT}
 elif ! cmp -s /tmp/${DAEMONNAME} ${DAEMONSCRIPT}; then
   if [ "${SCRIPT_UPDATE}" = "yes" ]; then
     echo -e "${fyellow}Updating daemon script ${fmagenta}tty2oled${freset}"
-    mv -f /tmp/${DAEMONNAME} ${DAEMONSCRIPT}
+    [ -s /tmp/${DAEMONNAME} ] && mv -f /tmp/${DAEMONNAME} ${DAEMONSCRIPT}
     chmod +x ${DAEMONSCRIPT}
   else
     echo -e "${fblink}Skipping${fyellow} available daemon script update because of the ${fcyan}SCRIPT_UPDATE${fyellow} INI-Option${freset}"
@@ -154,7 +154,7 @@ wget ${NODEBUG} "${REPOSITORY_URL}/tty2oled_cc.sh" -O /tmp/tty2oled_cc.sh
 if ! cmp -s /tmp/tty2oled_cc.sh ${CCSCRIPT}; then
   if [ "${SCRIPT_UPDATE}" = "yes" ]; then
     echo -e "${fyellow}Updating tools script ${fmagenta}tty2oled_cc.sh${freset}"
-    mv -f /tmp/tty2oled_cc.sh ${CCSCRIPT}
+    [ -s /tmp/tty2oled_cc.sh ] && mv -f /tmp/tty2oled_cc.sh ${CCSCRIPT}
     chmod +x ${CCSCRIPT}
   else
     echo -e "${fblink}Skipping${fyellow} available tools script update because of the ${fcyan}SCRIPT_UPDATE${fyellow} INI-Option${freset}"

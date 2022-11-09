@@ -81,7 +81,7 @@ if [ "${MCUtype}" = "" ]; then
 	echo "CMDHWINF" > ${TTYDEV} ; read -t5 BLA < ${TTYDEV}
 	MCUtype=${BLA:0:9}
 	SWver=${BLA%;*} && SWver=${SWver:10}
-	checkesp
+	checkesp ; sleep 1
 	if [ "${MCUtype:0:2}" = "HW" ]; then
 	    echo -e "${fgreen}${MCUtype} with sketch version ${SWver}${freset}"
 	else

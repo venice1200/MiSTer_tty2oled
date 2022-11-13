@@ -343,6 +343,7 @@ void oled_enableOTA (void);
 int getRandom(int lower, int upper);
 void oled_drawScreenSaverStarField(void);
 void oled_drawScreenSaverToaster(void);
+void oled_readnseteeprom(void);
 
 // Info about overloading found here
 // https://stackoverflow.com/questions/1880866/can-i-set-a-default-argument-from-a-previous-argument
@@ -441,11 +442,12 @@ void setup(void) {
   Serial.print("Read DTIV from EEPROM: ");
   Serial.println(edtiv);
 #endif  // XDEBUG
-  if (edtiv==0 || edtiv==255) {      
+  if (edtiv==255) {                                               // Read PCA Value only if EEPROM has no Value
     if (pcaAvail) {                                               // If PCA9536 available..
       Wire.beginTransmission(PCA9536_ADDR);                       // start transmission and.. 
       Wire.write(PCA9536_IREG);                                   // read Register 0 (Input Register).
       if (Wire.endTransmission() == 0) {                          // If OK...
+        delay(50);                                                // Just wait 50ms
         Wire.requestFrom(PCA9536_ADDR, byte(1));                  // request one byte from PCA
         if (Wire.available() == 1) {                              // If just one byte is available,
           pcaInputValue = Wire.read() & 0x0F;                     // read it and mask the higher bits out
@@ -453,7 +455,11 @@ void setup(void) {
 #ifdef XDEBUG
           Serial.print("PCA9536 Input Register Value: ");
           Serial.println(pcaInputValue);
+          Serial.print("Writing DTIV to EEPROM: ");
+          Serial.println(dtiv);
 #endif
+          EEPROM.write(EEPROM_DTIV,dtiv);                         // Write Value to EEPROM
+          EEPROM.commit();                                        // Commit EEPROM Access
         }
         else {
           while (Wire.available()) Wire.read();                   // If more byte are available = something wrong ;-)
@@ -463,12 +469,9 @@ void setup(void) {
         }
       }
     }
-#ifdef XDEBUG
-    Serial.print("Writing DTIV to EEPROM: ");
-    Serial.println(dtiv);
-#endif
-    EEPROM.write(EEPROM_DTIV,dtiv);                         // Write Value to EEPROM
-    EEPROM.commit();                                        // Commit EEPROM Access
+  }
+  else {
+    dtiv=edtiv;                                                    // Read EEPROM Value => dtiv
   }
 
   if (dtiv==11) {                                                  // If PCA9536 is not available = d.ti Board Rev 1.1
@@ -766,6 +769,10 @@ void loop(void) {
 
     else if (newCommand.startsWith("CMDPTONE")) {                          // Play Tone/Frequency
     oled_playtone();
+    }
+
+    else if (newCommand.startsWith("CMDWREPR")) {                          // Write EEPROM
+      oled_readnseteeprom();
     }
 #endif  // USE_ESP32DEV
 // ---------------------------------------------------
@@ -1716,6 +1723,9 @@ int oled_readlogo() {
   // Check if 2048 or 8192 Bytes read
   if (((int)bytesReadCount != logoBytes1bpp) && ((int)bytesReadCount != logoBytes4bpp)) {
     oled_drawlogo64h(transfererror_width, transfererror_pic);
+    oled.setCursor(0,0);
+    oled.print(bytesReadCount);
+    oled.display();
     return 0;
   }
   else {
@@ -2652,6 +2662,56 @@ void oled_playtone(void) {
     Serial.printf("No Buzzer!\n");
 #endif  
   }
+}
+
+// --------------------------------------------------------------
+// ------------------ Write EEPROM Value ------------------------
+// --------------------------------------------------------------
+void oled_readnseteeprom(void) {
+  String TextIn="",aT="",vT="";
+  int d1,a,v;
+
+#ifdef XDEBUG
+  Serial.println("Called Command CMDWREPR");
+#endif
+
+  TextIn=newCommand.substring(newCommand.indexOf(',')+1);;
+
+#ifdef XDEBUG
+  Serial.printf("Received Text: %s\n", (char*)TextIn.c_str());
+#endif
+ 
+  //Searching for the "," delimiter
+  d1 = TextIn.indexOf(',');                 // Find location of first ","
+  //Create Substrings
+  aT = TextIn.substring(0, d1);             // Get String for Address
+  vT = TextIn.substring(d1+1);               // Get String for Value
+
+  a=aT.toInt();                             // Convert Mode
+  v=vT.toInt();                             // Convert Interval
+
+  if (a<0) a=0;                             // Check Address
+  if (a>255) a=255;                         // Check Address
+  if (v<0) v=0;                             // Check Value
+  if (v>255) v=255;                         // Check Value
+  
+  oled.clearDisplay();
+  u8g2.setFont(u8g2_font_luBS08_tf);
+  EEPROM.writeByte(a, v);
+  EEPROM.commit();
+#ifdef XDEBUG
+  Serial.printf("Write Value %i to EEPROM Address %i.\n",v,a);
+#endif
+  u8g2.setCursor(0,25);
+  u8g2.printf("Write Value %i to EEPROM Address %i.",v,a);
+
+  v=EEPROM.readByte(a);
+#ifdef XDEBUG
+  Serial.printf("Verify, Read Value %i from EEPROM Address %i.\n",v,a);
+#endif
+  u8g2.setCursor(0,35);
+  u8g2.printf("Verify,\nRead Value %i from EEPROM Address %i.",v,a);
+  oled.display();
 }
 
 #endif  // ----------- d.ti functions endif ESP32DEV---------------

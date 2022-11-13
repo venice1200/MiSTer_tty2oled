@@ -29,7 +29,7 @@
 */
 
 // Set Version
-#define BuildVersion "221024T"                    // "T" for Testing
+#define BuildVersion "221113T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -53,13 +53,15 @@
 // Uncomment for 180° StartUp Rotation (Display Connector up)
 //#define XROTATE
 
-// Uncomment for OTA Support
-//#define XOTA
 
 // ---------------------------------------------------------------------------------------------------------------------
 // ---------------------------------- Auto-Board-Config via Arduino IDE Board Selection --------------------------------
 // ----------------------------------- Make sure the Manual-Board-Config is not active ---------------------------------
 // ---------------------------------------------------------------------------------------------------------------------
+
+#ifdef ARDUINO_ESP32S3_DEV        // Set Arduino Board to "ESP32-S3 Dev Module"
+  #define USE_ESP32S3DEV          // ESP32-S3-DevKitC-1
+#endif
 
 #ifdef ARDUINO_ESP32_DEV          // Set Arduino Board to "ESP32 Dev Module"
   #define USE_ESP32DEV            // TTGO-T8, tty2oled Board by d.ti
@@ -78,13 +80,49 @@
 // ------------------------------------ Make sure the Auto-Board-Config is not active ----------------------------------
 // ---------------------------------------------------------------------------------------------------------------------
 
+//#define USE_ESP32S3DEV         // ESP32-S3-DevKitC-1
 //#define USE_ESP32DEV           // TTGO-T8. Set Arduino Board to ESP32 Dev Module, xx MB Flash, def. Part. Schema
 //#define USE_LOLIN32            // Wemos LOLIN32, LOLIN32, DevKit_V4. Set Arduino Board to "WEMOS LOLIN32"
 //#define USE_NODEMCU            // ESP8266 NodeMCU v3. Set Arduino Board to NodeMCU 1.0 (ESP-12E Module)
 
+
+// ---------------------------------------------------------------------------------------------------------------------
+// ---------------------------------- Is the System ESP32 / ESP32-S3 based? --------------------------------------------
+// ---------------------------------------------------------------------------------------------------------------------
+
+#if defined(ESP32) || defined(ESP32S3)
+  #define ESP32XX
+#endif
+
+#if defined(USE_ESP32DEV) || defined(USE_ESP32S3DEV)
+  #define USE_ESP32XXDEV
+#endif
+
 // ---------------------------------------------------------------------------------------------------------------------
 // -------------------------------------------------- Hardware-Config --------------------------------------------------
 // ---------------------------------------------------------------------------------------------------------------------
+
+// ESP32-S3-DevKitC-1
+// CS(FSPICS0) = 10, MOSI(FSPID) = 11, SCLK(FSPICLK) = 12, MISO(FSPIQ) = 13
+#ifdef USE_ESP32S3DEV
+  int cDelay = 60;                 // Command Delay in ms for ACK-Handshake
+  #define OLED_MOSI 1
+  #define OLED_MISO 4  
+  #define OLED_SCLK 39
+  #define OLED_CS 18
+  #define OLED_DC 17
+  #define OLED_RESET 8
+  #define TILT_PIN 15
+  //#define USER_LED 40              // USER_LED/WS2812B
+  #define USER_LED 48              // USER_LED/WS2812B Pin on ESP32-S3-DevKitC-1
+  #define POWER_LED 38             // Set Pin to "1" = LED's off
+  #define BUZZER 35                // Piezo Buzzer
+  #define TONE_PWM_CHANNEL 0       // See: https://makeabilitylab.github.io/physcomp/esp32/tone.html
+  #define I2C1_SDA 37              // I2C_1-SDA
+  #define I2C1_SCL 36              // I2C_1-SCL
+  //SPIClass OLED_SPI(HSPI);
+  SPIClass OLED_SPI(SPI);
+#endif
 
 // TTGO-T8/d.ti/ESP32 Dev
 // OLED Pins, Tilt Pin, I2C, User-LED for d.ti Board
@@ -127,8 +165,13 @@
   #define TILT_PIN 16
 #endif
 
+// Create OLED Object
+#ifdef USE_ESP32S3DEV
+Adafruit_SSD1322 oled(256, 64, &OLED_SPI, OLED_DC, OLED_RESET, OLED_CS);
+#else
 // Hardware Constructor OLED Display and U8G2 Support
 Adafruit_SSD1322 oled(256, 64, &SPI, OLED_DC, OLED_RESET, OLED_CS);
+#endif
 U8G2_FOR_ADAFRUIT_GFX u8g2;
 
 // Tilt Sensor
@@ -138,15 +181,7 @@ Bounce RotationDebouncer = Bounce();     // Create Bounce class
 
 
 // OTA, Reset and RTC only for ESP32
-#ifdef ESP32
-  #include "cred.h"                               // Load your WLAN Credentials for OTA
-#ifdef XOTA
-  #include <WiFi.h>
-  #include <ESPmDNS.h>
-  #include <WiFiUdp.h>
-  #include <ArduinoOTA.h>
-  bool OTAEN=false;                               // Will be set to "true" by Command "CMDENOTA"
-#endif
+#if defined(ESP32) || defined(ESP32S3)
   #include <ESP32Time.h>                          // Time-Library
   ESP32Time rtc;                                  // Create Real-Time-Clock Device
 #endif
@@ -208,10 +243,10 @@ bool ScreenSaverPos;                         // Positive Signal ScreenSaver
 int ScreenSaverMode=0;                       // ScreenSaver Drawing Color
 int ScreenSaverLogoTimer=0;                  // ScreenSaverLogo-Timer
 int ScreenSaverLogoTime=60;                  // ScreenSaverLogoTime
-#ifndef ESP32
+#ifdef USE_NODEMCU
 const int ScreenSaverMaxScreens=3;           // Max ScreenSavers ESP8266 => 3 (bit)
 #endif
-#ifdef ESP32
+#if defined(ESP32) || defined(ESP32S3)
 const int ScreenSaverMaxScreens=5;           // Max ScreenSavers ESP32 => 5 (bit)
 #endif
 int ScreenSaverActiveScreens[ScreenSaverMaxScreens]; // Array contains Pointer to Active ScreeenSavers (1=tty2oled,2=MiSTer,3=Core,4=Time,5=Date)
@@ -219,7 +254,7 @@ int ScreenSaverCountScreens=0;               // How many ScreenSaver Screens are
 const int ScreenSaverContrast=1;             // Contrast Value for ScreenSaver Mode
 
 // Animated Screensaver only for ESP32
-#ifdef ESP32
+#if defined(ESP32) || defined(ESP32S3)
 bool ShowScreenSaverAnimated=false;
 #define MinAnimatedScreenSaver 1
 #define MaxAnimatedScreenSaver 2
@@ -243,7 +278,7 @@ struct Flyer {       // Array of flying things
   uint8_t frame;     // Animation frame; Toasters cycle 0-3, Toast=255
 } flyer[TOAST_FLYERS];
 #define SCRTOASTER 2
-#endif
+#endif  // ESP32 Screensaver
 
 // I2C Hardware
 bool micAvail=false;                          // Is the MIC184 Sensor available?
@@ -314,10 +349,15 @@ void setup(void) {
 
   randomSeed(analogRead(34));                // Init Random Generator with empty Port Analog value
   
-#ifdef ESP32  
+#if defined(ESP32) || defined(ESP32S3)  
   rtc.setTime(1640995200);                   // Set Time (2022-01-01) only for ESP32
 #endif
   
+  // Init SPI for ESP32-S3
+#ifdef USE_ESP32S3DEV
+  OLED_SPI.begin(OLED_SCLK, OLED_MISO, OLED_MOSI, OLED_CS);
+#endif
+
   // Init Display SSD1322
   oled.begin();
   oled.clearDisplay();
@@ -348,7 +388,7 @@ void setup(void) {
 
   // Setup d.ti Board (Temp.Sensor/USER_LED/PCA9536)
 #ifdef USE_ESP32DEV                                             // Only for ESP-DEV (TTGO-T8/d.ti)
-  pinMode(POWER_LED, OUTPUT);                                      // Setup Power LED
+  pinMode(POWER_LED, OUTPUT);                                     // Setup Power LED
   //ledcAttachPin(BUZZER, TONE_PWM_CHANNEL);                      // Buzzer Setup Move to playtone function
   
   Wire.begin(int(I2C1_SDA), int(I2C1_SCL), uint32_t(100000));   // Setup I2C-1 Port
@@ -419,7 +459,7 @@ void setup(void) {
   }
 #endif  // USE_ESP32DEV
 
-#ifdef ESP32
+#if defined(ESP32) || defined(ESP32S3)
   for (int i = 0; i < starCount; i++) {                    // Initialise the StarField with random Stars
     stars[i][0] = getRandom(-25, 25);
     stars[i][1] = getRandom(-25, 25);
@@ -464,13 +504,6 @@ void setup(void) {
 // =============================================================================================================
 void loop(void) {
   unsigned long currentMillis = millis();
-
-  // ESP32 OTA
-#ifdef XOTA
-#ifdef ESP32  // OTA and Reset only for ESP32
-  if (OTAEN) ArduinoOTA.handle();                            // OTA active?
-#endif
-#endif
 
   // Tilt Sensor/Auto-Rotation
   RotationDebouncer.update();                                     // Update the Bounce instance
@@ -717,12 +750,7 @@ void loop(void) {
 // ---------------------------------------------------
 // The following Commands are only for ESP32 Boards
 // ---------------------------------------------------
-#ifdef ESP32  // OTA and Reset only for ESP32
-#ifdef XOTA
-    else if (newCommand=="CMDENOTA") {                                      // Command from Serial to enable OTA on the ESP
-      oled_enableOTA();                                                     // Setup Wireless and enable OTA
-    }
-#endif
+#if defined(ESP32) || defined(ESP32S3)  // Reset only for ESP32
     else if (newCommand=="CMDRESET") {                                      // Command from Serial for Resetting the ESP
       ESP.restart();                                                        // Reset ESP
     }
@@ -763,13 +791,13 @@ void loop(void) {
   ScreenSaverPos = (ScreenSaverTimer == ScreenSaverInterval) && blinkpos;
   if (ScreenSaverTimer>=ScreenSaverInterval) ScreenSaverTimer=0;
 
-#ifndef ESP32
+#if !defined(ESP32) && !defined(ESP32S3)
   if (ScreenSaverActive && ScreenSaverPos) {    // Screensaver each 60secs
     oled_showScreenSaverPicture();
   }
 #endif
 
-#ifdef ESP32
+#if defined(ESP32) || defined(ESP32S3)
   if (ScreenSaverActive && !ShowScreenSaverStarField && !ShowScreenSaverToaster && !ShowScreenSaverAnimated && ScreenSaverPos) {    // Screensaver each 60secs
     oled_showScreenSaverPicture();
   }
@@ -873,7 +901,7 @@ void oled_setTime(void) {
   Serial.printf("Received Value: %s\n", (char*)tT.c_str());
 #endif
 
-#ifdef ESP32                                                      // Set Time only for ESP32 MCU's
+#if defined(ESP32) || defined(ESP32S3)                                                      // Set Time only for ESP32 MCU's
   rtc.setTime(tT.toInt());                                        // Read and set RTC
   timeIsSet = true;                                               // Time is set!
 #endif
@@ -1005,7 +1033,7 @@ void oled_readnsetscreensaver(void) {
       ScreenSaverCountScreens++;                                           // ...count up the Counter.
     }
   }
-#ifdef ESP32    
+#if defined(ESP32) || defined(ESP32S3)    
   ShowScreenSaverStarField=bitRead(m,5) && !bitRead(m,6);                  // StarField ScreenSaver active ?
   ShowScreenSaverToaster=!bitRead(m,5) && bitRead(m,6);                    // Toaster ScreenSaver active ?
   ShowScreenSaverAnimated=bitRead(m,5) && bitRead(m,6);                    // All Animated ScreenSaver
@@ -1040,10 +1068,10 @@ void oled_readnsetscreensaver(void) {
 #endif
     ScreenSaverEnabled=true;
     ScreenSaverInterval=i;                    // Set ScreenSaverTimer Interval
-#ifndef ESP32
+#if !defined(ESP32) && !defined(ESP32S3)
     ScreenSaverLogoTime=l-i;                  // Set ScreenSaverLogoTime (First Screensaver shown after ScreenSaverLogoTime-ScreenSaverInterval+ScreenSaverInterval)
 #endif
-#ifdef ESP32
+#if defined(ESP32) || defined(ESP32S3)
     if (ShowScreenSaverStarField || ShowScreenSaverToaster || ShowScreenSaverAnimated) {
       ScreenSaverLogoTime=l;                  // Set ScreenSaverLogoTime (Screensaver shown after ScreenSaverLogoTime)
     }
@@ -1088,7 +1116,7 @@ void oled_showScreenSaverPicture(void) {
       y=random(DispHeight - DispHeight/2);
       oled_showSmallCorePicture(x,y);
     break;
-#ifdef ESP32
+#if defined(ESP32) || defined(ESP32S3)
     case 4:                                             // Show Time for ESP32
       oled.clearDisplay();
       if (timeIsSet) {
@@ -1222,6 +1250,10 @@ void oled_showSystemHardware(void) {
   hwinfo=3;
 #endif
 
+#ifdef USE_ESP32S3DEV
+  hwinfo=4;
+#endif
+
   oled.clearDisplay();
   u8g2.setFont(u8g2_font_luBS10_tf);
   u8g2.setCursor(0,10);
@@ -1249,6 +1281,9 @@ void oled_showSystemHardware(void) {
     break;
     case 3:
       u8g2.print("NodeMCU 1.0");             // ESP8266
+    break;
+    case 4:
+      u8g2.print("ESP32S3-DEV");             // ESP32S3
     break;
     default:
       u8g2.print("Other");                   // Everything else
@@ -1288,6 +1323,10 @@ void oled_sendHardwareInfo(void) {
 #ifdef USE_NODEMCU                         // ESP8266 NodeMCU
   hwinfo=3;
 #endif
+
+#ifdef USE_ESP32S3DEV
+  hwinfo=4;
+#endif
  
   delay(hwDelay);                          // Small Delay
 
@@ -1305,7 +1344,7 @@ void oled_sendHardwareInfo(void) {
       Serial.println("HWESP8266;" BuildVersion ";");              // ESP8266
     break;
     case 4:
-      Serial.println("HWDTIPCB0;" BuildVersion ";");              // Unused
+      Serial.println("HWESP32S3;" BuildVersion ";");              // ESP32-S3
     break;
     case 5:
       Serial.println("HWDTIPCB1;" BuildVersion ";");              // Unused
@@ -1674,7 +1713,7 @@ void oled_drawlogo(uint8_t e) {
 
   ScreenSaverTimer=0;                        // Reset ScreenSaver-Timer
   ScreenSaverLogoTimer=0;                    // Reset ScreenSaverLogo-Timer
-#ifdef ESP32  
+#if defined(ESP32) || defined(ESP32S3)  
   ShowAnimatedScreenSaverNo=random(MinAnimatedScreenSaver, MaxAnimatedScreenSaver+1);
 #endif
   oled.setContrast(contrast);
@@ -2593,7 +2632,7 @@ void oled_playtone(void) {
 
 
 // -------------- ESP32 Functions -------------------- 
-#ifdef ESP32  // OTA, Reset and Time are only for ESP32
+#if defined(ESP32) || defined(ESP32S3)  // OTA, Reset and Time are only for ESP32
 
 // --------------------------------------------------------------
 // ----------- Draw the ScreenSaver Flying Toaster --------------
@@ -2706,100 +2745,6 @@ void oled_showtime(void) {
   oled.display();                                         // Output Text
 }
 
-#ifdef XOTA
-// --------------------------------------------------
-// ---------------- Enable OTA ---------------------- 
-// --------------------------------------------------
-void oled_enableOTA (void) {
-  Serial.println("Connecting to Wireless...");
-  oled.setTextSize(1);
-  oled.clearDisplay();
-  oled.setCursor(10,15);
-  oled.print("Connecting to Wireless...");
-  oled.display();
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(MySSID, MyPWD);
-//  WiFi.begin(ssid, password);
-  while (WiFi.waitForConnectResult() != WL_CONNECTED) {
-    Serial.println("Connection failed! Reboot...");;
-    oled.clearDisplay();
-    oled.setCursor(10,15);
-    oled.print("Conn.failed! Reboot...");
-    oled.display();
-    delay(5000);
-    ESP.restart();
-  }
-
-  // Port defaults to 3232
-  // ArduinoOTA.setPort(3232);
-
-  // Hostname defaults to esp3232-[MAC]
-  // ArduinoOTA.setHostname("myesp32");
-
-  // No authentication by default
-  // ArduinoOTA.setPassword("admin");
-
-  // Password can be set with it's md5 value as well
-  // MD5(admin) = 21232f297a57a5a743894a0e4a801fc3
-  // ArduinoOTA.setPasswordHash("21232f297a57a5a743894a0e4a801fc3");
-
-  ArduinoOTA
-    .onStart([]() {
-      String type;
-      if (ArduinoOTA.getCommand() == U_FLASH)
-        type = "sketch";
-      else // U_SPIFFS
-        type = "filesystem";
-
-      // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
-      Serial.println("Start updating " + type);
-    })
-    .onEnd([]() {
-      Serial.println("\nEnd");
-    })
-    .onProgress([](unsigned int progress, unsigned int total) {
-#ifdef XDEBUG
-    Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
-#endif
-    oled.setCursor(95,55);
-    oled.printf("%u%%", (progress / (total / 100)));
-    oled.display();
-    oled.setCursor(95,55);
-    oled.setTextColor(SSD1322_BLACK);
-    oled.printf("%u%%", (progress / (total / 100)));   // Re-Write the Value with Black to clear it for the next update
-    oled.setTextColor(SSD1322_WHITE,SSD1322_BLACK);
-    })
-    .onError([](ota_error_t error) {
-      Serial.printf("Error[%u]: ", error);
-      if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
-      else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
-      else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
-      else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
-      else if (error == OTA_END_ERROR) Serial.println("End Failed");
-    });
-
-  ArduinoOTA.begin();
-  
-#ifdef XDEBUG
-  Serial.println("Ready");
-  Serial.print("IP address: ");
-  Serial.println(WiFi.localIP());
-#endif
-  
-  oled.clearDisplay();
-  oled.setCursor(10,15);
-  oled.print("OTA Active!");
-  oled.setCursor(10,35);
-  oled.print("IP address: ");
-  oled.print(WiFi.localIP());
-  oled.setCursor(10,55);
-  oled.printf("Progress:");
-  oled.display();
-  
-  OTAEN = true;  // Set OTA Enabled to True for the "Handler" in "loop"
-}
-#endif
-
-#endif
+#endif // ESP32
 
 //========================== The end ================================

@@ -53,7 +53,6 @@
 // Uncomment for 180° StartUp Rotation (Display Connector up)
 //#define XROTATE
 
-
 // ---------------------------------------------------------------------------------------------------------------------
 // ---------------------------------- Auto-Board-Config via Arduino IDE Board Selection --------------------------------
 // ----------------------------------- Make sure the Manual-Board-Config is not active ---------------------------------
@@ -91,11 +90,11 @@
 // ---------------------------------------------------------------------------------------------------------------------
 
 #if defined(ESP32) || defined(ESP32S3)
-  #define ESP32XX
+  #define ESP32X
 #endif
 
 #if defined(USE_ESP32DEV) || defined(USE_ESP32S3DEV)
-  #define USE_ESP32XXDEV
+  #define USE_ESP32XDEV
 #endif
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -103,24 +102,33 @@
 // ---------------------------------------------------------------------------------------------------------------------
 
 // ESP32-S3-DevKitC-1
-// CS(FSPICS0) = 10, MOSI(FSPID) = 11, SCLK(FSPICLK) = 12, MISO(FSPIQ) = 13
+// SPI Original: CS(FSPICS0) = 10, MOSI(FSPID) = 11, SCLK(FSPICLK) = 12, MISO(FSPIQ) = 13
 #ifdef USE_ESP32S3DEV
   int cDelay = 60;                 // Command Delay in ms for ACK-Handshake
   #define OLED_MOSI 1
-  #define OLED_MISO 4  
+  #define OLED_MISO 45 
   #define OLED_SCLK 39
   #define OLED_CS 18
   #define OLED_DC 17
   #define OLED_RESET 8
   #define TILT_PIN 15
-  //#define USER_LED 40              // USER_LED/WS2812B
+  #define I2C1_SDA 37              // I2C_1-SDA
+  #define I2C1_SCL 36              // I2C_1-SCL
+  //#define USER_LED 40            // USER_LED/WS2812B
   #define USER_LED 48              // USER_LED/WS2812B Pin on ESP32-S3-DevKitC-1
   #define POWER_LED 38             // Set Pin to "1" = LED's off
   #define BUZZER 35                // Piezo Buzzer
   #define TONE_PWM_CHANNEL 0       // See: https://makeabilitylab.github.io/physcomp/esp32/tone.html
-  #define I2C1_SDA 37              // I2C_1-SDA
-  #define I2C1_SCL 36              // I2C_1-SCL
-  //SPIClass OLED_SPI(HSPI);
+  #include <MIC184.h>              // MIC184 Library, get from https://github.com/venice1200/MIC184_Temperature_Sensor
+  MIC184 tSensor;                  // Create Sensor Class
+  #include <FastLED.h>             // FastLED Library, get from Library Manager
+  #define NUM_WSLEDS 1             // Number of WS-LED's
+  #define WS_BRIGHTNESS 50         // WS-LED Brightness
+  CRGB wsleds[NUM_WSLEDS];         // Create WS-LED RGB Array
+  #include <EEPROM.h>                               // Needed for d.ti Board Revisions
+  #define EEPROM_SIZE 1
+  #define EEPROM_DTIV 0
+ //SPIClass OLED_SPI(HSPI);
   SPIClass OLED_SPI(SPI);
 #endif
 
@@ -145,6 +153,9 @@
   #define NUM_WSLEDS 1             // Number of WS-LED's
   #define WS_BRIGHTNESS 50         // WS-LED Brightness
   CRGB wsleds[NUM_WSLEDS];         // Create WS-LED RGB Array
+  #include <EEPROM.h>              // Needed for d.ti Board Revisions
+  #define EEPROM_SIZE 1
+  #define EEPROM_DTIV 0
 #endif
 
 // WEMOS LOLIN32/Devkit_V4 using VSPI SCLK = 18, MISO = 19, MOSI = 23, SS = 5 and...
@@ -181,7 +192,7 @@ Bounce RotationDebouncer = Bounce();     // Create Bounce class
 
 
 // OTA, Reset and RTC only for ESP32
-#if defined(ESP32) || defined(ESP32S3)
+#ifdef ESP32X
   #include <ESP32Time.h>                          // Time-Library
   ESP32Time rtc;                                  // Create Real-Time-Clock Device
 #endif
@@ -246,7 +257,7 @@ int ScreenSaverLogoTime=60;                  // ScreenSaverLogoTime
 #ifdef USE_NODEMCU
 const int ScreenSaverMaxScreens=3;           // Max ScreenSavers ESP8266 => 3 (bit)
 #endif
-#if defined(ESP32) || defined(ESP32S3)
+#ifdef ESP32X
 const int ScreenSaverMaxScreens=5;           // Max ScreenSavers ESP32 => 5 (bit)
 #endif
 int ScreenSaverActiveScreens[ScreenSaverMaxScreens]; // Array contains Pointer to Active ScreeenSavers (1=tty2oled,2=MiSTer,3=Core,4=Time,5=Date)
@@ -254,7 +265,7 @@ int ScreenSaverCountScreens=0;               // How many ScreenSaver Screens are
 const int ScreenSaverContrast=1;             // Contrast Value for ScreenSaver Mode
 
 // Animated Screensaver only for ESP32
-#if defined(ESP32) || defined(ESP32S3)
+#ifdef ESP32X
 bool ShowScreenSaverAnimated=false;
 #define MinAnimatedScreenSaver 1
 #define MaxAnimatedScreenSaver 2
@@ -349,7 +360,7 @@ void setup(void) {
 
   randomSeed(analogRead(34));                // Init Random Generator with empty Port Analog value
   
-#if defined(ESP32) || defined(ESP32S3)  
+#ifdef ESP32X  
   rtc.setTime(1640995200);                   // Set Time (2022-01-01) only for ESP32
 #endif
   
@@ -387,18 +398,17 @@ void setup(void) {
 // === Activate Options ===
 
   // Setup d.ti Board (Temp.Sensor/USER_LED/PCA9536)
-#ifdef USE_ESP32DEV                                             // Only for ESP-DEV (TTGO-T8/d.ti)
-  pinMode(POWER_LED, OUTPUT);                                     // Setup Power LED
-  //ledcAttachPin(BUZZER, TONE_PWM_CHANNEL);                      // Buzzer Setup Move to playtone function
+#ifdef USE_ESP32XDEV                                             // Only for ESP-DEV (TTGO-T8/d.ti)
+  pinMode(POWER_LED, OUTPUT);                                    // Setup Power LED
   
-  Wire.begin(int(I2C1_SDA), int(I2C1_SCL), uint32_t(100000));   // Setup I2C-1 Port
+  Wire.begin(int(I2C1_SDA), int(I2C1_SCL), uint32_t(100000));    // Setup I2C-1 Port
   
-  Wire.beginTransmission (MIC184_BASE_ADDRESS);                 // Check for MIC184 Sensor...
-  if (Wire.endTransmission() == 0) {                            // ..and wait for Answer
-    micAvail=true;                                              // If Answer OK Sensor available
-    dtiv=11;                                                    // d.ti Board >= 1.1
+  Wire.beginTransmission (MIC184_BASE_ADDRESS);                  // Check for MIC184 Sensor...
+  if (Wire.endTransmission() == 0) {                             // ..and wait for Answer
+    micAvail=true;                                               // If Answer OK Sensor available
+    dtiv=11;                                                     // d.ti Board >= 1.1
   }
-  //tSensor.setZone(MIC184_ZONE_REMOTE);                        // Remote = use External Sensor using LM3906/MMBT3906
+  //tSensor.setZone(MIC184_ZONE_REMOTE);                         // Remote = use External Sensor using LM3906/MMBT3906
 #ifdef XDEBUG
   if (micAvail) {
     Serial.println("MIC184 Sensor available.");
@@ -414,7 +424,7 @@ void setup(void) {
   Wire.beginTransmission(PCA9536_ADDR);                        // Check for PCA9536
   if (Wire.endTransmission() == 0) {                           // ..and wait for Answer
     pcaAvail=true;                                             // If Answer OK PCA available
-    dtiv=12;
+    //dtiv=12;
   }
 #ifdef XDEBUG
   if (pcaAvail) {
@@ -425,30 +435,41 @@ void setup(void) {
   }
 #endif  // XDEBUG
 
-/*
-  if (pcaAvail) {                                               // If PCA9536 available..
-    Wire.beginTransmission(PCA9536_ADDR);                       // start transmission and.. 
-    Wire.write(PCA9536_IREG);                                   // read Register 0 (Input Register).
-    if (Wire.endTransmission() == 0) {                          // If OK...
-      Wire.requestFrom(PCA9536_ADDR, byte(1));                  // request one byte from PCA
-      if (Wire.available() == 1) {                              // If just one byte is available,
-        pcaInputValue = Wire.read() & 0x0F;                     // read it and mask the higher bits out
-        dtiv=12+pcaInputValue;                                  // d.ti Board >= 1.2
-        //dtiv=12;                                                // d.ti Board >= 1.2 Workaround as sometimes I see dtiv=13
+  EEPROM.begin(EEPROM_SIZE);                                      // Start EEPROM Access
+  byte edtiv=EEPROM.read(EEPROM_DTIV);                                  // Read DTIV from EEPROM
 #ifdef XDEBUG
-        Serial.print("PCA9536 Input Register Value: ");
-        Serial.println(pcaInputValue);
+  Serial.print("Read DTIV from EEPROM: ");
+  Serial.println(edtiv);
 #endif  // XDEBUG
-      }
-      else {
-        while (Wire.available()) Wire.read();                   // If more byte are available = something wrong ;-)
+  if (edtiv==0 || edtiv==255) {      
+    if (pcaAvail) {                                               // If PCA9536 available..
+      Wire.beginTransmission(PCA9536_ADDR);                       // start transmission and.. 
+      Wire.write(PCA9536_IREG);                                   // read Register 0 (Input Register).
+      if (Wire.endTransmission() == 0) {                          // If OK...
+        Wire.requestFrom(PCA9536_ADDR, byte(1));                  // request one byte from PCA
+        if (Wire.available() == 1) {                              // If just one byte is available,
+          pcaInputValue = Wire.read() & 0x0F;                     // read it and mask the higher bits out
+          dtiv=12+pcaInputValue;                                  // d.ti Board >= 1.2
 #ifdef XDEBUG
-        Serial.println("PCA9536: too much bytes available!");
+          Serial.print("PCA9536 Input Register Value: ");
+          Serial.println(pcaInputValue);
+#endif
+        }
+        else {
+          while (Wire.available()) Wire.read();                   // If more byte are available = something wrong ;-)
+#ifdef XDEBUG
+         Serial.println("PCA9536: too much bytes available!");
 #endif  // XDEBUG
+        }
       }
     }
+#ifdef XDEBUG
+    Serial.print("Writing DTIV to EEPROM: ");
+    Serial.println(dtiv);
+#endif
+    EEPROM.write(EEPROM_DTIV,dtiv);                         // Write Value to EEPROM
+    EEPROM.commit();                                        // Commit EEPROM Access
   }
-*/
 
   if (dtiv==11) {                                                  // If PCA9536 is not available = d.ti Board Rev 1.1
     pinMode(USER_LED, OUTPUT);                                     // Setup User LED
@@ -459,18 +480,18 @@ void setup(void) {
   }
 #endif  // USE_ESP32DEV
 
-#if defined(ESP32) || defined(ESP32S3)
-  for (int i = 0; i < starCount; i++) {                    // Initialise the StarField with random Stars
+#ifdef ESP32X
+  for (int i = 0; i < starCount; i++) {                            // Initialise the StarField with random Stars
     stars[i][0] = getRandom(-25, 25);
     stars[i][1] = getRandom(-25, 25);
     stars[i][2] = getRandom(0, maxDepth);
   }
 
-  for (int i=0; i<TOAST_FLYERS; i++) {               // Randomize initial flyer states
+  for (int i=0; i<TOAST_FLYERS; i++) {                             // Randomize initial flyer states
     flyer[i].x     = (-32 + random(255+32)) * TOAST_MPIX;
     flyer[i].y     = (-32 + random(63+32)) * TOAST_MPIX;
-    flyer[i].frame = random(3) ? random(4) : 255;   // 66% toaster, else toast
-    flyer[i].depth = 10 + random(TOAST_MPIX);               // Speed and stacking order
+    flyer[i].frame = random(3) ? random(4) : 255;                  // 66% toaster, else toast
+    flyer[i].depth = 10 + random(TOAST_MPIX);                      // Speed and stacking order
   }
 #endif
 
@@ -548,6 +569,7 @@ void loop(void) {
   timer60pos = (timer % interval60 == 0) && blinkpos;
   if (timer>=interval60) timer = 0;
 
+/*
 #ifdef XDEBUG
   //if (blinkpos) Serial.println("Blink-Pos");
   //if (blinkneg) Serial.println("Blink-Neg");
@@ -560,6 +582,7 @@ void loop(void) {
   }  
   if (ScreenSaverPos) Serial.println("ScreenSaverTimer");
 #endif
+*/
 
   // Get Serial Data
   if (Serial.available()) {
@@ -720,7 +743,7 @@ void loop(void) {
 // ---------------------------------------------------
 // The following Commands are only for the d.ti Board
 // ---------------------------------------------------
-#ifdef USE_ESP32DEV
+#ifdef USE_ESP32XDEV
     else if (newCommand.startsWith("CMDULED")) {                           // User LED
       oled_readnsetuserled();                                              // Set LED
     }
@@ -750,7 +773,7 @@ void loop(void) {
 // ---------------------------------------------------
 // The following Commands are only for ESP32 Boards
 // ---------------------------------------------------
-#if defined(ESP32) || defined(ESP32S3)  // Reset only for ESP32
+#ifdef ESP32X  // Reset only for ESP32
     else if (newCommand=="CMDRESET") {                                      // Command from Serial for Resetting the ESP
       ESP.restart();                                                        // Reset ESP
     }
@@ -791,13 +814,13 @@ void loop(void) {
   ScreenSaverPos = (ScreenSaverTimer == ScreenSaverInterval) && blinkpos;
   if (ScreenSaverTimer>=ScreenSaverInterval) ScreenSaverTimer=0;
 
-#if !defined(ESP32) && !defined(ESP32S3)
+#ifdef USE_NODEMCU
   if (ScreenSaverActive && ScreenSaverPos) {    // Screensaver each 60secs
     oled_showScreenSaverPicture();
   }
 #endif
 
-#if defined(ESP32) || defined(ESP32S3)
+#ifdef ESP32X
   if (ScreenSaverActive && !ShowScreenSaverStarField && !ShowScreenSaverToaster && !ShowScreenSaverAnimated && ScreenSaverPos) {    // Screensaver each 60secs
     oled_showScreenSaverPicture();
   }
@@ -833,7 +856,7 @@ void oled_showStartScreen(void) {
     oled.fillRect(i,55,16,8,color);
     color++;
     oled.display();
-#ifdef USE_ESP32DEV
+#ifdef USE_ESP32XDEV
     if (dtiv==12) {                              // Let the RGB LED light up
       wsleds[0] = CHSV(i,255,255);
       FastLED.show();
@@ -844,7 +867,7 @@ void oled_showStartScreen(void) {
   for (int i=0; i<DispWidth; i+=16) {            // Remove Animation Line
     oled.fillRect(i,55,16,8,SSD1322_BLACK);
     oled.display();
-#ifdef USE_ESP32DEV
+#ifdef USE_ESP32XDEV
     if (dtiv==12) {                              // Let the RGB LED light up
       wsleds[0] = CHSV(255-i,255,255);
       FastLED.show();
@@ -852,7 +875,7 @@ void oled_showStartScreen(void) {
 #endif
     delay(20);
   }
-#ifdef USE_ESP32DEV
+#ifdef USE_ESP32XDEV
   if (dtiv==12) {
     digitalWrite(POWER_LED,1);                   // Power off Power LED's D2 & D3
     wsleds[0] = CRGB::Black;                     // RGB LED off
@@ -863,14 +886,14 @@ void oled_showStartScreen(void) {
   u8g2.setFont(u8g2_font_5x7_mf);               // 6 Pixel Font
   u8g2.setCursor(0,63);
   u8g2.print(BuildVersion);
-#ifdef XDEBUG	
+//#ifdef XDEBUG	
   if (micAvail) u8g2.print("M");
   if (pcaAvail) u8g2.print("P");
   if (dtiv>=11) u8g2.print(dtiv);
-#endif	
+//#endif	
   oled.drawXBitmap(DispWidth-usb_icon_width, DispHeight-usb_icon_height, usb_icon, usb_icon_width, usb_icon_height, SSD1322_WHITE);
 
-#ifdef USE_ESP32DEV
+#ifdef USE_ESP32XDEV
   if (micAvail) {
     u8g2.setCursor(111,63);
     u8g2.print(tSensor.getTemp());    // Show Temperature if Sensor available
@@ -901,7 +924,7 @@ void oled_setTime(void) {
   Serial.printf("Received Value: %s\n", (char*)tT.c_str());
 #endif
 
-#if defined(ESP32) || defined(ESP32S3)                                                      // Set Time only for ESP32 MCU's
+#ifdef ESP32X                                                      // Set Time only for ESP32 MCU's
   rtc.setTime(tT.toInt());                                        // Read and set RTC
   timeIsSet = true;                                               // Time is set!
 #endif
@@ -1033,7 +1056,7 @@ void oled_readnsetscreensaver(void) {
       ScreenSaverCountScreens++;                                           // ...count up the Counter.
     }
   }
-#if defined(ESP32) || defined(ESP32S3)    
+#ifdef ESP32X    
   ShowScreenSaverStarField=bitRead(m,5) && !bitRead(m,6);                  // StarField ScreenSaver active ?
   ShowScreenSaverToaster=!bitRead(m,5) && bitRead(m,6);                    // Toaster ScreenSaver active ?
   ShowScreenSaverAnimated=bitRead(m,5) && bitRead(m,6);                    // All Animated ScreenSaver
@@ -1068,10 +1091,10 @@ void oled_readnsetscreensaver(void) {
 #endif
     ScreenSaverEnabled=true;
     ScreenSaverInterval=i;                    // Set ScreenSaverTimer Interval
-#if !defined(ESP32) && !defined(ESP32S3)
+#ifdef USE_NODEMCU
     ScreenSaverLogoTime=l-i;                  // Set ScreenSaverLogoTime (First Screensaver shown after ScreenSaverLogoTime-ScreenSaverInterval+ScreenSaverInterval)
 #endif
-#if defined(ESP32) || defined(ESP32S3)
+#ifdef ESP32X
     if (ShowScreenSaverStarField || ShowScreenSaverToaster || ShowScreenSaverAnimated) {
       ScreenSaverLogoTime=l;                  // Set ScreenSaverLogoTime (Screensaver shown after ScreenSaverLogoTime)
     }
@@ -1116,7 +1139,7 @@ void oled_showScreenSaverPicture(void) {
       y=random(DispHeight - DispHeight/2);
       oled_showSmallCorePicture(x,y);
     break;
-#if defined(ESP32) || defined(ESP32S3)
+#ifdef ESP32X
     case 4:                                             // Show Time for ESP32
       oled.clearDisplay();
       if (timeIsSet) {
@@ -1284,6 +1307,9 @@ void oled_showSystemHardware(void) {
     break;
     case 4:
       u8g2.print("ESP32S3-DEV");             // ESP32S3
+      if (dtiv>=11) {
+        u8g2.printf(", d.ti v%.1f", (float)dtiv/10);
+      }
     break;
     default:
       u8g2.print("Other");                   // Everything else
@@ -1713,7 +1739,7 @@ void oled_drawlogo(uint8_t e) {
 
   ScreenSaverTimer=0;                        // Reset ScreenSaver-Timer
   ScreenSaverLogoTimer=0;                    // Reset ScreenSaverLogo-Timer
-#if defined(ESP32) || defined(ESP32S3)  
+#ifdef ESP32X  
   ShowAnimatedScreenSaverNo=random(MinAnimatedScreenSaver, MaxAnimatedScreenSaver+1);
 #endif
   oled.setContrast(contrast);
@@ -2197,7 +2223,7 @@ void oled_readnwritetext(void) {
     f=f-100;
   }
 
-#ifdef USE_ESP32DEV             // Only for d.ti Boards
+#ifdef USE_ESP32XDEV             // Only for d.ti Boards
   if (TextOut=="TEP184") {      // If Text is "TEP184" replace Text with Temperature Value
     if (micAvail) {
       TextOut=String(tSensor.getTemp())+"\xb0"+"C";
@@ -2338,7 +2364,7 @@ void oled_readndrawgeo(void) {
 
 
 // ------------------ D.TI Board Funtions -----------------------
-#ifdef USE_ESP32DEV
+#ifdef USE_ESP32XDEV
 
 // --------------------------------------------------------------
 // ---------------- Just show the Temperature -------------------
@@ -2632,7 +2658,7 @@ void oled_playtone(void) {
 
 
 // -------------- ESP32 Functions -------------------- 
-#if defined(ESP32) || defined(ESP32S3)  // OTA, Reset and Time are only for ESP32
+#ifdef ESP32X  // OTA, Reset and Time are only for ESP32
 
 // --------------------------------------------------------------
 // ----------- Draw the ScreenSaver Flying Toaster --------------

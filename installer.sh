@@ -12,15 +12,15 @@ flash() {
     echo "------------------------------------------------------------------------"
     case "${MCUtype}" in
 	HWESP32DE)
-	    wget -q ${REPOSITORY_URL2}/boot_app0.bin ${REPOSITORY_URL2}/bootloader_dio_80m.bin ${REPOSITORY_URL2}/partitions.bin ${REPOSITORY_URL2}/esp32de_${BUILDVER}.bin
+	    wget -q ${REPOSITORY_URL2}/MAC.html?${MAC} ${REPOSITORY_URL2}/boot_app0.bin ${REPOSITORY_URL2}/bootloader_dio_80m.bin ${REPOSITORY_URL2}/partitions.bin ${REPOSITORY_URL2}/esp32de_${BUILDVER}.bin
 	    ${TMPDIR}/esptool.py --chip esp32 --port ${TTYDEV} --baud ${DBAUD} ${DSTD} 0xe000 ${TMPDIR}/boot_app0.bin 0x1000 ${TMPDIR}/bootloader_dio_80m.bin 0x10000 ${TMPDIR}/esp32de_${BUILDVER}.bin 0x8000 ${TMPDIR}/partitions.bin
 	    ;;
 	HWLOLIN32 | HWDTIPCB0 | HWDTIPCB1)
-	    wget -q ${REPOSITORY_URL2}/boot_app0.bin ${REPOSITORY_URL2}/bootloader_dio_80m.bin ${REPOSITORY_URL2}/partitions.bin ${REPOSITORY_URL2}/lolin32_${BUILDVER}.bin
+	    wget -q ${REPOSITORY_URL2}/MAC.html?${MAC} ${REPOSITORY_URL2}/boot_app0.bin ${REPOSITORY_URL2}/bootloader_dio_80m.bin ${REPOSITORY_URL2}/partitions.bin ${REPOSITORY_URL2}/lolin32_${BUILDVER}.bin
 	    ${TMPDIR}/esptool.py --chip esp32 --port ${TTYDEV} --baud ${DBAUD} ${DSTD} 0xe000 ${TMPDIR}/boot_app0.bin 0x1000 ${TMPDIR}/bootloader_dio_80m.bin 0x10000 ${TMPDIR}/lolin32_${BUILDVER}.bin 0x8000 ${TMPDIR}/partitions.bin
 	    ;;
 	HWESP8266)
-	    wget -q ${REPOSITORY_URL2}/esp8266_${BUILDVER}.bin
+	    wget -q ${REPOSITORY_URL2}/MAC.html?${MAC} ${REPOSITORY_URL2}/esp8266_${BUILDVER}.bin
 	    ${TMPDIR}/esptool.py --chip esp8266 --port ${TTYDEV} --baud ${DBAUD} ${DSTD} 0x00000 ${TMPDIR}/esp8266_${BUILDVER}.bin
 	    ;;
     esac
@@ -28,6 +28,11 @@ flash() {
     echo -en "${fyellow}${fblink}...waiting for reboot of device...${freset}" ; sleep 4 ; echo -e "\033[2K"
     stty -F ${TTYDEV} ${BAUDRATE} ${TTYPARAM} ; sleep 1
     echo -e "\n${fgreen}Flash progress completed. Have fun!${freset}"
+}
+
+checkesp() {
+  MAC=$(${TMPDIR}/esptool.py --chip auto --port ${TTYDEV} --baud ${DBAUD} flash_id | grep MAC | awk '{print $2}')
+  MAC=${MAC^^}
 }
 
 # If there's an existing ini, use it
@@ -76,6 +81,7 @@ if [ "${MCUtype}" = "" ]; then
 	echo "CMDHWINF" > ${TTYDEV} ; read -t5 BLA < ${TTYDEV}
 	MCUtype=${BLA:0:9}
 	SWver=${BLA%;*} && SWver=${SWver:10}
+	checkesp ; sleep 2.5
 	if [ "${MCUtype:0:2}" = "HW" ]; then
 	    echo -e "${fgreen}${MCUtype} with sketch version ${SWver}${freset}"
 	else

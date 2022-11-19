@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# v2.0 - Copyright (c) 2022 ojaksch, venice
+# v2.1 - Copyright (c) 2022 ojaksch, venice
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 
 
 # Changelog:
+# v2.1 Removed obsolete "INI merge" for very old setups
 # v2.0 Bugfixes, new daemon for feedback from ESP
 # v1.9 Create tty2oled-user.ini if it's missing to avoid ugly errors
 # v1.8 Beautyfication and Installer
@@ -48,12 +49,6 @@ if [ $(/bin/mount | head -n1 | grep -c "(ro,") = 1 ]; then
   MOUNTRO="true"
 fi
 
-# Check for and delete old fashioned scripts to prefer /media/fat/linux/user-startup.sh
-# (https://misterfpga.org/viewtopic.php?p=32159#p32159)
-[[ -e /etc/init.d/S60tty2oled ]] && /etc/init.d/S60tty2oled stop && rm /etc/init.d/S60tty2oled
-[[ -e /etc/init.d/_S60tty2oled ]] && rm /etc/init.d/_S60tty2oled
-[[ -e /usr/bin/tty2oled ]] && rm /usr/bin/tty2oled
-
 if [ ! -e ${USERSTARTUP} ] && [ -e /etc/init.d/S99user ]; then
   if [ -e ${USERSTARTUPTPL} ]; then
     echo "Copying ${USERSTARTUPTPL} to ${USERSTARTUP}"
@@ -70,21 +65,10 @@ if [ $(grep -c "tty2oled" ${USERSTARTUP}) = "0" ]; then
   echo -e "[[ -e ${INITSCRIPT} ]] && ${INITSCRIPT} \$1" >> ${USERSTARTUP}
 fi
 
-# Move old stuff to the new folder structure
-if [ -d /media/fat/tty2oledpics/pri ]; then
-  ! [[ -d ${picturefolder_pri} ]] && mkdir ${picturefolder_pri}
-  mv /media/fat/tty2oledpics/pri/* ${picturefolder_pri}/
-  rm -rf /media/fat/tty2oledpics/pri/
-fi
-if [ -d /media/fat/tty2oledpics ]; then
-  ! [[ -d ${picturefolder} ]] && mkdir ${picturefolder}
-  mv /media/fat/tty2oledpics/* ${picturefolder}/
-  rm -rf /media/fat/tty2oledpics/
-fi
-
 # Get pv (Pipe Viewer) / rsyncy (progress bar for rsync)
 #wget ${NODEBUG} -Nq "${PICTURE_REPOSITORY_URL}/MiSTer_tty2oled-installer/pv"
 wget ${NODEBUG} -Nq "${PICTURE_REPOSITORY_URL}/MiSTer_tty2oled-installer/rsyncy.py"
+
 
 echo -e "${fgreen}tty2oled update script"
 echo -e "----------------------${freset}"

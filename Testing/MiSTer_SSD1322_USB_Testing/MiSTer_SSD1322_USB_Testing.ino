@@ -29,7 +29,7 @@
 */
 
 // Set Version
-#define BuildVersion "221113T"                    // "T" for Testing
+#define BuildVersion "221119T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -101,7 +101,7 @@
 // -------------------------------------------------- Hardware-Config --------------------------------------------------
 // ---------------------------------------------------------------------------------------------------------------------
 
-// ESP32-S3-DevKitC-1
+// ESP32-S3
 // SPI Original: CS(FSPICS0) = 10, MOSI(FSPID) = 11, SCLK(FSPICLK) = 12, MISO(FSPIQ) = 13
 #ifdef USE_ESP32S3DEV
   int cDelay = 60;                 // Command Delay in ms for ACK-Handshake
@@ -128,6 +128,7 @@
   #include <EEPROM.h>                               // Needed for d.ti Board Revisions
   #define EEPROM_SIZE 1
   #define EEPROM_DTIV 0
+  #define PCA_POWER 48             // Switch PCA9536 on=0 and off=1 (without defining the Port as output the PCA is off)
  //SPIClass OLED_SPI(HSPI);
   SPIClass OLED_SPI(SPI);
 #endif
@@ -156,6 +157,7 @@
   #include <EEPROM.h>              // Needed for d.ti Board Revisions
   #define EEPROM_SIZE 1
   #define EEPROM_DTIV 0
+  #define PCA_POWER 2              // Switch PCA9536 on=0 and off=1 (without defining the Port as output the PCA is off)
 #endif
 
 // WEMOS LOLIN32/Devkit_V4 using VSPI SCLK = 18, MISO = 19, MOSI = 23, SS = 5 and...
@@ -292,13 +294,15 @@ struct Flyer {       // Array of flying things
 #endif  // ESP32 Screensaver
 
 // I2C Hardware
-bool micAvail=false;                          // Is the MIC184 Sensor available?
+bool hasMIC=false;                            // Is the MIC184 Sensor available?
 const byte PCA9536_ADDR = 0x41;               // PCA9536 Base Address
 const byte PCA9536_IREG = 0x00;               // PCA9536 Input Register
-bool pcaAvail=false;                          // Is the PCA9536 Port-Extender Chip available?
-//byte pcaInputValue=255;                       // PCA9536 Input Pin State as Byte Value
+bool hasPCA=false;                          // Is the PCA9536 Port-Extender Chip available?
+//byte pcaInputValue=255;                     // PCA9536 Input Pin State as Byte Value
 byte pcaInputValue=0;                         // PCA9536 Input Pin State as Byte Value
 byte dtiv=0;                                  // d.ti Board Version 11=1.1, 12=1.2
+byte edtiv=0;                                 // d.ti Board Version read/write from/to EERPOM 
+bool useEPR=false;
 
 // =============================================================================================================
 // ========================================== FUNCTION PROTOTYPES ==============================================
@@ -398,20 +402,24 @@ void setup(void) {
 
 // === Activate Options ===
 
-  // Setup d.ti Board (Temp.Sensor/USER_LED/PCA9536)
+// Setup d.ti Board (Temp.Sensor/USER_LED/PCA9536)
 #ifdef USE_ESP32XDEV                                             // Only for ESP-DEV (TTGO-T8/d.ti)
-  pinMode(POWER_LED, OUTPUT);                                    // Setup Power LED
+// Output for d.ti Board Power LED
+  pinMode(POWER_LED, OUTPUT);                                    // Set Mode POWER_LED Pin
+
+// I2C Start  
+  //Wire.begin(int(I2C1_SDA), int(I2C1_SCL), uint32_t(100000));    // Setup I2C-1 Port
+  Wire.begin(int(I2C1_SDA), int(I2C1_SCL));                        // Setup I2C-1 Port
   
-  Wire.begin(int(I2C1_SDA), int(I2C1_SCL), uint32_t(100000));    // Setup I2C-1 Port
-  
+// MIC184 Handling  
   Wire.beginTransmission (MIC184_BASE_ADDRESS);                  // Check for MIC184 Sensor...
   if (Wire.endTransmission() == 0) {                             // ..and wait for Answer
-    micAvail=true;                                               // If Answer OK Sensor available
+    hasMIC=true;                                               // If Answer OK Sensor available
     dtiv=11;                                                     // d.ti Board >= 1.1
   }
   //tSensor.setZone(MIC184_ZONE_REMOTE);                         // Remote = use External Sensor using LM3906/MMBT3906
 #ifdef XDEBUG
-  if (micAvail) {
+  if (hasMIC) {
     Serial.println("MIC184 Sensor available.");
     Serial.print("Temperature: ");
     Serial.print(tSensor.getTemp());
@@ -422,62 +430,82 @@ void setup(void) {
   }
 #endif  // XDEBUG
 
-  Wire.beginTransmission(PCA9536_ADDR);                        // Check for PCA9536
-  if (Wire.endTransmission() == 0) {                           // ..and wait for Answer
-    pcaAvail=true;                                             // If Answer OK PCA available
-    //dtiv=12;
+// PCA9536 handling
+
+#ifdef XDEBUG
+  Serial.println("Enable PCA");
+#endif  // XDEBUG
+  digitalWrite(PCA_POWER,0);                                     // Set Pin to "1"
+  pinMode(PCA_POWER, OUTPUT);                                    // Set Mode for PCA_POWER Pin
+  delay(50);
+  digitalWrite(PCA_POWER,1);                                     // Switch PCA On
+  delay(50);
+
+  Wire.beginTransmission(PCA9536_ADDR);                          // Check for PCA9536
+  if (Wire.endTransmission() == 0) {                             // ..and wait for Answer
+    hasPCA=true;                                                 // If Answer OK PCA available
   }
 #ifdef XDEBUG
-  if (pcaAvail) {
-    Serial.println("PCA9536 available.");
+  if (hasPCA) {
+    Serial.println("PCA available.");
   }
   else {
-    Serial.println("PCA9536 not available.");
+    Serial.println("PCA not available.");
   }
 #endif  // XDEBUG
 
-  EEPROM.begin(EEPROM_SIZE);                                      // Start EEPROM Access
-  byte edtiv=EEPROM.read(EEPROM_DTIV);                                  // Read DTIV from EEPROM
+  if (hasPCA) {                                                 // If PCA9536 available..
+    Wire.beginTransmission(PCA9536_ADDR);                       // start transmission and.. 
+    Wire.write(PCA9536_IREG);                                   // read Register 0 (Input Register).
+    if (Wire.endTransmission() == 0) {                          // If OK...
+      //delay(50);                                              // Just wait 50ms
+      Wire.requestFrom(PCA9536_ADDR, byte(1));                  // request one byte from PCA
+      if (Wire.available() == 1) {                              // If just one byte is available,
+        pcaInputValue = Wire.read() & 0x0F;                     // read it and mask the higher bits out
+        dtiv=12+pcaInputValue;                                  // d.ti Board >= 1.2
 #ifdef XDEBUG
-  Serial.print("Read DTIV from EEPROM: ");
-  Serial.println(edtiv);
-#endif  // XDEBUG
-  if (edtiv==255) {                                               // Read PCA Value only if EEPROM has no Value
-    if (pcaAvail) {                                               // If PCA9536 available..
-      Wire.beginTransmission(PCA9536_ADDR);                       // start transmission and.. 
-      Wire.write(PCA9536_IREG);                                   // read Register 0 (Input Register).
-      if (Wire.endTransmission() == 0) {                          // If OK...
-        delay(50);                                                // Just wait 50ms
-        Wire.requestFrom(PCA9536_ADDR, byte(1));                  // request one byte from PCA
-        if (Wire.available() == 1) {                              // If just one byte is available,
-          pcaInputValue = Wire.read() & 0x0F;                     // read it and mask the higher bits out
-          dtiv=12+pcaInputValue;                                  // d.ti Board >= 1.2
-#ifdef XDEBUG
-          Serial.print("PCA9536 Input Register Value: ");
-          Serial.println(pcaInputValue);
-          Serial.print("Writing DTIV to EEPROM: ");
-          Serial.println(dtiv);
+        Serial.printf("Get PCA Input Register Value: %i.\n", pcaInputValue);
 #endif
-          EEPROM.write(EEPROM_DTIV,dtiv);                         // Write Value to EEPROM
-          EEPROM.commit();                                        // Commit EEPROM Access
-        }
-        else {
-          while (Wire.available()) Wire.read();                   // If more byte are available = something wrong ;-)
+      }
+      else {
+        while (Wire.available()) Wire.read();                   // If more byte are available = something wrong
 #ifdef XDEBUG
-         Serial.println("PCA9536: too much bytes available!");
+       Serial.println("PCA Error, too much bytes!");
 #endif  // XDEBUG
-        }
       }
     }
   }
+
+// EEPROM Handling, read Byte 0 (dtiv)
+  EEPROM.begin(EEPROM_SIZE);                              // Start EEPROM Access
+  edtiv=EEPROM.read(EEPROM_DTIV);                         // Read DTIV from EEPROM
+#ifdef XDEBUG
+  Serial.printf("Read DTIV %i from EEPROM.\n", editv);
+#endif  // XDEBUG
+  if (edtiv==255) {                                       // Read PCA Value only if EEPROM has no Value
+    EEPROM.write(EEPROM_DTIV,dtiv);                       // Write Value to EEPROM
+    EEPROM.commit();                                      // Commit EEPROM Access
+    if (dtiv>10) {
+      u8g2.setFont(u8g2_font_5x7_mf);                     // 6 Pixel Font
+      u8g2.setCursor(0,63);
+      u8g2.printf("d.ti Board v%.1f detected.", (float)dtiv/10);    
+      oled.display();
+      delay(4000);
+      oled.clearDisplay();
+    }
+#ifdef XDEBUG
+    Serial.printf("Writing DTIV to EEPROM: %i\n", dtiv);
+#endif
+  }
   else {
-    dtiv=edtiv;                                                    // Read EEPROM Value => dtiv
+    dtiv=edtiv;                                                    // Use EEPROM Value for dtiv
+    useEPR=true;
   }
 
   if (dtiv==11) {                                                  // If PCA9536 is not available = d.ti Board Rev 1.1
     pinMode(USER_LED, OUTPUT);                                     // Setup User LED
   }
-  if (dtiv==12) {                                                  // If PCA9536 is available = d.ti Board Rev 1.2 or greater
+  if (dtiv>=12) {                                                  // If PCA9536 is available = d.ti Board Rev 1.2 or greater
     FastLED.addLeds<WS2812B, USER_LED, GRB>(wsleds, NUM_WSLEDS);   // Setup User WS2812B LED
     FastLED.setBrightness(WS_BRIGHTNESS);                          // and set Brightness
   }
@@ -496,7 +524,7 @@ void setup(void) {
     flyer[i].frame = random(3) ? random(4) : 255;                  // 66% toaster, else toast
     flyer[i].depth = 10 + random(TOAST_MPIX);                      // Speed and stacking order
   }
-#endif
+#endif // ESP32X
 
   // Tilt Sensor Rotation via Tilt-Sensor Pin
   RotationDebouncer.attach(TILT_PIN,INPUT_PULLUP);         // Attach the debouncer to a pin with INPUT mode
@@ -864,7 +892,7 @@ void oled_showStartScreen(void) {
     color++;
     oled.display();
 #ifdef USE_ESP32XDEV
-    if (dtiv==12) {                              // Let the RGB LED light up
+    if (dtiv>=12) {                              // Let the RGB LED light up
       wsleds[0] = CHSV(i,255,255);
       FastLED.show();
     }
@@ -875,7 +903,7 @@ void oled_showStartScreen(void) {
     oled.fillRect(i,55,16,8,SSD1322_BLACK);
     oled.display();
 #ifdef USE_ESP32XDEV
-    if (dtiv==12) {                              // Let the RGB LED light up
+    if (dtiv>=12) {                              // Let the RGB LED light up
       wsleds[0] = CHSV(255-i,255,255);
       FastLED.show();
     }
@@ -883,7 +911,7 @@ void oled_showStartScreen(void) {
     delay(20);
   }
 #ifdef USE_ESP32XDEV
-  if (dtiv==12) {
+  if (dtiv>=12) {
     digitalWrite(POWER_LED,1);                   // Power off Power LED's D2 & D3
     wsleds[0] = CRGB::Black;                     // RGB LED off
     FastLED.show();
@@ -894,14 +922,15 @@ void oled_showStartScreen(void) {
   u8g2.setCursor(0,63);
   u8g2.print(BuildVersion);
 //#ifdef XDEBUG	
-  if (micAvail) u8g2.print("M");
-  if (pcaAvail) u8g2.print("P");
-  if (dtiv>=11) u8g2.print(dtiv);
+  if (hasMIC) u8g2.print("M");
+  if (hasPCA) u8g2.print("P");
+  if (useEPR) u8g2.print("E");
+  if (dtiv>10) u8g2.print(dtiv);
 //#endif	
   oled.drawXBitmap(DispWidth-usb_icon_width, DispHeight-usb_icon_height, usb_icon, usb_icon_width, usb_icon_height, SSD1322_WHITE);
 
 #ifdef USE_ESP32XDEV
-  if (micAvail) {
+  if (hasMIC) {
     u8g2.setCursor(111,63);
     u8g2.print(tSensor.getTemp());    // Show Temperature if Sensor available
     u8g2.print("\xb0");
@@ -1327,10 +1356,10 @@ void oled_showSystemHardware(void) {
   u8g2.print("Board Options: ");
   u8g2.setCursor(0,60);
   if (dtiv>=11) {
-    if (micAvail) u8g2.print("MIC184");
-    if (pcaAvail) u8g2.print(",PCA9536");
+    if (hasMIC) u8g2.print("MIC");
+    if (hasPCA) u8g2.print(",PCA");
     if (dtiv==11) u8g2.print(",LED");
-    if (dtiv==12) u8g2.print(",WS2812-LED,Buzzer");
+    if (dtiv>=12) u8g2.print(",RGB-LED,Buzzer");
   }
   else {
     u8g2.print("None");
@@ -2235,7 +2264,7 @@ void oled_readnwritetext(void) {
 
 #ifdef USE_ESP32XDEV             // Only for d.ti Boards
   if (TextOut=="TEP184") {      // If Text is "TEP184" replace Text with Temperature Value
-    if (micAvail) {
+    if (hasMIC) {
       TextOut=String(tSensor.getTemp())+"\xb0"+"C";
     }
     else {
@@ -2384,7 +2413,7 @@ void oled_showtemperature() {
 #ifdef XDEBUG
   Serial.println("Called Command CMDSHTEMP");
 #endif
-  if (micAvail) {
+  if (hasMIC) {
     myTemp=String(tSensor.getTemp())+"\xb0"+"C";
   }
   else {
@@ -2422,7 +2451,7 @@ void oled_readnsetuserled(void) {
     if (x>1) x=1;
     digitalWrite(USER_LED,x);  
   }
-  if (dtiv==12){                                // d.ti Board Rev 1.2 = WS2812B LED
+  if (dtiv>=12){                                // d.ti Board Rev 1.2 = WS2812B LED
     if (x>255) x=255;
     if (x==0) {
       wsleds[0] = CRGB::Black;                   // off
@@ -2450,7 +2479,7 @@ void oled_settempzone(void) {
 #ifdef XDEBUG
   Serial.printf("\nReceived Text: %s\n", (char*)xZ.c_str());
 #endif
-  if (micAvail) {
+  if (hasMIC) {
     if (xZ.toInt()==0) tSensor.setZONE(MIC184_ZONE_INTERNAL);
     if (xZ.toInt()==1) tSensor.setZONE(MIC184_ZONE_REMOTE);
     //delay(1000);
@@ -2474,7 +2503,7 @@ void oled_readnsetpowerled(void) {
   
   x=xT.toInt();                                 // Convert Value
   
-  if (dtiv==12) {                               // PCA not avail = Board Rev 1.1 = LED
+  if (dtiv>=12) {                               // PCA not avail = Board Rev 1.1 = LED
     if (x<0) x=0;
     if (x>1) x=1;
     digitalWrite(POWER_LED,!x);                 // Need to negate Signal, Pin = 1 LED's off
@@ -2502,7 +2531,7 @@ void oled_playnote(void) {
   Serial.printf("Find first delimeter at: %d\n", d0);
 #endif  
 
-  if (dtiv==12){                                // only on d.ti Board Rev 1.2
+  if (dtiv>=12){                                // only on d.ti Board Rev 1.2
     ledcAttachPin(BUZZER, TONE_PWM_CHANNEL);
 
     do {
@@ -2578,7 +2607,7 @@ void oled_playnote(void) {
 
     ledcDetachPin(BUZZER);
 
-  }  // endif dtiv==12
+  }  // endif dtiv>=12
   else {
     oled_showcenterredtext("No Buzzer!",3);
 #ifdef XDEBUG
@@ -2607,7 +2636,7 @@ void oled_playtone(void) {
   Serial.printf("Find first delimeter at: %d\n", d0);
 #endif  
 
-  if (dtiv==12){                                // only on d.ti Board Rev 1.2
+  if (dtiv>=12){                                // only on d.ti Board Rev 1.2
     ledcAttachPin(BUZZER, TONE_PWM_CHANNEL);
 
     do {
@@ -2655,7 +2684,7 @@ void oled_playtone(void) {
 
     ledcDetachPin(BUZZER);
 
-  }  // endif dtiv==12
+  }  // endif dtiv>=12
   else {
     oled_showcenterredtext("No Buzzer!",3);
 #ifdef XDEBUG

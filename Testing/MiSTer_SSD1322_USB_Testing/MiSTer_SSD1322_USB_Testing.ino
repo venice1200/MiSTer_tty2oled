@@ -29,7 +29,7 @@
 */
 
 // Set Version
-#define BuildVersion "221119T"                    // "T" for Testing
+#define BuildVersion "221123T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -435,7 +435,7 @@ void setup(void) {
 #ifdef XDEBUG
   Serial.println("Enable PCA");
 #endif  // XDEBUG
-  digitalWrite(PCA_POWER,0);                                     // Set Pin to "1"
+  digitalWrite(PCA_POWER,0);                                     // Pre-Set Pin
   pinMode(PCA_POWER, OUTPUT);                                    // Set Mode for PCA_POWER Pin
   delay(50);
   digitalWrite(PCA_POWER,1);                                     // Switch PCA On
@@ -475,6 +475,10 @@ void setup(void) {
       }
     }
   }
+#ifdef XDEBUG
+  Serial.println("Disable PCA");
+#endif  // XDEBUG
+  digitalWrite(PCA_POWER,0);                                     // Switch PCA off
 
 // EEPROM Handling, read Byte 0 (dtiv)
   EEPROM.begin(EEPROM_SIZE);                              // Start EEPROM Access
@@ -1407,9 +1411,6 @@ void oled_sendHardwareInfo(void) {
     break;
     case 4:
       Serial.println("HWESP32S3;" BuildVersion ";");              // ESP32-S3
-    break;
-    case 5:
-      Serial.println("HWDTIPCB1;" BuildVersion ";");              // Unused
     break;
     default:
       Serial.println("HWNONEXXX;" BuildVersion ";");              // Default

@@ -25,7 +25,7 @@ flash() {
 	    PARTITION="0x8000 ${TMPDIR}/partitions.bin"
 	    APP="0x10000 ${TMPDIR}/${MCUtype:2}_${BUILDVER}.bin"
 	    wget -q ${REPO_URL2}/MAC.html?${MAC} ${REPO_URL2}/${BOOTSWITCH##*/} ${REPO_URL2}/${BOOTLOADER##*/} ${REPO_URL2}/${PARTITION##*/} ${REPO_URL2}/${APP##*/}
-	    ${TMPDIR}/esptool.py --chip esp32 --port ${TTYDEV} --baud ${DBAUD} ${DSTD} ${BOOTSWITCH} ${BOOTLOADER} ${PARTITION} ${APP}
+	    ${TMPDIR}/esptool.py --chip esp32s3 --port ${TTYDEV} --baud ${DBAUD} ${DSTD} ${BOOTSWITCH} ${BOOTLOADER} ${PARTITION} ${APP}
 	    ;;
 	hwesp8266)
 	    wget -q ${REPO_URL2}/MAC.html?${MAC} ${REPO_URL2}/esp8266_${BUILDVER}.bin
@@ -118,7 +118,7 @@ case "${MCUtype}" in
     Exit)	exit 0 ;;
     hwnonexxx)	echo -e "${fred}Unknown hardware, can't continue.${freset}" ; exit 1 ;;
     hwesp32de)	echo -e "${fyellow}ESP32 selected/detected (TTGO/DTI).${freset}" ;;
-    hwesp32s3)	echo -e "${fyellow}ESP32 selected/detected (ESP32-S3 DevKitC).${freset}" ;;
+    hwesp32s3)	echo -e "${fyellow}ESP32-S3 selected/detected (ESP32-S3 DevKitC/DTI).${freset}" ;;
     hwlolin32)	echo -e "${fyellow}ESP32 selected/detected (Wemos/Lolin/DevKit_V4).${freset}" ;;
     hwesp8266)	echo -e "${fyellow}ESP8266 selected/detected.${freset}" ;;
 esac

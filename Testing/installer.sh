@@ -6,22 +6,42 @@ DBAUD="921600"
 DSTD="--before default_reset --after hard_reset write_flash --compress --flash_mode dio --flash_freq 80m --flash_size detect"
 TMPDIR=$(mktemp -d)
 MCUtype="${2}"
+#
+BOOTSW_ESP32="boot_app0.bin"
+BOOTSW_ESP32_ADDR="0xe000"
+BOOTSW_ESP32S3="boot_app0.bin"
+BOOTSW_ESP32S3_ADDR="0xe000"
+BOOTL_ESP32="bootloader_esp32_dio_80m.bin"
+BOOTL_ESP32_ADDR="0x1000"
+BOOTL_ESP32S3="bootloader_esp32s3_dio_80m.bin"
+BOOTL_ESP32S3_ADDR="0x0"
+PARTN_ESP32="partitions.bin"
+PARTN_ESP32_ADDR="0x8000"
+PARTN_ESP32S3="partitions.bin"
+PARTN_ESP32S3_ADDR="0x8000"
+APP_ESP32_ADDR="0x10000"
+APP_ESP32S3_ADDR="0x10000"
+#
 cd ${TMPDIR}
 
 flash() {
     echo "------------------------------------------------------------------------"
     case "${MCUtype}" in
 	HWESP32DE)
-	    wget -q ${REPOSITORY_URL2}/MAC.html?${MAC} ${REPOSITORY_URL2}/boot_app0.bin ${REPOSITORY_URL2}/bootloader_dio_80m.bin ${REPOSITORY_URL2}/partitions.bin ${REPOSITORY_URL2}/esp32de_${BUILDVER}.bin
-	    ${TMPDIR}/esptool.py --chip esp32 --port ${TTYDEV} --baud ${DBAUD} ${DSTD} 0xe000 ${TMPDIR}/boot_app0.bin 0x1000 ${TMPDIR}/bootloader_dio_80m.bin 0x10000 ${TMPDIR}/esp32de_${BUILDVER}.bin 0x8000 ${TMPDIR}/partitions.bin
+	    wget -q ${REPOSITORY_URL2}/MAC.html?${MAC} ${REPOSITORY_URL2}/${BOOTSW_ESP32} ${REPOSITORY_URL2}/${BOOTL_ESP32} ${REPOSITORY_URL2}/${PARTN_ESP32} ${REPOSITORY_URL2}/esp32de_${BUILDVER}.bin
+	    ${TMPDIR}/esptool.py --chip esp32 --port ${TTYDEV} --baud ${DBAUD} ${DSTD} ${BOOTSW_ESP32_ADDR} ${TMPDIR}/${BOOTSW_ESP32} ${BOOTL_ESP32_ADDR}${TMPDIR}/${BOOTL_ESP32} ${APP_ESP32_ADDR} ${TMPDIR}/esp32de_${BUILDVER}.bin ${PARTN_ESP32_ADDR} ${TMPDIR}/${PARTN_ESP32}
 	    ;;
-	HWLOLIN32 | HWDTIPCB0 | HWDTIPCB1)
-	    wget -q ${REPOSITORY_URL2}/MAC.html?${MAC} ${REPOSITORY_URL2}/boot_app0.bin ${REPOSITORY_URL2}/bootloader_dio_80m.bin ${REPOSITORY_URL2}/partitions.bin ${REPOSITORY_URL2}/lolin32_${BUILDVER}.bin
-	    ${TMPDIR}/esptool.py --chip esp32 --port ${TTYDEV} --baud ${DBAUD} ${DSTD} 0xe000 ${TMPDIR}/boot_app0.bin 0x1000 ${TMPDIR}/bootloader_dio_80m.bin 0x10000 ${TMPDIR}/lolin32_${BUILDVER}.bin 0x8000 ${TMPDIR}/partitions.bin
+	HWLOLIN32)
+	    wget -q ${REPOSITORY_URL2}/MAC.html?${MAC} ${REPOSITORY_URL2}/${BOOTSW_ESP32} ${REPOSITORY_URL2}/${BOOTL_ESP32} ${REPOSITORY_URL2}/${PARTN_ESP32} ${REPOSITORY_URL2}/lolin32_${BUILDVER}.bin
+	    ${TMPDIR}/esptool.py --chip esp32 --port ${TTYDEV} --baud ${DBAUD} ${DSTD} ${BOOTSW_ESP32_ADDR} ${TMPDIR}/${BOOTSW_ESP32} ${BOOTL_ESP32_ADDR}${TMPDIR}/${BOOTL_ESP32} ${APP_ESP32_ADDR} ${TMPDIR}/lolin32_${BUILDVER}.bin ${PARTN_ESP32_ADDR} ${TMPDIR}/${PARTN_ESP32}
+	    ;;
+	HWESP32S3)
+	    wget -q ${REPOSITORY_URL2}/MAC.html?${MAC} ${REPOSITORY_URL2}/${BOOTSW_ESP32S3} ${REPOSITORY_URL2}/${BOOTL_ESP32S3} ${REPOSITORY_URL2}/${PARTN_ESP32S3} ${REPOSITORY_URL2}/esp32s3_${BUILDVER}.bin
+	    ${TMPDIR}/esptool.py --chip esp32s3 --port ${TTYDEV} --baud ${DBAUD} ${DSTD} ${BOOTSW_ESP32S3_ADDR} ${TMPDIR}/${BOOTSW_ESP32S3} ${BOOTL_ESP32S3_ADDR} ${TMPDIR}/${BOOTL_ESP32S3} ${APP_ESP32S3_ADDR} ${TMPDIR}/esp32s3_${BUILDVER}.bin ${PARTN_ESP32S3_ADDR} ${TMPDIR}/${PARTN_ESP32S3}
 	    ;;
 	HWESP8266)
 	    wget -q ${REPOSITORY_URL2}/MAC.html?${MAC} ${REPOSITORY_URL2}/esp8266_${BUILDVER}.bin
-	    ${TMPDIR}/esptool.py --chip esp8266 --port ${TTYDEV} --baud ${DBAUD} ${DSTD} 0x00000 ${TMPDIR}/esp8266_${BUILDVER}.bin
+	    ${TMPDIR}/esptool.py --chip esp8266 --port ${TTYDEV} --baud ${DBAUD} ${DSTD} 0x0 ${TMPDIR}/esp8266_${BUILDVER}.bin
 	    ;;
     esac
     echo "------------------------------------------------------------------------"
@@ -91,6 +111,7 @@ if [ "${MCUtype}" = "" ]; then
 	    --backtitle "tty2oled" --title "[ Flash tool for ESP devices ]" \
 	    --menu "Use the arrow keys and enter \nor the d-pad and A button" 0 0 0 \
 	    HWESP32DE "TTGO/DTI (ESP32)" \
+	    HWESP32S3 "ESP32-S3 DevKitC (ESP32-S3)" \
 	    HWLOLIN32 "Wemos/Lolin/DevKit_V4 (ESP32)" \
 	    HWESP8266 "NodeMCU v3 (ESP8266)" \
 	    Exit "Exit now" 2>&1 1>&3)
@@ -109,9 +130,8 @@ case "${MCUtype}" in
     Exit)	exit 0 ;;
     HWNONEXXX)	echo -e "${fred}Unknown hardware, can't continue.${freset}" ; exit 1 ;;
     HWESP32DE)	echo -e "${fyellow}ESP32 selected/detected (TTGO/DTI).${freset}" ;;
+    HWESP32S3)	echo -e "${fyellow}ESP32 selected/detected (ESP32-S3 DevKitC).${freset}" ;;
     HWLOLIN32)	echo -e "${fyellow}ESP32 selected/detected (Wemos/Lolin/DevKit_V4).${freset}" ;;
-    HWDTIPCB0)	echo -e "${fyellow}ESP32 selected/detected (DTI v1.0).${freset}" ;;
-    HWDTIPCB1)	echo -e "${fyellow}ESP32 selected/detected (DTI n/a).${freset}" ;;
     HWESP8266)	echo -e "${fyellow}ESP8266 selected/detected.${freset}" ;;
 esac
 

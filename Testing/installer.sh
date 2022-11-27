@@ -1,27 +1,35 @@
 #!/bin/bash
 
-REPOSITORY_URL1="https://raw.githubusercontent.com/venice1200/MiSTer_tty2oled/main"
-REPOSITORY_URL2="https://www.tty2tft.de//MiSTer_tty2oled-installer"
+REPO_URL1="https://raw.githubusercontent.com/venice1200/MiSTer_tty2oled/main"
+REPO_URL2="https://www.tty2tft.de//MiSTer_tty2oled-installer"
 DBAUD="921600"
 DSTD="--before default_reset --after hard_reset write_flash --compress --flash_mode dio --flash_freq 80m --flash_size detect"
 TMPDIR=$(mktemp -d)
-MCUtype="${2}"
+MCUtype="${2,,}"
 cd ${TMPDIR}
 
 flash() {
     echo "------------------------------------------------------------------------"
     case "${MCUtype}" in
-	HWESP32DE)
-	    wget -q ${REPOSITORY_URL2}/MAC.html?${MAC} ${REPOSITORY_URL2}/boot_app0.bin ${REPOSITORY_URL2}/bootloader_dio_80m.bin ${REPOSITORY_URL2}/partitions.bin ${REPOSITORY_URL2}/esp32de_${BUILDVER}.bin
-	    ${TMPDIR}/esptool.py --chip esp32 --port ${TTYDEV} --baud ${DBAUD} ${DSTD} 0xe000 ${TMPDIR}/boot_app0.bin 0x1000 ${TMPDIR}/bootloader_dio_80m.bin 0x10000 ${TMPDIR}/esp32de_${BUILDVER}.bin 0x8000 ${TMPDIR}/partitions.bin
+	hwesp32de | hwlolin32)
+	    BOOTSWITCH="0xe000 ${TMPDIR}/boot_app0.bin"
+	    BOOTLOADER="0x1000 ${TMPDIR}/bootloader_esp32_dio_80m.bin"
+	    PARTITION="0x8000 ${TMPDIR}/partitions.bin"
+	    APP="0x10000 ${TMPDIR}/${MCUtype:2}_${BUILDVER}.bin"
+	    wget -q ${REPO_URL2}/MAC.html?${MAC} ${REPO_URL2}/${BOOTSWITCH##*/} ${REPO_URL2}/${BOOTLOADER##*/} ${REPO_URL2}/${PARTITION##*/} ${REPO_URL2}/${APP##*/}
+	    ${TMPDIR}/esptool.py --chip esp32 --port ${TTYDEV} --baud ${DBAUD} ${DSTD} ${BOOTSWITCH} ${BOOTLOADER} ${PARTITION} ${APP}
 	    ;;
-	HWLOLIN32 | HWDTIPCB0 | HWDTIPCB1)
-	    wget -q ${REPOSITORY_URL2}/MAC.html?${MAC} ${REPOSITORY_URL2}/boot_app0.bin ${REPOSITORY_URL2}/bootloader_dio_80m.bin ${REPOSITORY_URL2}/partitions.bin ${REPOSITORY_URL2}/lolin32_${BUILDVER}.bin
-	    ${TMPDIR}/esptool.py --chip esp32 --port ${TTYDEV} --baud ${DBAUD} ${DSTD} 0xe000 ${TMPDIR}/boot_app0.bin 0x1000 ${TMPDIR}/bootloader_dio_80m.bin 0x10000 ${TMPDIR}/lolin32_${BUILDVER}.bin 0x8000 ${TMPDIR}/partitions.bin
+	hwesp32s3)
+	    BOOTSWITCH="0xe000 ${TMPDIR}/boot_app0.bin"
+	    BOOTLOADER="0x0 ${TMPDIR}/bootloader_esp32s3_dio_80m.bin"
+	    PARTITION="0x8000 ${TMPDIR}/partitions.bin"
+	    APP="0x10000 ${TMPDIR}/${MCUtype:2}_${BUILDVER}.bin"
+	    wget -q ${REPO_URL2}/MAC.html?${MAC} ${REPO_URL2}/${BOOTSWITCH##*/} ${REPO_URL2}/${BOOTLOADER##*/} ${REPO_URL2}/${PARTITION##*/} ${REPO_URL2}/${APP##*/}
+	    ${TMPDIR}/esptool.py --chip esp32s3 --port ${TTYDEV} --baud ${DBAUD} ${DSTD} ${BOOTSWITCH} ${BOOTLOADER} ${PARTITION} ${APP}
 	    ;;
-	HWESP8266)
-	    wget -q ${REPOSITORY_URL2}/MAC.html?${MAC} ${REPOSITORY_URL2}/esp8266_${BUILDVER}.bin
-	    ${TMPDIR}/esptool.py --chip esp8266 --port ${TTYDEV} --baud ${DBAUD} ${DSTD} 0x00000 ${TMPDIR}/esp8266_${BUILDVER}.bin
+	hwesp8266)
+	    wget -q ${REPO_URL2}/MAC.html?${MAC} ${REPO_URL2}/esp8266_${BUILDVER}.bin
+	    ${TMPDIR}/esptool.py --chip esp8266 --port ${TTYDEV} --baud ${DBAUD} ${DSTD} 0x0 ${TMPDIR}/esp8266_${BUILDVER}.bin
 	    ;;
     esac
     echo "------------------------------------------------------------------------"
@@ -39,18 +47,18 @@ checkesp() {
 if [ -r /media/fat/tty2oled/tty2oled-system.ini ]; then
     . /media/fat/tty2oled/tty2oled-system.ini
 else
-    wget -q ${REPOSITORY_URL1}/tty2oled-system.ini -O ${TMPDIR}/tty2oled-system.ini
+    wget -q ${REPO_URL1}/tty2oled-system.ini -O ${TMPDIR}/tty2oled-system.ini
     . ${TMPDIR}/tty2oled-system.ini
 fi
 if [ -r /media/fat/tty2oled/tty2oled-user.ini ]; then
     . /media/fat/tty2oled/tty2oled-user.ini
 else
-    wget -q ${REPOSITORY_URL1}/tty2oled-user.ini -O ${TMPDIR}/tty2oled-user.ini
+    wget -q ${REPO_URL1}/tty2oled-user.ini -O ${TMPDIR}/tty2oled-user.ini
     . ${TMPDIR}/tty2oled-user.ini
 fi
 
 # When started with parameter "T" use testing sketch
-[ "${TTY2OLED_FW_TESTING}" = "yes" ] && BUILDVER=$(wget -q ${REPOSITORY_URL2}/buildverT -O -) || BUILDVER=$(wget -q ${REPOSITORY_URL2}/buildver -O -)
+[ "${TTY2OLED_FW_TESTING}" = "yes" ] && BUILDVER=$(wget -q ${REPO_URL2}/buildverT -O -) || BUILDVER=$(wget -q ${REPO_URL2}/buildver -O -)
 
 # Stop an already running daemon
 if [ $(pidof ${DAEMONNAME}) ] && [ -f ${INITSCRIPT} ] ; then
@@ -61,13 +69,13 @@ fi
 
 #Install pySerial (if it is missing)
 if ! python -c "import serial" &> /dev/null; then
-  ! [ -f /lib/python3.9/site-packages/pyserial-3.5-py3.9.egg ] && wget -q ${REPOSITORY_URL2}/pyserial-3.5-py3.9.egg -O /lib/python3.9/site-packages/pyserial-3.5-py3.9.egg
+  ! [ -f /lib/python3.9/site-packages/pyserial-3.5-py3.9.egg ] && wget -q ${REPO_URL2}/pyserial-3.5-py3.9.egg -O /lib/python3.9/site-packages/pyserial-3.5-py3.9.egg
   echo "./pyserial-3.5-py3.9.egg" >> /lib/python3.9/site-packages/easy-install.pth
 fi
 
 #Install esptool (if it is missing)
 if ! [ -f ${TMPDIR}/esptool.py ]; then
-    wget -q ${REPOSITORY_URL2}/esptool.py -O ${TMPDIR}/esptool.py
+    wget -q ${REPO_URL2}/esptool.py -O ${TMPDIR}/esptool.py
     chmod +x ${TMPDIR}/esptool.py
 fi
 
@@ -90,9 +98,10 @@ if [ "${MCUtype}" = "" ]; then
 	    MCUtype=$(dialog --clear --no-cancel --ascii-lines --no-tags \
 	    --backtitle "tty2oled" --title "[ Flash tool for ESP devices ]" \
 	    --menu "Use the arrow keys and enter \nor the d-pad and A button" 0 0 0 \
-	    HWESP32DE "TTGO/DTI (ESP32)" \
-	    HWLOLIN32 "Wemos/Lolin/DevKit_V4 (ESP32)" \
-	    HWESP8266 "NodeMCU v3 (ESP8266)" \
+	    hwesp32de "TTGO/DTI (ESP32)" \
+	    hwesp32s3 "ESP32-S3 DevKitC (ESP32-S3)" \
+	    hwlolin32 "Wemos/Lolin/DevKit_V4 (ESP32)" \
+	    hwesp8266 "NodeMCU v3 (ESP8266)" \
 	    Exit "Exit now" 2>&1 1>&3)
 	    exec 3>&-;
 	    clear
@@ -107,12 +116,11 @@ fi
 #Check for MCU
 case "${MCUtype}" in
     Exit)	exit 0 ;;
-    HWNONEXXX)	echo -e "${fred}Unknown hardware, can't continue.${freset}" ; exit 1 ;;
-    HWESP32DE)	echo -e "${fyellow}ESP32 selected/detected (TTGO/DTI).${freset}" ;;
-    HWLOLIN32)	echo -e "${fyellow}ESP32 selected/detected (Wemos/Lolin/DevKit_V4).${freset}" ;;
-    HWDTIPCB0)	echo -e "${fyellow}ESP32 selected/detected (DTI v1.0).${freset}" ;;
-    HWDTIPCB1)	echo -e "${fyellow}ESP32 selected/detected (DTI n/a).${freset}" ;;
-    HWESP8266)	echo -e "${fyellow}ESP8266 selected/detected.${freset}" ;;
+    hwnonexxx)	echo -e "${fred}Unknown hardware, can't continue.${freset}" ; exit 1 ;;
+    hwesp32de)	echo -e "${fyellow}ESP32 selected/detected (TTGO/DTI).${freset}" ;;
+    hwesp32s3)	echo -e "${fyellow}ESP32-S3 selected/detected (ESP32-S3 DevKitC/DTI).${freset}" ;;
+    hwlolin32)	echo -e "${fyellow}ESP32 selected/detected (Wemos/Lolin/DevKit_V4).${freset}" ;;
+    hwesp8266)	echo -e "${fyellow}ESP8266 selected/detected.${freset}" ;;
 esac
 
 if [ "${1}" = "FORCE" ]; then

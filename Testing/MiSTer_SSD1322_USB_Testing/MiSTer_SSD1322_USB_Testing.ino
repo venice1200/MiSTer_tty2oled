@@ -16,6 +16,8 @@
   See also https://github.com/venice1200/MiSTer_tty2oled/wiki/Arduino-HowTo-%28Windows%29
 
   QuickSelect/Copy&Paste for Arduino IDE v2.x:
+  
+  -ESP32-S3 Dev Module
   -ESP32 Dev Module
   -WEMOS LOLIN32
   -NodeMCU 1.0
@@ -26,10 +28,19 @@
   -Check why dtiv>=13 (Reason = POR of PCA9536)
   -Everything I forgot
    
+  Defines?!
+  I use a lot "#ifdef's...endif" in the code to enable code for a specific MCU Type.
+  USE_ESP32S3DEV   An ESP32-S3 is used with the Arduino IDE Profile "ESP32-S3 Dev Module".
+  USE_ESP32DEV     An ESP32 is used with the Arduino IDE Profile "ESP32 Dev Module".
+  USE_LOLIN32      An ESP32 is used with the Arduino IDE Profile "WEMOS LOLIN32".
+  USE_NODEMCU      An ESP8266 is used with the Arduino IDE Profile  "NodeMCU 1.0 (ESP-12E Module)".
+  USE_ESP32XDEV    An ESP32-S3 is used with the Arduino IDE Profile "ESP32-S3 Dev Module" or an ESP32 is used with the Arduino IDE Profile "ESP32 Dev Module".
+  ESP32X           An ESP32-S3 or ESP32 is used.
+ 
 */
 
 // Set Version
-#define BuildVersion "221123T"                    // "T" for Testing
+#define BuildVersion "221127T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -125,12 +136,11 @@
   #define NUM_WSLEDS 1             // Number of WS-LED's
   #define WS_BRIGHTNESS 50         // WS-LED Brightness
   CRGB wsleds[NUM_WSLEDS];         // Create WS-LED RGB Array
-  #include <EEPROM.h>                               // Needed for d.ti Board Revisions
-  #define EEPROM_SIZE 1
-  #define EEPROM_DTIV 0
   #define PCA_POWER 48             // Switch PCA9536 on=0 and off=1 (without defining the Port as output the PCA is off)
  //SPIClass OLED_SPI(HSPI);
   SPIClass OLED_SPI(SPI);
+  #include <Preferences.h>         // Needed for d.ti Board Revisions
+  Preferences prefs;
 #endif
 
 // TTGO-T8/d.ti/ESP32 Dev
@@ -154,10 +164,9 @@
   #define NUM_WSLEDS 1             // Number of WS-LED's
   #define WS_BRIGHTNESS 50         // WS-LED Brightness
   CRGB wsleds[NUM_WSLEDS];         // Create WS-LED RGB Array
-  #include <EEPROM.h>              // Needed for d.ti Board Revisions
-  #define EEPROM_SIZE 1
-  #define EEPROM_DTIV 0
   #define PCA_POWER 2              // Switch PCA9536 on=0 and off=1 (without defining the Port as output the PCA is off)
+  #include <Preferences.h>         // Needed for d.ti Board Revisions
+  Preferences prefs;
 #endif
 
 // WEMOS LOLIN32/Devkit_V4 using VSPI SCLK = 18, MISO = 19, MOSI = 23, SS = 5 and...
@@ -302,7 +311,7 @@ bool hasPCA=false;                          // Is the PCA9536 Port-Extender Chip
 byte pcaInputValue=0;                         // PCA9536 Input Pin State as Byte Value
 byte dtiv=0;                                  // d.ti Board Version 11=1.1, 12=1.2
 byte edtiv=0;                                 // d.ti Board Version read/write from/to EERPOM 
-bool useEPR=false;
+bool usePREFS=false;
 
 // =============================================================================================================
 // ========================================== FUNCTION PROTOTYPES ==============================================
@@ -347,7 +356,7 @@ void oled_enableOTA (void);
 int getRandom(int lower, int upper);
 void oled_drawScreenSaverStarField(void);
 void oled_drawScreenSaverToaster(void);
-void oled_readnseteeprom(void);
+void oled_readnsetedtiv(void);
 
 // Info about overloading found here
 // https://stackoverflow.com/questions/1880866/can-i-set-a-default-argument-from-a-previous-argument
@@ -403,7 +412,7 @@ void setup(void) {
 // === Activate Options ===
 
 // Setup d.ti Board (Temp.Sensor/USER_LED/PCA9536)
-#ifdef USE_ESP32XDEV                                             // Only for ESP-DEV (TTGO-T8/d.ti)
+#ifdef USE_ESP32XDEV                                             // Only for ESP32-DEV or ESP32S3-DEV (TTGO-T8/d.ti)
 // Output for d.ti Board Power LED
   pinMode(POWER_LED, OUTPUT);                                    // Set Mode POWER_LED Pin
 
@@ -480,17 +489,16 @@ void setup(void) {
 #endif  // XDEBUG
   digitalWrite(PCA_POWER,0);                                     // Switch PCA off
 
-// EEPROM Handling, read Byte 0 (dtiv)
-  EEPROM.begin(EEPROM_SIZE);                              // Start EEPROM Access
-  edtiv=EEPROM.read(EEPROM_DTIV);                         // Read DTIV from EEPROM
+  prefs.begin("tty2oled", false);                                // Preferences Handling, open Namespace "tty2oled" in RW Mode
+  edtiv=prefs.getUChar("dtiv", 255);                             // Preferences Handling, read "dtiv" with default value "255"
 #ifdef XDEBUG
-  Serial.printf("Read DTIV %i from EEPROM.\n", editv);
+  Serial.printf("Read DTIV %i from Preferences.\n", editv);
 #endif  // XDEBUG
-  if (edtiv==255) {                                       // Read PCA Value only if EEPROM has no Value
-    EEPROM.write(EEPROM_DTIV,dtiv);                       // Write Value to EEPROM
-    EEPROM.commit();                                      // Commit EEPROM Access
+  if (edtiv==255) {                                              // Read PCA Value only if EEPROM has no Value
+    prefs.putUChar("dtiv", dtiv);                                // Write Value to Preferences Namespace
+    prefs.end();                                                 // Close the Preferences
     if (dtiv>10) {
-      u8g2.setFont(u8g2_font_5x7_mf);                     // 6 Pixel Font
+      u8g2.setFont(u8g2_font_5x7_mf);                            // 6 Pixel Font
       u8g2.setCursor(0,63);
       u8g2.printf("d.ti Board v%.1f detected.", (float)dtiv/10);    
       oled.display();
@@ -498,12 +506,12 @@ void setup(void) {
       oled.clearDisplay();
     }
 #ifdef XDEBUG
-    Serial.printf("Writing DTIV to EEPROM: %i\n", dtiv);
+    Serial.printf("Writing DTIV to Preferences: %i\n", dtiv);
 #endif
   }
   else {
     dtiv=edtiv;                                                    // Use EEPROM Value for dtiv
-    useEPR=true;
+    usePREFS=true;
   }
 
   if (dtiv==11) {                                                  // If PCA9536 is not available = d.ti Board Rev 1.1
@@ -803,8 +811,8 @@ void loop(void) {
     oled_playtone();
     }
 
-    else if (newCommand.startsWith("CMDWREPR")) {                          // Write EEPROM
-      oled_readnseteeprom();
+    else if (newCommand.startsWith("CMDWRDTIV")) {                          // Write EEPROM
+      oled_readnsetedtiv();
     }
 #endif  // USE_ESP32DEV
 // ---------------------------------------------------
@@ -928,7 +936,7 @@ void oled_showStartScreen(void) {
 //#ifdef XDEBUG	
   if (hasMIC) u8g2.print("M");
   if (hasPCA) u8g2.print("P");
-  if (useEPR) u8g2.print("E");
+  if (usePREFS) u8g2.print("E");
   if (dtiv>10) u8g2.print(dtiv);
 //#endif	
   oled.drawXBitmap(DispWidth-usb_icon_width, DispHeight-usb_icon_height, usb_icon, usb_icon_width, usb_icon_height, SSD1322_WHITE);
@@ -2695,52 +2703,37 @@ void oled_playtone(void) {
 }
 
 // --------------------------------------------------------------
-// ------------------ Write EEPROM Value ------------------------
+// -------------------- Write DTIV Value ------------------------
 // --------------------------------------------------------------
-void oled_readnseteeprom(void) {
-  String TextIn="",aT="",vT="";
-  int d1,a,v;
+void oled_readnsetedtiv(void) {
+  String vT="";
+  int v;
 
 #ifdef XDEBUG
-  Serial.println("Called Command CMDWREPR");
+  Serial.println("Called Command CMDWRDTIV");
 #endif
 
-  TextIn=newCommand.substring(newCommand.indexOf(',')+1);;
+  vT=newCommand.substring(newCommand.indexOf(',')+1);
 
 #ifdef XDEBUG
   Serial.printf("Received Text: %s\n", (char*)TextIn.c_str());
 #endif
  
-  //Searching for the "," delimiter
-  d1 = TextIn.indexOf(',');                 // Find location of first ","
-  //Create Substrings
-  aT = TextIn.substring(0, d1);             // Get String for Address
-  vT = TextIn.substring(d1+1);               // Get String for Value
-
-  a=aT.toInt();                             // Convert Mode
   v=vT.toInt();                             // Convert Interval
 
-  if (a<0) a=0;                             // Check Address
-  if (a>255) a=255;                         // Check Address
   if (v<0) v=0;                             // Check Value
   if (v>255) v=255;                         // Check Value
   
   oled.clearDisplay();
   u8g2.setFont(u8g2_font_luBS08_tf);
-  EEPROM.writeByte(a, v);
-  EEPROM.commit();
+  prefs.begin("tty2oled", false);             // Preferences Handling, open Namespace
+  prefs.putUChar("dtiv", v);                  // Write Value to Preferences Namespace
+  prefs.end();                                // Close the Preferences 
 #ifdef XDEBUG
-  Serial.printf("Write Value %i to EEPROM Address %i.\n",v,a);
+  Serial.printf("Write Value %i to Preferences DTIV.\n",v);
 #endif
   u8g2.setCursor(0,25);
-  u8g2.printf("Write Value %i to EEPROM Address %i.",v,a);
-
-  v=EEPROM.readByte(a);
-#ifdef XDEBUG
-  Serial.printf("Verify, Read Value %i from EEPROM Address %i.\n",v,a);
-#endif
-  u8g2.setCursor(0,35);
-  u8g2.printf("Verify,\nRead Value %i from EEPROM Address %i.",v,a);
+  u8g2.printf("Write Value %i to Preferences DTIV.\n",v);
   oled.display();
 }
 

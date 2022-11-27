@@ -1,12 +1,15 @@
 *************************** tty2oled Arduino-FW Changelog ***********************
 
+  2022-11-27
+  -Switch dtiv Version handling from "EEPROM" to "Preferences"
+
   2022-11-23
   -Removed unused Board Types
 
   2022-11-12..13
   -Add Suport for ESP32-S3 (ESP32-S3-DevKitC-1)
   -Removed OTA Support
-  -Add EEPROM Support for d.ti Boards
+  -Add EEPROM Support for d.ti Boards (IDE: ESP32* Dev Module)
 
   2022-10-30
   ***** Release to stable 221030 ******

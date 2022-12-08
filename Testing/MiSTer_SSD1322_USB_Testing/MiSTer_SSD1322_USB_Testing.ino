@@ -40,7 +40,7 @@
 */
 
 // Set Version
-#define BuildVersion "221127T"                    // "T" for Testing
+#define BuildVersion "221208T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -184,7 +184,8 @@
   #define OLED_CS 15
   #define OLED_DC 4
   #define OLED_RESET 5
-  #define TILT_PIN 16
+  #define TILT_PIN 10
+  //#define TILT_PIN 16
 #endif
 
 // Create OLED Object
@@ -303,15 +304,19 @@ struct Flyer {       // Array of flying things
 #endif  // ESP32 Screensaver
 
 // I2C Hardware
-bool hasMIC=false;                            // Is the MIC184 Sensor available?
+bool hasMIC=false;                            // tty2oled has a MIC184 Sensor (all d.to Boards)
 const byte PCA9536_ADDR = 0x41;               // PCA9536 Base Address
 const byte PCA9536_IREG = 0x00;               // PCA9536 Input Register
-bool hasPCA=false;                          // Is the PCA9536 Port-Extender Chip available?
+bool hasPCA=false;                            // tty2oled has a PCA9536 Port-Extender (d.ti Board >=v1.2)
 //byte pcaInputValue=255;                     // PCA9536 Input Pin State as Byte Value
 byte pcaInputValue=0;                         // PCA9536 Input Pin State as Byte Value
 byte dtiv=0;                                  // d.ti Board Version 11=1.1, 12=1.2
 byte edtiv=0;                                 // d.ti Board Version read/write from/to EERPOM 
-bool usePREFS=false;
+bool usePREFS=false;                          // Got d.ti Board version from "Preferences" Values
+//bool hasLED="false"                           // tty2oled has a LED (d.ti Board v1.1)
+//bool hasRGB="false"                           // tty2oled has a RGB LED (d.ti Board >=v1.2)
+//bool hasBUZ="false"                           // tty2oled has a Buzzer (d.ti Board >=v1.2)
+
 
 // =============================================================================================================
 // ========================================== FUNCTION PROTOTYPES ==============================================

@@ -40,7 +40,7 @@
 */
 
 // Set Version
-#define BuildVersion "221208T"                    // "T" for Testing
+#define BuildVersion "221209T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -313,9 +313,10 @@ byte pcaInputValue=0;                         // PCA9536 Input Pin State as Byte
 byte dtiv=0;                                  // d.ti Board Version 11=1.1, 12=1.2
 byte edtiv=0;                                 // d.ti Board Version read/write from/to EERPOM 
 bool usePREFS=false;                          // Got d.ti Board version from "Preferences" Values
-//bool hasLED="false"                           // tty2oled has a LED (d.ti Board v1.1)
-//bool hasRGB="false"                           // tty2oled has a RGB LED (d.ti Board >=v1.2)
-//bool hasBUZ="false"                           // tty2oled has a Buzzer (d.ti Board >=v1.2)
+bool hasLED="false";                          // tty2oled has a LED (d.ti Board = v1.1)
+bool hasRGBLED="false";                       // tty2oled has a RGB LED (d.ti Board >=v1.2)
+bool hasBUZZER="false";                       // tty2oled has a Buzzer (d.ti Board >=v1.2)
+bool hasPLED="false";                         // tty2oled has a PowerLED (d.ti Board >=v1.2)
 
 
 // =============================================================================================================
@@ -445,7 +446,6 @@ void setup(void) {
 #endif  // XDEBUG
 
 // PCA9536 handling
-
 #ifdef XDEBUG
   Serial.println("Enable PCA");
 #endif  // XDEBUG
@@ -494,6 +494,7 @@ void setup(void) {
 #endif  // XDEBUG
   digitalWrite(PCA_POWER,0);                                     // Switch PCA off
 
+// Preferences dtiv (EEPROM)
   prefs.begin("tty2oled", false);                                // Preferences Handling, open Namespace "tty2oled" in RW Mode
   edtiv=prefs.getUChar("dtiv", 255);                             // Preferences Handling, read "dtiv" with default value "255"
 #ifdef XDEBUG
@@ -521,13 +522,18 @@ void setup(void) {
 
   if (dtiv==11) {                                                  // If PCA9536 is not available = d.ti Board Rev 1.1
     pinMode(USER_LED, OUTPUT);                                     // Setup User LED
+    hasLED="true";                                                 // tty2oled has a LED (d.ti Board v1.1)
   }
   if (dtiv>=12) {                                                  // If PCA9536 is available = d.ti Board Rev 1.2 or greater
     FastLED.addLeds<WS2812B, USER_LED, GRB>(wsleds, NUM_WSLEDS);   // Setup User WS2812B LED
     FastLED.setBrightness(WS_BRIGHTNESS);                          // and set Brightness
+    hasRGBLED="true";                                              // tty2oled has a RGB LED (d.ti Board >=v1.2)
+    hasBUZZER="true";                                              // tty2oled has a Buzzer (d.ti Board >=v1.2)
+    hasPLED="true";                                                // tty2oled has a PowerLED which can be switched off
   }
 #endif  // USE_ESP32DEV
 
+// Setup Animated Screensaver
 #ifdef ESP32X
   for (int i = 0; i < starCount; i++) {                            // Initialise the StarField with random Stars
     stars[i][0] = getRandom(-25, 25);
@@ -543,14 +549,13 @@ void setup(void) {
   }
 #endif // ESP32X
 
-  // Tilt Sensor Rotation via Tilt-Sensor Pin
+// Tilt Sensor Rotation via Tilt-Sensor Pin
   RotationDebouncer.attach(TILT_PIN,INPUT_PULLUP);         // Attach the debouncer to a pin with INPUT mode
   RotationDebouncer.interval(DEBOUNCE_TIME);               // Use a debounce interval of 25 milliseconds
   delay(10);                                               // Short Delay
-  // Set Startup Rotation
-  if (digitalRead(TILT_PIN)) {                             // If Signal = 1 no Rotation
-    oled.setRotation(0);
-  }
+  if (digitalRead(TILT_PIN)) {                             // Set Startup Rotation
+    oled.setRotation(0);                                   // If Signal = 1 no Rotation
+ }
   else {                                                   // If Signal = 0 180° Rotation
     oled.setRotation(2);
   }
@@ -941,8 +946,8 @@ void oled_showStartScreen(void) {
 //#ifdef XDEBUG	
   if (hasMIC) u8g2.print("M");
   if (hasPCA) u8g2.print("P");
-  if (usePREFS) u8g2.print("E");
   if (dtiv>10) u8g2.print(dtiv);
+  if (usePREFS) u8g2.print("E");
 //#endif	
   oled.drawXBitmap(DispWidth-usb_icon_width, DispHeight-usb_icon_height, usb_icon, usb_icon_width, usb_icon_height, SSD1322_WHITE);
 
@@ -1375,8 +1380,9 @@ void oled_showSystemHardware(void) {
   if (dtiv>=11) {
     if (hasMIC) u8g2.print("MIC");
     if (hasPCA) u8g2.print(",PCA");
-    if (dtiv==11) u8g2.print(",LED");
-    if (dtiv>=12) u8g2.print(",RGB-LED,Buzzer");
+    if (hasLED) u8g2.print(",LED");
+    if (hasRGBLED) u8g2.print(",RGB-LED");
+    if (hasBUZZER) u8g2.print(",Buzzer");
   }
   else {
     u8g2.print("None");
@@ -2461,11 +2467,11 @@ void oled_readnsetuserled(void) {
   x=xT.toInt();                                  // Convert Value
   if (x<0) x=0;
   
-  if (dtiv==11) {                               // d.ti Board Rev 1.1 = LED
+  if (hasLED) {                                  // d.ti Board Rev 1.1 = LED
     if (x>1) x=1;
     digitalWrite(USER_LED,x);  
   }
-  if (dtiv>=12){                                // d.ti Board Rev 1.2 = WS2812B LED
+  if (hasRGBLED){                                // d.ti Board Rev 1.2 = WS2812B LED
     if (x>255) x=255;
     if (x==0) {
       wsleds[0] = CRGB::Black;                   // off
@@ -2517,7 +2523,7 @@ void oled_readnsetpowerled(void) {
   
   x=xT.toInt();                                 // Convert Value
   
-  if (dtiv>=12) {                               // PCA not avail = Board Rev 1.1 = LED
+  if (hasPLED) {                                // PCA not avail = Board Rev 1.1 = LED
     if (x<0) x=0;
     if (x>1) x=1;
     digitalWrite(POWER_LED,!x);                 // Need to negate Signal, Pin = 1 LED's off
@@ -2545,7 +2551,7 @@ void oled_playnote(void) {
   Serial.printf("Find first delimeter at: %d\n", d0);
 #endif  
 
-  if (dtiv>=12){                                // only on d.ti Board Rev 1.2
+  if (hasBUZZER){                                 // only on d.ti Board >= Rev 1.2
     ledcAttachPin(BUZZER, TONE_PWM_CHANNEL);
 
     do {
@@ -2650,7 +2656,7 @@ void oled_playtone(void) {
   Serial.printf("Find first delimeter at: %d\n", d0);
 #endif  
 
-  if (dtiv>=12){                                // only on d.ti Board Rev 1.2
+  if (hasBUZZER){                                 // only on d.ti Board >= Rev 1.2
     ledcAttachPin(BUZZER, TONE_PWM_CHANNEL);
 
     do {

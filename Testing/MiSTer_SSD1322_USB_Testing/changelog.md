@@ -1,5 +1,8 @@
 *************************** tty2oled Arduino-FW Changelog ***********************
 
+  2022-12-09
+  -Add more "hasXX"
+
   2022-12-08
   -Change 8266 NodeMCU Tilt Pin 16 (D0) to Pin 10 (SD3)
 

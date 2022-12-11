@@ -40,7 +40,7 @@
 */
 
 // Set Version
-#define BuildVersion "221209T"                    // "T" for Testing
+#define BuildVersion "221210T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -313,10 +313,10 @@ byte pcaInputValue=0;                         // PCA9536 Input Pin State as Byte
 byte dtiv=0;                                  // d.ti Board Version 11=1.1, 12=1.2
 byte edtiv=0;                                 // d.ti Board Version read/write from/to EERPOM 
 bool usePREFS=false;                          // Got d.ti Board version from "Preferences" Values
-bool hasLED="false";                          // tty2oled has a LED (d.ti Board = v1.1)
-bool hasRGBLED="false";                       // tty2oled has a RGB LED (d.ti Board >=v1.2)
-bool hasBUZZER="false";                       // tty2oled has a Buzzer (d.ti Board >=v1.2)
-bool hasPLED="false";                         // tty2oled has a PowerLED (d.ti Board >=v1.2)
+bool hasLED=false;                            // tty2oled has a LED (d.ti Board = v1.1)
+bool hasRGBLED=false;                         // tty2oled has a RGB LED (d.ti Board >=v1.2)
+bool hasBUZZER=false;                         // tty2oled has a Buzzer (d.ti Board >=v1.2)
+bool hasPLED=false;                           // tty2oled has a PowerLED (d.ti Board >=v1.2)
 
 
 // =============================================================================================================
@@ -522,14 +522,14 @@ void setup(void) {
 
   if (dtiv==11) {                                                  // If PCA9536 is not available = d.ti Board Rev 1.1
     pinMode(USER_LED, OUTPUT);                                     // Setup User LED
-    hasLED="true";                                                 // tty2oled has a LED (d.ti Board v1.1)
+    hasLED=true;                                                 // tty2oled has a LED (d.ti Board v1.1)
   }
   if (dtiv>=12) {                                                  // If PCA9536 is available = d.ti Board Rev 1.2 or greater
     FastLED.addLeds<WS2812B, USER_LED, GRB>(wsleds, NUM_WSLEDS);   // Setup User WS2812B LED
     FastLED.setBrightness(WS_BRIGHTNESS);                          // and set Brightness
-    hasRGBLED="true";                                              // tty2oled has a RGB LED (d.ti Board >=v1.2)
-    hasBUZZER="true";                                              // tty2oled has a Buzzer (d.ti Board >=v1.2)
-    hasPLED="true";                                                // tty2oled has a PowerLED which can be switched off
+    hasRGBLED=true;                                              // tty2oled has a RGB LED (d.ti Board >=v1.2)
+    hasBUZZER=true;                                              // tty2oled has a Buzzer (d.ti Board >=v1.2)
+    hasPLED=true;                                                // tty2oled has a PowerLED which can be switched off
   }
 #endif  // USE_ESP32DEV
 

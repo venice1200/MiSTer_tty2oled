@@ -1,6 +1,7 @@
 #!/bin/bash
 
 #
+# 2022-12-13 Auto Update
 # 2022-03-12 Ensure Unix-Encoding of INI files
 # 2021-11-24 Working in /tmp
 # 2021-09-09 Moved from /etc/init.d to /media/fat/tty2oled 
@@ -12,6 +13,10 @@
 ! [ "$(dos2unix -ic /media/fat/tty2oled/*.ini)" = "" ] && dos2unix -k -q /media/fat/tty2oled/*.ini
 . /media/fat/tty2oled/tty2oled-system.ini
 . /media/fat/tty2oled/tty2oled-user.ini
+
+DATENOW=$(date +%s)
+LASTUPDATE=$(date +%s)		# Prefill with "now"
+[ -e /media/fat/tty2oled/last_update ] && read LASTUPDATE < /media/fat/tty2oled/last_update
 cd /tmp
 
 # Start
@@ -31,6 +36,7 @@ start() {
 	echo "${DAEMONNAME} already running"
 	exit 1
       else
+	[ $((${DATENOW} - ${LASTUPDATE})) -gt 604800 ] && bash ${UPDATESCRIPT} NOINSTALLER > /dev/null 2>&1	# Auto Update after 1 week
 	echo "Starting ${DAEMONNAME}..."
 	${DAEMONSCRIPT} & echo $! > /run/tty2oled-daemon.pid
       fi

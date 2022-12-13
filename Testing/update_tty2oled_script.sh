@@ -149,8 +149,10 @@ fi
 wget ${NODEBUG} -Nq "${REPOSITORY_URL}/tty2oled-read.sh"
 
 # Download the installer to check esp firmware
-cd /tmp
-[ "${TTY2OLED_UPDATE}" = "yes" ] && bash <(wget -qO- ${REPOSITORY_URL}/installer.sh) UPDATER
+if [ "${1}" != "NOINSTALLER" ]; then
+  cd /tmp
+  [ "${TTY2OLED_UPDATE}" = "yes" ] && bash <(wget -qO- ${REPOSITORY_URL}/installer.sh) UPDATER
+fi
 
 # Check and remount root non-writable if neccessary
 [ "${MOUNTRO}" = "true" ] && /bin/mount -o remount,ro /

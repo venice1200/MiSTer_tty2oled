@@ -89,4 +89,5 @@ check4error "${?}"
 [ -s "${SCRIPTNAME}" ] && bash "${SCRIPTNAME}" "${1}"
 [ -f "${SCRIPTNAME}" ] && rm "${SCRIPTNAME}"
 
+date +%s > /media/fat/tty2oled/last_update
 exit 0

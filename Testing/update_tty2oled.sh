@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# v1.8 - Copyright (c) 2021/2022 ojaksch, venice
+# v1.9 - Copyright (c) 2021/2022 ojaksch, venice
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 
 
 # Changelog:
+# v1.9 Removed obsolete "INI merge" for very old setups
 # v1.8 Create tty2oled-user.ini if it's missing to avoid ugly errors
 # v1.7 Merging of tty2oled-user.ini to tty2oled-system.ini to leave a user-managed tty2oled-user.ini
 # v1.5 Beautyfication
@@ -34,7 +35,6 @@ freset="\e[0m\033[0m"
 fblue="\e[1;34m"
 
 REPOSITORY_URL="https://raw.githubusercontent.com/venice1200/MiSTer_tty2oled/main"
-#REPOSITORY_URL="https://raw.githubusercontent.com/venice1200/MiSTer_tty2oled/main/Testing"    # Testing branch
 
 SCRIPTNAME="/tmp/update_tty2oled_script.sh"
 NODEBUG="-q -o /dev/null"
@@ -73,6 +73,7 @@ else
 fi
 
 # Check and update INI files if neccessary
+! [ -e /media/fat/tty2oled/tty2oled-user.ini ] && touch /media/fat/tty2oled/tty2oled-user.ini
 wget ${NODEBUG} --no-cache "${REPOSITORY_URL}/tty2oled-system.ini" -O /tmp/tty2oled-system.ini
 check4error "${?}"
 . /tmp/tty2oled-system.ini
@@ -82,29 +83,6 @@ if [ "${?}" -gt "0" ]; then
     mv /tmp/tty2oled-system.ini "${TTY2OLED_PATH}/tty2oled-system.ini"
     . "${TTY2OLED_PATH}/tty2oled-system.ini"
 fi
-
-# The merge of the INI files (2022/02)
-! [ -e /media/fat/tty2oled/tty2oled-user.ini ] && touch /media/fat/tty2oled/tty2oled-user.ini
-if [ "$(head -n1 ${TTY2OLED_PATH}/tty2oled-user.ini | awk '{print $2}')" = "Version" ]; then
-  mv -f "${TTY2OLED_PATH}/tty2oled-user.ini" "${TTY2OLED_PATH}/tty2oled-user.ini.bak"
-  touch "${TTY2OLED_PATH}/tty2oled-user.ini"
-  echo -e "${fred} ${freset}"
-  echo -e "${fred}We made very important changes to the INI files and merged them"
-  echo -e "${fred}together. In case you missed the announcement, have a look at"
-  echo -e "${fyellow}https://misterfpga.org/viewtopic.php?p=44358#p44358${freset}\n"
-  echo -e "${fred}There is a copy of your old ${fyellow}${TTY2OLED_PATH}/tty2oled-user.ini"
-  echo -e "${fred}named ${fyellow}${TTY2OLED_PATH}/tty2oled-user.ini.bak${fred} in case you want"
-  echo -e "${fred}to review it. If you have edited some settings before this merge,"
-  echo -e "${fred}take these changes to the new ${fyellow}${TTY2OLED_PATH}/tty2oled-user.ini"
-  echo -e "${fred}and re-run this updater.${freset}\n"
-  echo -e "${fred}This newly created tty2oled-user.ini will never be touched by"
-  echo -e "${fred}tty2oled again. ${fwhite}You alone are responsible for this file in "
-  echo -e "the future!${freset}"
-  exit 1
-fi
-
-[ -f "${TTY2OLED_PATH}/tty2oled.ini" ] && mv "${TTY2OLED_PATH}/tty2oled.ini" "${TTY2OLED_PATH}/tty2oled.ini.bak"
-[ -f "/media/fat/Scripts/tty2oled.ini" ] && mv "/media/fat/Scripts/tty2oled.ini" "${TTY2OLED_PATH}/tty2oled-user.ini.bak"
 
 wget ${NODEBUG} --no-cache "${REPOSITORY_URL}/update_tty2oled_script.sh" -O "${SCRIPTNAME}"
 check4error "${?}"

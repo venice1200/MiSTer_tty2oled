@@ -1,7 +1,8 @@
 #!/bin/bash
 
-REPOSITORY_URL1="https://raw.githubusercontent.com/venice1200/MiSTer_tty2oled/main"
+REPOSITORY_URL="https://raw.githubusercontent.com/venice1200/MiSTer_tty2oled/main"
 REPOSITORY_URL2="https://www.tty2tft.de//MiSTer_tty2oled-installer"
+[ -e /tmp/TTY2OLED_TESTING  ] && REPOSITORY_URL="https://raw.githubusercontent.com/venice1200/MiSTer_tty2oled/main/Testing"
 DBAUD="921600"
 DSTD="--before default_reset --after hard_reset write_flash --compress --flash_mode dio --flash_freq 80m --flash_size detect"
 TMPDIR=$(mktemp -d)
@@ -43,13 +44,13 @@ checkesp() {
 if [ -r /media/fat/tty2oled/tty2oled-system.ini ]; then
     . /media/fat/tty2oled/tty2oled-system.ini
 else
-    wget -q ${REPOSITORY_URL1}/tty2oled-system.ini -O ${TMPDIR}/tty2oled-system.ini
+    wget -q ${REPOSITORY_URL}/tty2oled-system.ini -O ${TMPDIR}/tty2oled-system.ini
     . ${TMPDIR}/tty2oled-system.ini
 fi
 if [ -r /media/fat/tty2oled/tty2oled-user.ini ]; then
     . /media/fat/tty2oled/tty2oled-user.ini
 else
-    wget -q ${REPOSITORY_URL1}/tty2oled-user.ini -O ${TMPDIR}/tty2oled-user.ini
+    wget -q ${REPOSITORY_URL}/tty2oled-user.ini -O ${TMPDIR}/tty2oled-user.ini
     . ${TMPDIR}/tty2oled-user.ini
 fi
 

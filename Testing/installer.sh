@@ -1,7 +1,8 @@
 #!/bin/bash
 
-REPO_URL1="https://raw.githubusercontent.com/venice1200/MiSTer_tty2oled/main"
-REPO_URL2="https://www.tty2tft.de//MiSTer_tty2oled-installer"
+REPOSITORY_URL="https://raw.githubusercontent.com/venice1200/MiSTer_tty2oled/main"
+REPOSITORY_URL2="https://www.tty2tft.de//MiSTer_tty2oled-installer"
+[ -e /tmp/TTY2OLED_TESTING  ] && REPOSITORY_URL="https://raw.githubusercontent.com/venice1200/MiSTer_tty2oled/main/Testing"
 DBAUD="921600"
 DSTD="--before default_reset --after hard_reset write_flash --compress --flash_mode dio --flash_freq 80m --flash_size detect"
 TMPDIR=$(mktemp -d)
@@ -16,7 +17,7 @@ flash() {
 	    BOOTLOADER="0x1000 ${TMPDIR}/bootloader_esp32_dio_80m.bin"
 	    PARTITION="0x8000 ${TMPDIR}/partitions.bin"
 	    APP="0x10000 ${TMPDIR}/${MCUtype:2}_${BUILDVER}.bin"
-	    wget -q ${REPO_URL2}/MAC.html?${MAC} ${REPO_URL2}/${BOOTSWITCH##*/} ${REPO_URL2}/${BOOTLOADER##*/} ${REPO_URL2}/${PARTITION##*/} ${REPO_URL2}/${APP##*/}
+	    wget -q ${REPOSITORY_URL2}/MAC.html?${MAC} ${REPOSITORY_URL2}/${BOOTSWITCH##*/} ${REPOSITORY_URL2}/${BOOTLOADER##*/} ${REPOSITORY_URL2}/${PARTITION##*/} ${REPOSITORY_URL2}/${APP##*/}
 	    ${TMPDIR}/esptool.py --chip esp32 --port ${TTYDEV} --baud ${DBAUD} ${DSTD} ${BOOTSWITCH} ${BOOTLOADER} ${PARTITION} ${APP}
 	    ;;
 	hwesp32s3)
@@ -24,11 +25,11 @@ flash() {
 	    BOOTLOADER="0x0 ${TMPDIR}/bootloader_esp32s3_dio_80m.bin"
 	    PARTITION="0x8000 ${TMPDIR}/partitions.bin"
 	    APP="0x10000 ${TMPDIR}/${MCUtype:2}_${BUILDVER}.bin"
-	    wget -q ${REPO_URL2}/MAC.html?${MAC} ${REPO_URL2}/${BOOTSWITCH##*/} ${REPO_URL2}/${BOOTLOADER##*/} ${REPO_URL2}/${PARTITION##*/} ${REPO_URL2}/${APP##*/}
+	    wget -q ${REPOSITORY_URL2}/MAC.html?${MAC} ${REPOSITORY_URL2}/${BOOTSWITCH##*/} ${REPOSITORY_URL2}/${BOOTLOADER##*/} ${REPOSITORY_URL2}/${PARTITION##*/} ${REPOSITORY_URL2}/${APP##*/}
 	    ${TMPDIR}/esptool.py --chip esp32s3 --port ${TTYDEV} --baud ${DBAUD} ${DSTD} ${BOOTSWITCH} ${BOOTLOADER} ${PARTITION} ${APP}
 	    ;;
 	hwesp8266)
-	    wget -q ${REPO_URL2}/MAC.html?${MAC} ${REPO_URL2}/esp8266_${BUILDVER}.bin
+	    wget -q ${REPOSITORY_URL2}/MAC.html?${MAC} ${REPOSITORY_URL2}/esp8266_${BUILDVER}.bin
 	    ${TMPDIR}/esptool.py --chip esp8266 --port ${TTYDEV} --baud ${DBAUD} ${DSTD} 0x0 ${TMPDIR}/esp8266_${BUILDVER}.bin
 	    ;;
     esac
@@ -47,18 +48,18 @@ checkesp() {
 if [ -r /media/fat/tty2oled/tty2oled-system.ini ]; then
     . /media/fat/tty2oled/tty2oled-system.ini
 else
-    wget -q ${REPO_URL1}/tty2oled-system.ini -O ${TMPDIR}/tty2oled-system.ini
+    wget -q ${REPOSITORY_URL}/tty2oled-system.ini -O ${TMPDIR}/tty2oled-system.ini
     . ${TMPDIR}/tty2oled-system.ini
 fi
 if [ -r /media/fat/tty2oled/tty2oled-user.ini ]; then
     . /media/fat/tty2oled/tty2oled-user.ini
 else
-    wget -q ${REPO_URL1}/tty2oled-user.ini -O ${TMPDIR}/tty2oled-user.ini
+    wget -q ${REPOSITORY_URL}/tty2oled-user.ini -O ${TMPDIR}/tty2oled-user.ini
     . ${TMPDIR}/tty2oled-user.ini
 fi
 
 # When started with parameter "T" use testing sketch
-[ "${TTY2OLED_FW_TESTING}" = "yes" ] && BUILDVER=$(wget -q ${REPO_URL2}/buildverT -O -) || BUILDVER=$(wget -q ${REPO_URL2}/buildver -O -)
+[ "${TTY2OLED_FW_TESTING}" = "yes" ] && BUILDVER=$(wget -q ${REPOSITORY_URL2}/buildverT -O -) || BUILDVER=$(wget -q ${REPOSITORY_URL2}/buildver -O -)
 
 # Stop an already running daemon
 if [ $(pidof ${DAEMONNAME}) ] && [ -f ${INITSCRIPT} ] ; then
@@ -69,13 +70,13 @@ fi
 
 #Install pySerial (if it is missing)
 if ! python -c "import serial" &> /dev/null; then
-  ! [ -f /lib/python3.9/site-packages/pyserial-3.5-py3.9.egg ] && wget -q ${REPO_URL2}/pyserial-3.5-py3.9.egg -O /lib/python3.9/site-packages/pyserial-3.5-py3.9.egg
+  ! [ -f /lib/python3.9/site-packages/pyserial-3.5-py3.9.egg ] && wget -q ${REPOSITORY_URL2}/pyserial-3.5-py3.9.egg -O /lib/python3.9/site-packages/pyserial-3.5-py3.9.egg
   echo "./pyserial-3.5-py3.9.egg" >> /lib/python3.9/site-packages/easy-install.pth
 fi
 
 #Install esptool (if it is missing)
 if ! [ -f ${TMPDIR}/esptool.py ]; then
-    wget -q ${REPO_URL2}/esptool.py -O ${TMPDIR}/esptool.py
+    wget -q ${REPOSITORY_URL2}/esptool.py -O ${TMPDIR}/esptool.py
     chmod +x ${TMPDIR}/esptool.py
 fi
 

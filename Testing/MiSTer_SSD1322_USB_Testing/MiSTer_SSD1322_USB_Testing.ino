@@ -29,18 +29,18 @@
   -Everything I forgot
    
   Defines?!
-  I use a lot "#ifdef's...endif" in the code to enable code for a specific MCU Type.
+  I use a lot "#ifdef's...endif" to enable code for a specific MCU Type.
   USE_ESP32S3DEV   An ESP32-S3 is used with the Arduino IDE Profile "ESP32-S3 Dev Module".
   USE_ESP32DEV     An ESP32 is used with the Arduino IDE Profile "ESP32 Dev Module".
   USE_LOLIN32      An ESP32 is used with the Arduino IDE Profile "WEMOS LOLIN32".
   USE_NODEMCU      An ESP8266 is used with the Arduino IDE Profile  "NodeMCU 1.0 (ESP-12E Module)".
-  USE_ESP32XDEV    An ESP32-S3 is used with the Arduino IDE Profile "ESP32-S3 Dev Module" or an ESP32 is used with the Arduino IDE Profile "ESP32 Dev Module".
+  USE_ESP32XDEV    An ESP32-S3 is used with the Arduino IDE Profile "ESP32-S3 Dev Module" OR an ESP32 is used with the Arduino IDE Profile "ESP32 Dev Module".
   ESP32X           An ESP32-S3 or ESP32 is used.
  
 */
 
 // Set Version
-#define BuildVersion "221210T"                    // "T" for Testing
+#define BuildVersion "230107T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -125,8 +125,8 @@
   #define TILT_PIN 15
   #define I2C1_SDA 37              // I2C_1-SDA
   #define I2C1_SCL 36              // I2C_1-SCL
-  //#define USER_LED 40            // USER_LED/WS2812B
-  #define USER_LED 48              // USER_LED/WS2812B Pin on ESP32-S3-DevKitC-1
+  #define USER_LED 40              // USER_LED/WS2812B Pin on d.ti Board
+  //#define USER_LED 48              // USER_LED/WS2812B Pin on ESP32-S3-DevKitC-1
   #define POWER_LED 38             // Set Pin to "1" = LED's off
   #define BUZZER 35                // Piezo Buzzer
   #define TONE_PWM_CHANNEL 0       // See: https://makeabilitylab.github.io/physcomp/esp32/tone.html
@@ -520,16 +520,16 @@ void setup(void) {
     usePREFS=true;
   }
 
-  if (dtiv==11) {                                                  // If PCA9536 is not available = d.ti Board Rev 1.1
+  if (dtiv==11) {                                                  // If d.ti Board Rev 1.1
     pinMode(USER_LED, OUTPUT);                                     // Setup User LED
-    hasLED=true;                                                 // tty2oled has a LED (d.ti Board v1.1)
+    hasLED=true;                                                   // tty2oled has a LED (d.ti Board v1.1)
   }
-  if (dtiv>=12) {                                                  // If PCA9536 is available = d.ti Board Rev 1.2 or greater
+  if (dtiv>=12) {                                                  // If d.ti Board Rev 1.2 or greater
     FastLED.addLeds<WS2812B, USER_LED, GRB>(wsleds, NUM_WSLEDS);   // Setup User WS2812B LED
     FastLED.setBrightness(WS_BRIGHTNESS);                          // and set Brightness
-    hasRGBLED=true;                                              // tty2oled has a RGB LED (d.ti Board >=v1.2)
-    hasBUZZER=true;                                              // tty2oled has a Buzzer (d.ti Board >=v1.2)
-    hasPLED=true;                                                // tty2oled has a PowerLED which can be switched off
+    hasRGBLED=true;                                                // tty2oled has a RGB LED (d.ti Board >=v1.2)
+    hasBUZZER=true;                                                // tty2oled has a Buzzer (d.ti Board >=v1.2)
+    hasPLED=true;                                                  // tty2oled has a PowerLED which can be switched off
   }
 #endif  // USE_ESP32DEV
 
@@ -2471,7 +2471,7 @@ void oled_readnsetuserled(void) {
     if (x>1) x=1;
     digitalWrite(USER_LED,x);  
   }
-  if (hasRGBLED){                                // d.ti Board Rev 1.2 = WS2812B LED
+  else if (hasRGBLED){                                // d.ti Board Rev 1.2 = WS2812B LED
     if (x>255) x=255;
     if (x==0) {
       wsleds[0] = CRGB::Black;                   // off
@@ -2480,6 +2480,9 @@ void oled_readnsetuserled(void) {
       wsleds[0] = CHSV(x,255,255);               // color
     }
     FastLED.show();
+  }
+  else {
+    oled_showcenterredtext("No U-LED!",3);
   }
 }
 
@@ -2527,6 +2530,9 @@ void oled_readnsetpowerled(void) {
     if (x<0) x=0;
     if (x>1) x=1;
     digitalWrite(POWER_LED,!x);                 // Need to negate Signal, Pin = 1 LED's off
+  }
+  else {
+    oled_showcenterredtext("No P-LED!",3);
   }
 }
 

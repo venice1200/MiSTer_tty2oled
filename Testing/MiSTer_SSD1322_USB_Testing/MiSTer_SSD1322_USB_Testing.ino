@@ -10,8 +10,8 @@
   - U8G2 for Adafruit GFX (*)
   - Bounce2 (*) optional, needed for the tilt-sensor
   - ESP32Time (*) needed for all ESP32 Boards 
-  - MIC184 needed for the MIC145 sensor on d.ti's tty2oled board, get from: https://github.com/venice1200/MIC184_Temperature_Sensor/releases
-  - SSD1322 for Adafruit GFX, download and extract from here: https://github.com/venice1200/SSD1322_for_Adafruit_GFX/releases/latest
+  - MIC184 needed for the MIC145 sensor on d.ti's boards, get it from: https://github.com/venice1200/MIC184_Temperature_Sensor/releases
+  - SSD1322 for Adafruit GFX, download and extract it from here: https://github.com/venice1200/SSD1322_for_Adafruit_GFX/releases/latest
   (*) These Libraries can be installed using Arduino's library manager.
   See also https://github.com/venice1200/MiSTer_tty2oled/wiki/Arduino-HowTo-%28Windows%29
 
@@ -25,7 +25,7 @@
   See changelog.md in Sketch folder for more details
   
   ToDo
-  -Check why dtiv>=13 (Reason = POR of PCA9536)
+  -Check why dtiv>=13 (Reason = POR of PCA9536) If the Power Cycle is too short the PCA9536 locks his state
   -Everything I forgot
    
   Defines?!
@@ -40,13 +40,13 @@
 */
 
 // Set Version
-#define BuildVersion "230107T"                    // "T" for Testing
+#define BuildVersion "230108T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
 #include <SSD1322_for_Adafruit_GFX.h>             // SSD1322 Controller Display Library https://github.com/venice1200/SSD1322_for_Adafruit_GFX
 #include <U8g2_for_Adafruit_GFX.h>                // U8G2 Font Engine for Adafruit GFX  https://github.com/olikraus/U8g2_for_Adafruit_GFX
-#include "bitmaps.h"                              // Some needed Pictures
+#include "bitmaps.h"                              // Some needed pictures
 #include "fonts.h"                                // Some needed fonts
 
 
@@ -222,8 +222,9 @@ int tEffect = 0;                       // Run this Effect
 //char *newCommandChar;
 
 bool updateDisplay = false;
-bool startScreenActive = false;
-bool timeIsSet = false;
+bool startScreenActive = false;        
+bool timeIsSet = false;                // Time was set from external ?
+bool runsTesting = false;              // Testing ?
 
 // Display Vars
 uint16_t DispWidth, DispHeight, DispLineBytes1bpp, DispLineBytes4bpp;
@@ -373,8 +374,11 @@ inline void oled_drawEightPixelXY(int x, int y) { oled_drawEightPixelXY(x,y,x,y)
 // =============================================================================================================
 
 void setup(void) {
-  // Init Serial
-  Serial.begin(115200);                      // 115200 for MiSTer ttyUSBx Device CP2102 Chip on ESP32
+  String bversion = BuildVersion;
+
+  if (bversion.endsWith("T")) runsTesting=true;     // Running Testing Yes/No?
+
+  Serial.begin(115200);                      // Init Serial with 115200 for MiSTer ttyUSBx Device CP2102 Chip on ESP32
   Serial.flush();                            // Wait for empty Send Buffer
   Serial.setTimeout(500);                    // Set max. Serial "Waiting Time", default = 1000ms
 
@@ -570,7 +574,7 @@ void setup(void) {
 
   delay(cDelay);                                           // Command Response Delay
   Serial.print("ttyrdy;");                                 // Send "ttyrdy;" after setup is done.
-  //Serial.println("ttyrdy;");                                 // Send "ttyrdy;" with "\n" after setup is done.
+  //Serial.println("ttyrdy;");                             // Send "ttyrdy;" with "\n" after setup is done.
 }
 
 // =============================================================================================================
@@ -943,13 +947,13 @@ void oled_showStartScreen(void) {
   u8g2.setFont(u8g2_font_5x7_mf);               // 6 Pixel Font
   u8g2.setCursor(0,63);
   u8g2.print(BuildVersion);
-//#ifdef XDEBUG	
-  if (hasMIC) u8g2.print("M");
-  if (hasPCA) u8g2.print("P");
-  if (dtiv>10) u8g2.print(dtiv);
-  if (usePREFS) u8g2.print("E");
-//#endif	
-  oled.drawXBitmap(DispWidth-usb_icon_width, DispHeight-usb_icon_height, usb_icon, usb_icon_width, usb_icon_height, SSD1322_WHITE);
+  if (runsTesting) {
+    if (hasMIC) u8g2.print("M");
+    if (hasPCA) u8g2.print("P");
+    if (dtiv>10) u8g2.print(dtiv);
+    if (usePREFS) u8g2.print("E");
+    oled.drawXBitmap(DispWidth-usb_icon_width, DispHeight-usb_icon_height, usb_icon, usb_icon_width, usb_icon_height, SSD1322_WHITE);
+  }
 
 #ifdef USE_ESP32XDEV
   if (hasMIC) {

@@ -1,6 +1,9 @@
 *************************** tty2oled Arduino-FW Changelog ***********************
 
-  2022-12-09..10
+  2023-01-08
+  -Add Boolean "runsTesting"
+
+  2022-12-09..2023-01-07
   -Add more "hasXX"
 
   2022-12-08

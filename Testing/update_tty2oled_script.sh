@@ -172,12 +172,14 @@ fi
 # Check and remount root non-writable if neccessary
 [ "${MOUNTRO}" = "true" ] && /bin/mount -o remount,ro /
 
-if [ $(pidof ${DAEMONNAME}) ]; then
-  echo -e "${fgreen}Restarting init script\n${freset}"
-  ${INITSCRIPT} restart
-elif [ -c "${TTYDEV}" ]; then
-  echo -e "${fgreen}Starting init script\n${freset}"
-  ${INITSCRIPT} start
+if [ "${1}" != "NOINSTALLER" ]; then
+  if [ $(pidof ${DAEMONNAME}) ]; then
+    echo -e "${fgreen}Restarting init script\n${freset}"
+    ${INITSCRIPT} restart
+  elif [ -c "${TTYDEV}" ]; then
+    echo -e "${fgreen}Starting init script\n${freset}"
+    ${INITSCRIPT} start
+  fi
 fi
 
 [ -z "${SSH_TTY}" ] && echo -e "${fgreen}Press any key to continue\n${freset}"

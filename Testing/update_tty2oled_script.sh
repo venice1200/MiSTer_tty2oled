@@ -154,6 +154,7 @@ fi
 wget ${NODEBUG} -Nq "${REPOSITORY_URL}/tty2oled-read.sh"
 
 # Download the installer to check esp firmware
+echo "${@}" > /tmp/blabla
 if [ "${1}" != "NOINSTALLER" ]; then
   cd /tmp
   [ "${TTY2OLED_UPDATE}" = "yes" ] && bash <(wget -qO- ${REPOSITORY_URL}/installer.sh) UPDATER

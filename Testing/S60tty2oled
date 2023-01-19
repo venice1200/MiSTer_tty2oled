@@ -40,7 +40,8 @@ start() {
 	  if [ "${TTY2OLED_UPDATE}" = "yes" ]; then
 	    echo -e "Waiting for Internet access: "
 	    until ping -W1 -c1 8.8.8.8 >/dev/null 2>&1; do echo -n "." ; sleep 0.2; done
-	    ${UPDATESCRIPT} NOINSTALLER > /dev/null 2>&1	# Auto Update after 1 week
+	    bash ${UPDATESCRIPT} NOINSTALLER
+	    # > /dev/null 2>&1	# Auto Update after 1 week
 	  fi
 	fi
 	echo "Starting ${DAEMONNAME}..."

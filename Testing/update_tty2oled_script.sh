@@ -161,6 +161,7 @@ elif [ "${1}" = "NOINSTALLER" ]; then
   sendtext "CMDHWINF" ; read -t5 HWINF < ${TTYDEV}
   LBUILDVER=$(echo ${HWINF} | cut -d ";" -f 2)
   [ "${TTY2OLED_FW_TESTING}" = "yes" ] && BUILDVER=$(wget -q ${REPOSITORY_URL2}/buildverT -O -) || BUILDVER=$(wget -q ${REPOSITORY_URL2}/buildver -O -)
+  echo ${LBUILDVER} ${BUILDVER}
   if [ ${LBUILDVER} -lt ${BUILDVER} ]; then
     sendtext "CMDCLS"
     sendtext "CMDTXT,1,15,0,40,20,Firmware Update Available!"

@@ -38,10 +38,9 @@ start() {
       else
 	if [ $((${DATENOW} - ${LASTUPDATE})) -gt 604800 ]; then
 	  bash ${UPDATESCRIPT} NOINSTALLER > /dev/null 2>&1	# Auto Update after 1 week
-	else
-	  echo "Starting ${DAEMONNAME}..."
-	  ${DAEMONSCRIPT} & echo $! > /run/tty2oled-daemon.pid
 	fi
+	echo "Starting ${DAEMONNAME}..."
+	${DAEMONSCRIPT} & echo $! > /run/tty2oled-daemon.pid
       fi
     else
       echo "${DAEMONSCRIPT} not found!"

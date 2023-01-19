@@ -166,6 +166,8 @@ elif [ "${1}" = "NOINSTALLER" ]; then
     sendtext "CMDTXT,1,15,0,40,20,Firmware Update Available!"
     sendtext "CMDTXT,1,15,0,30,40,You: ${LBUILDVER} / Server: ${BUILDVER}"
     sendtext "CMDTXT,1,15,0,1,60,Please run update_tty2oled.sh on MiSTer"
+    for FLASH in {1..6}; do sendtext "CMDDOFF"; sendtext "CMDDON"; done
+    sleep 5
   fi
 fi
 

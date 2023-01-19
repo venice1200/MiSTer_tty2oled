@@ -37,7 +37,6 @@ start() {
 	exit 1
       else
 	if [ $((${DATENOW} - ${LASTUPDATE})) -gt 604800 ]; then
-	  date +%s > /media/fat/tty2oled/last_update
 	  bash ${UPDATESCRIPT} NOINSTALLER > /dev/null 2>&1	# Auto Update after 1 week
 	else
 	  echo "Starting ${DAEMONNAME}..."

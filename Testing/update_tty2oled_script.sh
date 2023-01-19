@@ -158,8 +158,9 @@ if [ "${1}" != "NOINSTALLER" ]; then
   cd /tmp
   [ "${TTY2OLED_UPDATE}" = "yes" ] && bash <(wget -qO- ${REPOSITORY_URL}/installer.sh) UPDATER
 elif [ "${1}" = "NOINSTALLER" ]; then
+  sendtext "CMDDUPD"
   sendtext "CMDHWINF" ; read -t5 HWINF < ${TTYDEV}
-  LBUILDVER=$(echo ${HWINF} | cut -d ";" -f 2)
+  LBUILDVER=$(echo ${HWINF} | cut -d ";" -f 3)
   [ "${TTY2OLED_FW_TESTING}" = "yes" ] && BUILDVER=$(wget -q ${REPOSITORY_URL2}/buildverT -O -) || BUILDVER=$(wget -q ${REPOSITORY_URL2}/buildver -O -)
   if [ ${LBUILDVER} -lt ${BUILDVER} ]; then
     sendtext "CMDCLS"

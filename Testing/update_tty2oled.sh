@@ -87,7 +87,7 @@ fi
 
 wget ${NODEBUG} --no-cache "${REPOSITORY_URL}/update_tty2oled_script.sh" -O "${SCRIPTNAME}"
 check4error "${?}"
-[ -s "${SCRIPTNAME}" ] && bash "${SCRIPTNAME}" "${1}"
+[ -s "${SCRIPTNAME}" ] && bash "${SCRIPTNAME}" "${@}"
 [ -f "${SCRIPTNAME}" ] && rm "${SCRIPTNAME}"
 
 date +%s > /media/fat/tty2oled/last_update

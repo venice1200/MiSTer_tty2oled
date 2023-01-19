@@ -166,7 +166,7 @@ elif [ "${1}" = "NOINSTALLER" ]; then
     sendtext "CMDTXT,1,15,0,40,20,Firmware Update Available!"
     sendtext "CMDTXT,1,15,0,30,40,You: ${LBUILDVER} / Server: ${BUILDVER}"
     sendtext "CMDTXT,1,15,0,1,60,Please run update_tty2oled.sh on MiSTer"
-    for FLASH in {1..6}; do sendtext "CMDDOFF"; sendtext "CMDDON"; done
+    for FLASH in {1..5}; do sendtext "CMDDOFF"; sendtext "CMDDON"; done
     sleep 5
   fi
 fi
@@ -178,7 +178,7 @@ if [ "${1}" != "NOINSTALLER" ]; then
   if [ $(pidof ${DAEMONNAME}) ]; then
     echo -e "${fgreen}Restarting init script\n${freset}"
     ${INITSCRIPT} restart
-  elif [ -c "${TTYDEV}" ] && [ "${1}" -ne "NOINSTALLER" ]; then
+  elif [ -c "${TTYDEV}" ]; then
     echo -e "${fgreen}Starting init script\n${freset}"
     ${INITSCRIPT} start
   fi

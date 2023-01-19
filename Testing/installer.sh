@@ -87,7 +87,7 @@ if [ "${MCUtype}" = "" ]; then
 	stty -F ${TTYDEV} ${BAUDRATE} ${TTYPARAM}
 	echo -e "${fgreen}available${freset}"
 	echo -en "${freset}Trying to identify device... ${freset}"
-	echo "CMDHWINF" > ${TTYDEV} ; read -t5 BLA < ${TTYDEV}
+	echo "CMDHWINF" > ${TTYDEV} ; read -t5 HWINF < ${TTYDEV}
 	MCUtype=${BLA:0:9}
 	SWver=${BLA%;*} && SWver=${SWver:10}
 	checkesp ; sleep 2.5

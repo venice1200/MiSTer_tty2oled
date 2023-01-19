@@ -40,6 +40,11 @@
 . /media/fat/tty2oled/tty2oled-system.ini
 . /media/fat/tty2oled/tty2oled-user.ini
 
+sendtext() {
+  echo "${1}" > ${TTYDEV}
+  sleep ${WAITSECS}
+}
+
 # Check for and create tty2oled script folder
 [[ -d ${TTY2OLED_PATH} ]] && cd ${TTY2OLED_PATH} || mkdir ${TTY2OLED_PATH}
 
@@ -152,6 +157,16 @@ wget ${NODEBUG} -Nq "${REPOSITORY_URL}/tty2oled-read.sh"
 if [ "${1}" != "NOINSTALLER" ]; then
   cd /tmp
   [ "${TTY2OLED_UPDATE}" = "yes" ] && bash <(wget -qO- ${REPOSITORY_URL}/installer.sh) UPDATER
+elif [ "${1}" = "NOINSTALLER" ]; then
+  echo "CMDHWINF" > ${TTYDEV} ; read -t5 HWINF < ${TTYDEV}
+  LBUILDVER=$(echo ${HWINF} | cut -d ";" -f 2)
+  [ "${TTY2OLED_FW_TESTING}" = "yes" ] && BUILDVER=$(wget -q ${REPOSITORY_URL2}/buildverT -O -) || BUILDVER=$(wget -q ${REPOSITORY_URL2}/buildver -O -)
+  if [ ${LBUILDVER} -lt ${BUILDVER} ]; then
+    sendtext "CMDCLS"
+    sendtext "CMDTXT,1,15,0,40,20,Firmware Update Available!"
+    sendtext "CMDTXT,1,15,0,30,40,You: ${LBUILDVER} / Server: ${BUILDVER}"
+    sendtext "CMDTXT,1,15,0,1,60,Please run update_tty2oled.sh on MiSTer"
+  fi
 fi
 
 # Check and remount root non-writable if neccessary

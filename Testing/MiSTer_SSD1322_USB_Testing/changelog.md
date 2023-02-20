@@ -7,7 +7,7 @@
   -Add more "hasXX"
 
   2022-12-08
-  -Change 8266 NodeMCU Tilt Pin 16 (D0) to Pin 10 (SD3)
+  -Change 8266 NodeMCU Tilt Pin 16 (D0) to Pin 10 (SD3) to prevent false Rotation detection
 
   2022-11-27
   -Switch dtiv Version handling from "EEPROM" to "Preferences"

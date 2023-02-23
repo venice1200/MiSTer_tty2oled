@@ -60,7 +60,7 @@ check4error() {
 }
 
 # Update the updater if neccessary
-[ -e /tmp/TTY2OLED_TESTING  ] && REPOSITORY_URL="https://raw.githubusercontent.com/venice1200/MiSTer_tty2oled/main/Testing"
+[ -e /media/fat/tty2oled/TTY2OLED_TESTING  ] && REPOSITORY_URL="https://raw.githubusercontent.com/venice1200/MiSTer_tty2oled/main/Testing"
 wget ${NODEBUG} --no-cache "${REPOSITORY_URL}/update_tty2oled.sh" -O /tmp/update_tty2oled.sh
 check4error "${?}"
 cmp -s /tmp/update_tty2oled.sh /media/fat/Scripts/update_tty2oled.sh

@@ -114,6 +114,8 @@ if [ "${MCUtype}" = "" ]; then
     fi
 fi
 
+MCUtype=${MCUtype,,}
+
 #Check for MCU
 case "${MCUtype}" in
     Exit)	exit 0 ;;

@@ -88,8 +88,8 @@ if [ "${MCUtype}" = "" ]; then
 	echo -e "${fgreen}available${freset}"
 	echo -en "${freset}Trying to identify device... ${freset}"
 	echo "CMDHWINF" > ${TTYDEV} ; read -t5 HWINF < ${TTYDEV}
-	MCUtype=${BLA:0:9}
-	SWver=${BLA%;*} && SWver=${SWver:10}
+	MCUtype=${HWINF:0:9}
+	SWver=${HWINF%;*} && SWver=${SWver:10}
 	checkesp ; sleep 2.5
 	if [ "${MCUtype:0:2}" = "HW" ]; then
 	    echo -e "${fgreen}${MCUtype} with sketch version ${SWver}${freset}"

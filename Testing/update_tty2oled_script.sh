@@ -119,6 +119,7 @@ elif ! cmp -s /tmp/${DAEMONNAME} ${DAEMONSCRIPT}; then
 fi
 [[ -f /tmp/${DAEMONNAME} ]] && rm /tmp/${DAEMONNAME}
 
+
 # pictures
 if ! [ -d ${picturefolder}/GSC ];then
   if [ -d ${picturefolder} ];then
@@ -138,6 +139,7 @@ else
   ${TTY2OLED_PATH}/rsyncy.py -crlzzP --modify-window=1 ${RSYNCOPTS} rsync://tty2oled-update-daemon@tty2tft.de/tty2oled-pictures/ ${picturefolder}/
 fi
 
+
 # Download tty2oled Utilities
 wget ${NODEBUG} "${REPOSITORY_URL}/tty2oled_cc.sh" -O /tmp/tty2oled_cc.sh
 if ! cmp -s /tmp/tty2oled_cc.sh ${CCSCRIPT}; then
@@ -149,9 +151,16 @@ if ! cmp -s /tmp/tty2oled_cc.sh ${CCSCRIPT}; then
     echo -e "${fblink}Skipping${fyellow} available tools script update because of the ${fcyan}SCRIPT_UPDATE${fyellow} INI-Option${freset}"
   fi
 fi
+#
+wget ${NODEBUG} "${REPOSITORY_URL}/update_auto.sh" -O /tmp/update_auto.sh
+if ! cmp -s /tmp/update_auto.sh ${TTY2OLED_PATH}/update_auto.sh; then
+  mv -f /tmp/update_auto.sh ${TTY2OLED_PATH}/
+fi
+
 
 # Download Read/Buffer Daemon
 wget ${NODEBUG} -Nq "${REPOSITORY_URL}/tty2oled-read.sh"
+
 
 # Download the installer to check esp firmware
 if [ "${1}" != "NOINSTALLER" ]; then
@@ -176,6 +185,7 @@ elif [ "${1}" = "NOINSTALLER" ]; then
     sleep 6
   fi
 fi
+
 
 # Check and remount root non-writable if neccessary
 [ "${MOUNTRO}" = "true" ] && /bin/mount -o remount,ro /

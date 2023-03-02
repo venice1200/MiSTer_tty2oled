@@ -42,7 +42,7 @@
 
 sendtext() {
   echo "${1}" > ${TTYDEV}
-  sleep ${WAITSECS}
+  #sleep ${WAITSECS}
 }
 
 # Check for and create tty2oled script folder
@@ -159,10 +159,15 @@ if [ "${1}" != "NOINSTALLER" ]; then
   [ "${TTY2OLED_UPDATE}" = "yes" ] && bash <(wget -qO- ${REPOSITORY_URL}/installer.sh) UPDATER
 elif [ "${1}" = "NOINSTALLER" ]; then
   stty -F ${TTYDEV} ${BAUDRATE} ${TTYPARAM}
-  sendtext "CMDNULL" > ${TTYDEV}
+  #sendtext "CMDNULL" > ${TTYDEV}
   sendtext "CMDHWINF" ; read -t5 HWINF < ${TTYDEV} ; HWINF=${HWINF::-2}
-  LBUILDVER=${HWINF##*;}
-  [ "${TTY2OLED_FW_TESTING}" = "yes" ] && BUILDVER=$(wget -q ${REPOSITORY_URL2}/buildverT -O -) || BUILDVER=$(wget -q ${REPOSITORY_URL2}/buildver -O -)
+  LBUILDVER=${HWINF##*;} ; LBUILDVER=${LBUILDVER/T/}	# Strip semicolon and "T"
+  if ! [ "${TTY2OLED_FW_TESTING}" = "yes" ]; then
+    BUILDVER=$(wget -q ${REPOSITORY_URL2}/buildver -O -)
+  else
+    BUILDVER=$(wget -q ${REPOSITORY_URL2}/buildverT -O -)
+    BUILDVER=${BUILDVER/T/}				# Strip "T"
+  fi
   if [ ${LBUILDVER} -lt ${BUILDVER} ]; then
     sendtext "CMDCLS"
     sendtext "CMDTXT,1,15,0,40,20,Firmware Update Available!"

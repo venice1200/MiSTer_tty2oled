@@ -161,14 +161,14 @@ elif [ "${1}" = "NOINSTALLER" ]; then
   stty -F ${TTYDEV} ${BAUDRATE} ${TTYPARAM}
   #sendtext "CMDNULL" > ${TTYDEV}
   sendtext "CMDHWINF" ; read -t5 HWINF < ${TTYDEV} ; HWINF=${HWINF::-2}
-  LBUILDVER=${HWINF##*;} ; LBUILDVER=${LBUILDVER/T/}	# Strip semicolon and "T"
+  LBUILDVER=${HWINF##*;} ### ; LBUILDVER=${LBUILDVER/T/}	# Strip semicolon and "T"
   if ! [ "${TTY2OLED_FW_TESTING}" = "yes" ]; then
     BUILDVER=$(wget -q ${REPOSITORY_URL2}/buildver -O -)
   else
     BUILDVER=$(wget -q ${REPOSITORY_URL2}/buildverT -O -)
-    BUILDVER=${BUILDVER/T/}				# Strip "T"
+    ### BUILDVER=${BUILDVER/T/}				# Strip "T"
   fi
-  if [ ${LBUILDVER} -lt ${BUILDVER} ]; then
+  if [ ${LBUILDVER:0:6} -lt ${BUILDVER:0:6} ]; then
     sendtext "CMDCLS"
     sendtext "CMDTXT,1,15,0,40,20,Firmware Update Available!"
     sendtext "CMDTXT,1,15,0,30,40,You: ${LBUILDVER} / Server: ${BUILDVER}"

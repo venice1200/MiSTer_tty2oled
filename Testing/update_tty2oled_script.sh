@@ -179,7 +179,6 @@ elif [ "${1}" = "NOINSTALLER" ]; then
     ### BUILDVER=${BUILDVER/T/}				# Strip "T"
   fi
   if [ ${LBUILDVER:0:6} -lt ${BUILDVER:0:6} ]; then
-    echo "local:${LBUILDVER:0:6} server:${BUILDVER:0:6}"
     sendtext "CMDCLS"
     sendtext "CMDTXT,1,15,0,40,20,Firmware Update Available!"
     sendtext "CMDTXT,1,15,0,30,40,You: ${LBUILDVER} / Server: ${BUILDVER}"

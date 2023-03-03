@@ -170,6 +170,7 @@ elif [ "${1}" = "NOINSTALLER" ]; then
   stty -F ${TTYDEV} ${BAUDRATE} ${TTYPARAM}
   #sendtext "CMDNULL" > ${TTYDEV}
   sendtext "CMDHWINF" ; read -t5 HWINF < ${TTYDEV} ; HWINF=${HWINF::-2}
+  LBUILDVER=${HWINF/ttyack;/}		# Strip "ttyack;"
   LBUILDVER=${HWINF##*;} ### ; LBUILDVER=${LBUILDVER/T/}	# Strip semicolon and "T"
   if ! [ "${TTY2OLED_FW_TESTING}" = "yes" ]; then
     BUILDVER=$(wget -q ${REPOSITORY_URL2}/buildver -O -)

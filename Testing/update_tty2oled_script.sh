@@ -42,7 +42,7 @@
 
 sendtext() {
   echo "${1}" > ${TTYDEV}
-  sleep ${WAITSECS}
+  #sleep ${WAITSECS}
 }
 
 # Check for and create tty2oled script folder
@@ -119,6 +119,7 @@ elif ! cmp -s /tmp/${DAEMONNAME} ${DAEMONSCRIPT}; then
 fi
 [[ -f /tmp/${DAEMONNAME} ]] && rm /tmp/${DAEMONNAME}
 
+
 # pictures
 if ! [ -d ${picturefolder}/GSC ];then
   if [ -d ${picturefolder} ];then
@@ -138,6 +139,7 @@ else
   ${TTY2OLED_PATH}/rsyncy.py -crlzzP --modify-window=1 ${RSYNCOPTS} rsync://tty2oled-update-daemon@tty2tft.de/tty2oled-pictures/ ${picturefolder}/
 fi
 
+
 # Download tty2oled Utilities
 wget ${NODEBUG} "${REPOSITORY_URL}/tty2oled_cc.sh" -O /tmp/tty2oled_cc.sh
 if ! cmp -s /tmp/tty2oled_cc.sh ${CCSCRIPT}; then
@@ -149,9 +151,16 @@ if ! cmp -s /tmp/tty2oled_cc.sh ${CCSCRIPT}; then
     echo -e "${fblink}Skipping${fyellow} available tools script update because of the ${fcyan}SCRIPT_UPDATE${fyellow} INI-Option${freset}"
   fi
 fi
+#
+wget ${NODEBUG} "${REPOSITORY_URL}/update_auto.sh" -O /tmp/update_auto.sh
+if ! cmp -s /tmp/update_auto.sh ${TTY2OLED_PATH}/update_auto.sh; then
+  mv -f /tmp/update_auto.sh ${TTY2OLED_PATH}/
+fi
+
 
 # Download Read/Buffer Daemon
 wget ${NODEBUG} -Nq "${REPOSITORY_URL}/tty2oled-read.sh"
+
 
 # Download the installer to check esp firmware
 if [ "${1}" != "NOINSTALLER" ]; then
@@ -159,11 +168,17 @@ if [ "${1}" != "NOINSTALLER" ]; then
   [ "${TTY2OLED_UPDATE}" = "yes" ] && bash <(wget -qO- ${REPOSITORY_URL}/installer.sh) UPDATER
 elif [ "${1}" = "NOINSTALLER" ]; then
   stty -F ${TTYDEV} ${BAUDRATE} ${TTYPARAM}
-  sendtext "CMDNULL" > ${TTYDEV}
+  #sendtext "CMDNULL" > ${TTYDEV}
   sendtext "CMDHWINF" ; read -t5 HWINF < ${TTYDEV} ; HWINF=${HWINF::-2}
-  LBUILDVER=${HWINF##*;}
-  [ "${TTY2OLED_FW_TESTING}" = "yes" ] && BUILDVER=$(wget -q ${REPOSITORY_URL2}/buildverT -O -) || BUILDVER=$(wget -q ${REPOSITORY_URL2}/buildver -O -)
-  if [ ${LBUILDVER} -lt ${BUILDVER} ]; then
+  LBUILDVER=${HWINF/ttyack;/}		# Strip "ttyack;"
+  LBUILDVER=${HWINF##*;} ### ; LBUILDVER=${LBUILDVER/T/}	# Strip semicolon and "T"
+  if ! [ "${TTY2OLED_FW_TESTING}" = "yes" ]; then
+    BUILDVER=$(wget -q ${REPOSITORY_URL2}/buildver -O -)
+  else
+    BUILDVER=$(wget -q ${REPOSITORY_URL2}/buildverT -O -)
+    ### BUILDVER=${BUILDVER/T/}				# Strip "T"
+  fi
+  if [ ${LBUILDVER:0:6} -lt ${BUILDVER:0:6} ]; then
     sendtext "CMDCLS"
     sendtext "CMDTXT,1,15,0,40,20,Firmware Update Available!"
     sendtext "CMDTXT,1,15,0,30,40,You: ${LBUILDVER} / Server: ${BUILDVER}"
@@ -171,6 +186,7 @@ elif [ "${1}" = "NOINSTALLER" ]; then
     sleep 6
   fi
 fi
+
 
 # Check and remount root non-writable if neccessary
 [ "${MOUNTRO}" = "true" ] && /bin/mount -o remount,ro /

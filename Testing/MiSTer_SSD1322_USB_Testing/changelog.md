@@ -1,5 +1,8 @@
 *************************** tty2oled Arduino-FW Changelog ***********************
 
+  2023-03-16
+  -Add Command CMDSTTYACK to (set) enable/disable sending the "ttyack". Enabled by default.
+
   2023-01-08
   -Add Boolean "runsTesting"
 

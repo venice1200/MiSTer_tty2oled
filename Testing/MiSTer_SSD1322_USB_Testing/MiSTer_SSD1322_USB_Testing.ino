@@ -40,7 +40,7 @@
 */
 
 // Set Version
-#define BuildVersion "230228T"                    // "T" for Testing
+#define BuildVersion "230316T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -225,6 +225,7 @@ bool updateDisplay = false;
 bool startScreenActive = false;        
 bool timeIsSet = false;                // Time was set from external ?
 bool runsTesting = false;              // Testing ?
+bool sendTTYACK = true;                // Sending ttyack back after Command
 
 // Display Vars
 uint16_t DispWidth, DispHeight, DispLineBytes1bpp, DispLineBytes4bpp;
@@ -364,6 +365,7 @@ int getRandom(int lower, int upper);
 void oled_drawScreenSaverStarField(void);
 void oled_drawScreenSaverToaster(void);
 void oled_readnsetedtiv(void);
+void oled_setttyack(void);
 
 // Info about overloading found here
 // https://stackoverflow.com/questions/1880866/can-i-set-a-default-argument-from-a-previous-argument
@@ -790,11 +792,15 @@ void loop(void) {
     }
     
     else if (newCommand.startsWith("CMDSWSAVER")) {                        // Command from Serial to set Screensaver
-      oled_switchscreensaver();                                          // Enable/Disable Screensaver
+      oled_switchscreensaver();                                            // Enable/Disable Screensaver
     }
     
     else if (newCommand.startsWith("CMDSAVER")) {                          // Command from Serial to set Screensaver
       oled_readnsetscreensaver();                                          // Set Screensaver Settings & Enable/Disable
+    }
+
+    else if (newCommand.startsWith("CMDSTTYACK")) {                        // Command from Serial to set Screensaver
+      oled_setttyack();                                                    // Enable/Disable sendiung TTYACK
     }
 
 // ---------------------------------------------------
@@ -857,7 +863,9 @@ void loop(void) {
     }  // end ifs
 
     delay(cDelay);                                    // Command Response Delay
-    Serial.print("ttyack;");                          // Handshake with delimiter; MiSTer: "read -d ";" ttyresponse < ${TTYDEVICE}"
+    if (sendTTYACK) {                                 // Send ACK?
+      Serial.print("ttyack;");                        // Handshake with delimiter; MiSTer: "read -d ";" ttyresponse < ${TTYDEVICE}"
+    }
     // Serial.flush();                                // Wait for sendbuffer is clear
 
     updateDisplay=false;                              // Clear Update-Display Flag
@@ -967,6 +975,33 @@ void oled_showStartScreen(void) {
   oled.display();
   startScreenActive=true;
 } // end mistertext
+
+
+// --------------------------------------------------------------
+// ------------------ Enable/Disable ttyack ---------------------
+// --------------------------------------------------------------
+void oled_setttyack(void) {
+  String xT="";
+  int x;
+#ifdef XDEBUG
+  Serial.println("Called Command CMDSTTYACK");
+#endif
+  xT=newCommand.substring(newCommand.indexOf(',')+1);
+#ifdef XDEBUG
+  Serial.printf("\nReceived Text: %s\n", (char*)xT.c_str());
+#endif
+  
+  x=xT.toInt();                                 // Convert Value
+  if (x<0) x=0;
+  if (x>1) x=1;
+
+  if (x) {
+    sendTTYACK = true;
+  }
+  else {
+    sendTTYACK = false;
+  }
+}
 
 
 // --------------------------------------------------------------

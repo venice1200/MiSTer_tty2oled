@@ -40,7 +40,7 @@
 */
 
 // Set Version
-#define BuildVersion "230316T"                    // "T" for Testing
+#define BuildVersion "230427T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -115,7 +115,7 @@
 // ESP32-S3
 // SPI Original: CS(FSPICS0) = 10, MOSI(FSPID) = 11, SCLK(FSPICLK) = 12, MISO(FSPIQ) = 13
 #ifdef USE_ESP32S3DEV
-  int cDelay = 60;                 // Command Delay in ms for ACK-Handshake
+  int cDelay = 15;                 // Command Delay in ms for ACK-Handshake
   #define OLED_MOSI 1
   #define OLED_MISO 45 
   #define OLED_SCLK 39
@@ -862,8 +862,8 @@ void loop(void) {
       oled_showcorename();
     }  // end ifs
 
-    delay(cDelay);                                    // Command Response Delay
     if (sendTTYACK) {                                 // Send ACK?
+      delay(cDelay);                                    // Command Response Delay
       Serial.print("ttyack;");                        // Handshake with delimiter; MiSTer: "read -d ";" ttyresponse < ${TTYDEVICE}"
     }
     // Serial.flush();                                // Wait for sendbuffer is clear
@@ -1420,8 +1420,8 @@ void oled_showSystemHardware(void) {
     if (hasMIC) u8g2.print("MIC");
     if (hasPCA) u8g2.print(",PCA");
     if (hasLED) u8g2.print(",LED");
-    if (hasRGBLED) u8g2.print(",RGB-LED");
-    if (hasBUZZER) u8g2.print(",Buzzer");
+    if (hasRGBLED) u8g2.print(",RGB");
+    if (hasBUZZER) u8g2.print(",BUZ");
   }
   else {
     u8g2.print("None");

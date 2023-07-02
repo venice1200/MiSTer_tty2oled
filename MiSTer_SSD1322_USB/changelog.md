@@ -1,5 +1,35 @@
 *************************** tty2oled Arduino-FW Changelog ***********************
 
+  2023-07-02
+  -Release to Stable
+
+..2023-04-27
+  -Cosmetics
+
+  2023-04-20/2023-03-16
+  -Add Command CMDSTTYACK to (set) enable(1)/disable(0) sending "ttyack". Enabled by default.
+   Using no Command Delay (cDelay) if "ttyack" is not sent.
+
+  2023-01-08
+  -Add Boolean "runsTesting"
+
+  2022-12-09..2023-01-07
+  -Add more "hasXX"
+
+  2022-12-08
+  -Change 8266 NodeMCU Tilt Pin 16 (D0) to Pin 10 (SD3) to prevent false Rotation detection
+
+  2022-11-27
+  -Switch dtiv Version handling from "EEPROM" to "Preferences"
+
+  2022-11-23
+  -Removed unused Board Types
+
+  2022-11-12..13
+  -Add Suport for ESP32-S3 (ESP32-S3-DevKitC-1)
+  -Removed OTA Support
+  -Add EEPROM Support for d.ti Boards (IDE: ESP32* Dev Module)
+
   2022-10-30
   ***** Release to stable 221030 ******
 

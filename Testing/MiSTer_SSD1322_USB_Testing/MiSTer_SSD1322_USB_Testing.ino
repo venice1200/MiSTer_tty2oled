@@ -40,7 +40,7 @@
 */
 
 // Set Version
-#define BuildVersion "230621T"                    // "T" for Testing
+#define BuildVersion "230720T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -960,6 +960,9 @@ void oled_showStartScreen(void) {
     if (hasPCA) u8g2.print("P");
     if (dtiv>10) u8g2.print(dtiv);
     if (usePREFS) u8g2.print("E");
+#ifdef USE_ESP32S3DEV
+    u8g2.print("-S3");
+#endif
     oled.drawXBitmap(DispWidth-usb_icon_width, DispHeight-usb_icon_height, usb_icon, usb_icon_width, usb_icon_height, SSD1322_WHITE);
   }
 

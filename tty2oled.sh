@@ -225,6 +225,7 @@ if [ -c "${TTYDEV}" ]; then # check for tty device
         dbug "The tty2oled daemon is sleeping!"
         #inotifywait -qq -t 60 -e delete "${SLEEPFILE}"		  # Sleepmode is waiting it here for 60 secs
         inotifywait -qq -e delete "${SLEEPFILE}"		  # Sleepmode is waiting it here
+	sendscreensaver
       fi
       if [ ! -f ${SLEEPFILE} ]; then				  # Sleepmode = No
         newcore=$(<${corenamefile})				  # get CORENAME

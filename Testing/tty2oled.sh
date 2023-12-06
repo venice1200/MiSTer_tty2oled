@@ -57,6 +57,7 @@
 # 2022-09-20 Support for MiSTer SAM adding the tty2oled "SleepMode"
 #            Create the file "/tmp/tty2oled_sleep" by using "touch /tmp/tty2oled_sleep" and the tty2oled Dameon goes to sleep.
 #            Remove the file and the tty2oled Daemon goes back to work.
+# 2023-12-06 Adding SLEEPMODEDELAY for better SAM Support
 #
 #
 
@@ -223,8 +224,12 @@ if [ -c "${TTYDEV}" ]; then # check for tty device
     if [ -r ${corenamefile} ]; then							# proceed if file exists and is readable (-r)
       if [ -f ${SLEEPFILE} ]; then							# Sleepmode = Yes
         dbug "The tty2oled daemon is sleeping!"
-        #inotifywait -qq -t 60 -e delete "${SLEEPFILE}"		  # Sleepmode is waiting it here for 60 secs
-        inotifywait -qq -e delete "${SLEEPFILE}"		  # Sleepmode is waiting it here
+        if [ "${debug}" = "false" ]; then
+          inotifywait -qq -e delete "${SLEEPFILE}"		  # Sleepmode is waiting it here
+        elif [ "${debug}" = "true" ]; then
+          inotifywait -e delete "${SLEEPFILE}"			  # Sleepmode is waiting it here
+        fi
+        sleep ${SLEEPMODEDELAY}
       fi
       if [ ! -f ${SLEEPFILE} ]; then				  # Sleepmode = No
         newcore=$(<${corenamefile})				  # get CORENAME

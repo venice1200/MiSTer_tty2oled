@@ -1,5 +1,8 @@
 *************************** tty2oled Arduino-FW Changelog ***********************
 
+  2023-09-06
+  -Bump Version for Testing Libraries and IDE Updates
+
   2023-07-20
   -Add "-S3" to the (Testing) Boot Screeen Version String if ESP32-S3 is used
   

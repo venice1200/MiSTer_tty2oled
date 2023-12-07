@@ -57,6 +57,8 @@
 # 2022-09-20 Support for MiSTer SAM adding the tty2oled "SleepMode"
 #            Create the file "/tmp/tty2oled_sleep" by using "touch /tmp/tty2oled_sleep" and the tty2oled Dameon goes to sleep.
 #            Remove the file and the tty2oled Daemon goes back to work.
+# 2023-12-06 Adding SLEEPMODEDELAY for better SAM Support
+# 2023-12-07 Adding compatibility for tty2x
 #
 #
 
@@ -190,7 +192,7 @@ sendtime() {
 if [ "${#}" -ge 1 ]; then # Command Line Parameter given, override Parameter
   #echo -e "\nUsing Command Line Parameter"
   dbug "\nUsing Command Line Parameter"
-  TTYDEV=${1}                                             # Set TTYDEV with Parameter 1
+  ![ "${1}" = "tty2x" ] && TTYDEV=${1}                    # Set TTYDEV with Parameter 1
   if [ -n "${2}" ]; then                                  # Parameter 2 Baudrate
     BAUDRATE=${2}                                         # Set Baudrate
   fi                                                      # end if Parameter 3
@@ -223,8 +225,12 @@ if [ -c "${TTYDEV}" ]; then # check for tty device
     if [ -r ${corenamefile} ]; then							# proceed if file exists and is readable (-r)
       if [ -f ${SLEEPFILE} ]; then							# Sleepmode = Yes
         dbug "The tty2oled daemon is sleeping!"
-        #inotifywait -qq -t 60 -e delete "${SLEEPFILE}"		  # Sleepmode is waiting it here for 60 secs
-        inotifywait -qq -e delete "${SLEEPFILE}"		  # Sleepmode is waiting it here
+        if [ "${debug}" = "false" ]; then
+          inotifywait -qq -e delete "${SLEEPFILE}"		  # Sleepmode is waiting it here
+        elif [ "${debug}" = "true" ]; then
+          inotifywait -e delete "${SLEEPFILE}"			  # Sleepmode is waiting it here
+        fi
+        sleep ${SLEEPMODEDELAY}
       fi
       if [ ! -f ${SLEEPFILE} ]; then				  # Sleepmode = No
         newcore=$(<${corenamefile})				  # get CORENAME
@@ -233,6 +239,7 @@ if [ -c "${TTYDEV}" ]; then # check for tty device
           dbug "Send -${newcore}- to ${TTYDEV}."
           senddata "${newcore}" 				   # The "Magic"
           oldcore=$newcore
+          [ "${1}" = "tty2x" ] && exit 9
           if [ "${debug}" = "false" ]; then
             inotifywait -qq -e modify "${corenamefile}"            # wait here for next change of corename, -qq for quietness
           elif [ "${debug}" = "true" ]; then

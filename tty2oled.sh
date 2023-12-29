@@ -192,7 +192,7 @@ sendtime() {
 if [ "${#}" -ge 1 ]; then # Command Line Parameter given, override Parameter
   #echo -e "\nUsing Command Line Parameter"
   dbug "\nUsing Command Line Parameter"
-  ![ "${1}" = "tty2x" ] && TTYDEV=${1}                    # Set TTYDEV with Parameter 1
+  ! [ "${1}" = "tty2x" ] && TTYDEV=${1}                   # Set TTYDEV with Parameter 1
   if [ -n "${2}" ]; then                                  # Parameter 2 Baudrate
     BAUDRATE=${2}                                         # Set Baudrate
   fi                                                      # end if Parameter 3

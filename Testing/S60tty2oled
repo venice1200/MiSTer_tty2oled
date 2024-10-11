@@ -46,7 +46,9 @@ start() {
 	echo "Starting ${DAEMONNAME}..."
 	${DAEMONSCRIPT} & echo $! > /run/tty2oled-daemon.pid
 	! [ -d /tmp/lock ] &&  mkdir /tmp/lock || true
-	touch "/tmp/lock/$(basename ${TTYDEV})"
+	echo "tty2oled" > "/tmp/lock/$(basename ${TTYDEV})"
+	#touch "/tmp/lock/$(basename ${TTYDEV})"
+	#[ -e "/tmp/lock/$(basename ${TTYDEV})" ] && echo "tty2oled" > "/tmp/lock/$(basename ${TTYDEV})"
       fi
     else
       echo "${DAEMONSCRIPT} not found!"

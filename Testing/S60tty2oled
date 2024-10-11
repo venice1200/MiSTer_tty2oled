@@ -1,6 +1,7 @@
 #!/bin/bash
 
 #
+# 2024-10-11 Adding code to create/delete "tty device lockfile" in /tmp/lock
 # 2022-12-13 Auto Update
 # 2022-03-12 Ensure Unix-Encoding of INI files
 # 2021-11-24 Working in /tmp
@@ -44,6 +45,8 @@ start() {
 	fi
 	echo "Starting ${DAEMONNAME}..."
 	${DAEMONSCRIPT} & echo $! > /run/tty2oled-daemon.pid
+	! [ -d /tmp/lock ] &&  mkdir /tmp/lock || true
+	touch "/tmp/lock/$(basename ${TTYDEV})"
       fi
     else
       echo "${DAEMONSCRIPT} not found!"
@@ -62,6 +65,7 @@ stop() {
     [ ${PIDDAEMON} ] && kill ${PIDDAEMON} &> /dev/null
     [ ${PIDINOTIFY} ] && kill ${PIDINOTIFY} &> /dev/null
     rm -f /run/tty2oled-daemon.pid
+    [ -e "/tmp/lock/$(basename ${TTYDEV})" ] && rm "/tmp/lock/$(basename ${TTYDEV})" || true
 }
 
 case "$1" in

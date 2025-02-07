@@ -4,6 +4,12 @@
   Using forked Adafruit SSD1327 Library https://github.com/adafruit/Adafruit_SSD1327 for the SSD1322
 
   -- G R A Y S C A L E  E D I T I O N --
+  
+  ***************************************
+  **                                   **  
+  **   Testing Release for ESP32 v3x   **
+  **                                   **  
+  ***************************************
 
   Needed libraries for the Arduino program:
   - Adafruit GFX (*)
@@ -15,7 +21,7 @@
   (*) These Libraries can be installed using Arduino's library manager.
   See also https://github.com/venice1200/MiSTer_tty2oled/wiki/Arduino-HowTo-%28Windows%29
 
-  QuickSelect/Copy&Paste for Arduino IDE v2.x:
+  QuickSelect/Copy&Paste for Arduino IDE v3.x:
   
   -ESP32-S3 Dev Module
   -ESP32 Dev Module
@@ -40,7 +46,7 @@
 */
 
 // Set Version
-#define BuildVersion "250206T"                  // "T" for Testing
+#define BuildVersion "250207T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>

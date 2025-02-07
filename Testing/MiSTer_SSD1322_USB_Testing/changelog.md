@@ -1,4 +1,7 @@
 *************************** tty2oled Arduino-FW Changelog ***********************
+Build Enviroment 31.8.2024
+ESP32 v3.0.4
+FastLed 3.7.4
 
   2023-09-06
   -Bump Version for Testing Libraries and IDE Updates

@@ -40,7 +40,7 @@
 */
 
 // Set Version
-#define BuildVersion "230906T"                    // "T" for Testing
+#define BuildVersion "v3-250206T"                  // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -129,7 +129,8 @@
   //#define USER_LED 48              // USER_LED/WS2812B Pin on ESP32-S3-DevKitC-1
   #define POWER_LED 38             // Set Pin to "1" = LED's off
   #define BUZZER 35                // Piezo Buzzer
-  #define TONE_PWM_CHANNEL 0       // See: https://makeabilitylab.github.io/physcomp/esp32/tone.html
+  #define LEDC_FREQ 12000          // LED Control API Frequency, see: https://docs.espressif.com/projects/arduino-esp32/en/latest/api/ledc.html 
+  #define LEDC_RESO 8              // LED Control API Resolution
   #include <MIC184.h>              // MIC184 Library, get from https://github.com/venice1200/MIC184_Temperature_Sensor
   MIC184 tSensor;                  // Create Sensor Class
   #include <FastLED.h>             // FastLED Library, get from Library Manager
@@ -157,7 +158,8 @@
   #define USER_LED 19              // USER_LED/WS2812B
   #define POWER_LED 5              // Set Pin to "1" = LED's off
   #define BUZZER 4                 // Piezo Buzzer
-  #define TONE_PWM_CHANNEL 0       // See: https://makeabilitylab.github.io/physcomp/esp32/tone.html
+  #define LEDC_FREQ 12000          // LED Control API Frequency, see: https://docs.espressif.com/projects/arduino-esp32/en/latest/api/ledc.html 
+  #define LEDC_RESO 8              // LED Control API Resolution
   #include <MIC184.h>              // MIC184 Library, get from https://github.com/venice1200/MIC184_Temperature_Sensor
   MIC184 tSensor;                  // Create Sensor Class
   #include <FastLED.h>             // FastLED Library, get from Library Manager
@@ -2600,7 +2602,7 @@ void oled_playnote(void) {
 #endif  
 
   if (hasBUZZER){                                 // only on d.ti Board >= Rev 1.2
-    ledcAttachPin(BUZZER, TONE_PWM_CHANNEL);
+    ledcAttach(BUZZER, LEDC_FREQ , LEDC_RESO);
 
     do {
       // find ","
@@ -2660,9 +2662,9 @@ void oled_playnote(void) {
 #endif  
 
       if (!pError) {
-        ledcWriteNote(TONE_PWM_CHANNEL, n, o);    // Play Note
+        ledcWriteNote(BUZZER, n, o);    // Play Note
         delay(d);                                 // Duration
-        ledcWriteTone(TONE_PWM_CHANNEL, 0);       // Buzzer off
+        ledcWriteTone(BUZZER, 0);       // Buzzer off
         delay(p);                                 // Pause
       }
       else {
@@ -2673,7 +2675,7 @@ void oled_playnote(void) {
       }
     } while (d4 != -1 && !pError);                         // Repeat as long a fourth "," is found
 
-    ledcDetachPin(BUZZER);
+    ledcDetach(BUZZER);
 
   }  // endif dtiv>=12
   else {
@@ -2705,7 +2707,7 @@ void oled_playtone(void) {
 #endif  
 
   if (hasBUZZER){                                 // only on d.ti Board >= Rev 1.2
-    ledcAttachPin(BUZZER, TONE_PWM_CHANNEL);
+    ledcAttach(BUZZER, LEDC_FREQ, LEDC_RESO );
 
     do {
       // find ","
@@ -2737,9 +2739,9 @@ void oled_playtone(void) {
       Serial.printf("Values to Play: %d %d %d\n", f, d, p);
 #endif  
       if (!pError) {
-        ledcWriteTone(TONE_PWM_CHANNEL, f);       // Play Frequency
+        ledcWriteTone(BUZZER, f);       // Play Frequency
         delay(d);                                 // Duration
-        ledcWriteTone(TONE_PWM_CHANNEL, 0);       // Buzzer off
+        ledcWriteTone(BUZZER, 0);       // Buzzer off
         delay(p);                                 // Pause
       }
       else {
@@ -2750,7 +2752,7 @@ void oled_playtone(void) {
       }
     } while (d3 != -1 && !pError);                         // Repeat as long as a third "," is found
 
-    ledcDetachPin(BUZZER);
+    ledcDetach(BUZZER);
 
   }  // endif dtiv>=12
   else {

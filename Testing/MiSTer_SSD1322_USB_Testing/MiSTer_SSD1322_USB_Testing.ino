@@ -46,7 +46,7 @@
 */
 
 // Set Version
-#define BuildVersion "250207T"                    // "T" for Testing
+#define BuildVersion "260729T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -388,6 +388,9 @@ void setup(void) {
 
   if (bversion.endsWith("T")) runsTesting=true;     // Running Testing Yes/No?
 
+#ifdef ESP32                                 // Just for ESP32x Devices
+  Serial.setRxBufferSize(1024);              // Increase buffer size, taken from Arrghus8 fork
+#endif
   Serial.begin(115200);                      // Init Serial with 115200 for MiSTer ttyUSBx Device CP2102 Chip on ESP32
   Serial.flush();                            // Wait for empty Send Buffer
   Serial.setTimeout(500);                    // Set max. Serial "Waiting Time", default = 1000ms
@@ -964,6 +967,7 @@ void oled_showStartScreen(void) {
   u8g2.setCursor(0,63);
   u8g2.print(BuildVersion);
   if (runsTesting) {
+    if (hasMIC || hasPCA || dtiv>10 || usePREFS) u8g2.print("-");
     if (hasMIC) u8g2.print("M");
     if (hasPCA) u8g2.print("P");
     if (dtiv>10) u8g2.print(dtiv);
@@ -1337,8 +1341,8 @@ void oled_showSmallCorePicture(int xpos, int ypos) {
           for (i=0; i<4; i++) {
             b1=logoBin[(px*4)+i+py*DispLineBytes4bpp];                                                  // Get Data Byte 1 for 2 Pixels
             b2=logoBin[(px*4)+i+(py+1)*DispLineBytes4bpp];                                              // Get Data Byte 2 for 2 Pixels
-            //br=(((0xF0 & b1) >> 4) + (0x0F & b1) + ((0xF0 & b2) >> 4) + (0x0F & b2)) / 4;               // cutting
-            br=round((((0xF0 & b1) >> 4) + (0x0F & b1) + ((0xF0 & b2) >> 4) + (0x0F & b2)) / 4);        // rounding
+            br=(((0xF0 & b1) >> 4) + (0x0F & b1) + ((0xF0 & b2) >> 4) + (0x0F & b2)) / 4;               // cutting
+            //br=round((((0xF0 & b1) >> 4) + (0x0F & b1) + ((0xF0 & b2) >> 4) + (0x0F & b2)) / 4);        // rounding
             oled.drawPixel(xpos+x, ypos+y, br);   // Draw only Pixel 1, Left Nibble
             //Serial.printf("X: %d Y: %d\n",x,y);
             x++;

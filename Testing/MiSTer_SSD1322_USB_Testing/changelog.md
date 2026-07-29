@@ -1,7 +1,36 @@
 *************************** tty2oled Arduino-FW Changelog ***********************
-Build Enviroment 31.8.2024
-ESP32 v3.0.4
-FastLed 3.7.4
+Build Enviroment 29.7.2026
+--------------------------
+Arduino IDE 2.3.10
+
+Downloadable libs/package from the Arduino IDE
+ESP32 3.3.11
+FastLed 3.10.5
+U8g2_for_Adafruit_GFX 1.8.0
+Adafruit GFX 1.12.6
+Bounce2 2.71
+ESP32Time 2.0.6
+
+Manual installed libs
+MIC184 https://github.com/venice1200/MIC184_Temperature_Sensor
+SSD1322_for_Adafruit_GFX https://github.com/venice1200/SSD1322_for_Adafruit_GFX
+
+ESP32 DevModule Build
+Sketch uses 565151 bytes (43%) of program storage space. Maximum is 1310720 bytes.
+Global variables use 51488 bytes (15%) of dynamic memory, leaving 276192 bytes for local variables. Maximum is 327680 bytes.
+
+ESP32S3 DevModule Build
+Sketch uses 584647 bytes (44%) of program storage space. Maximum is 1310720 bytes.
+Global variables use 49572 bytes (15%) of dynamic memory, leaving 278108 bytes for local variables. Maximum is 327680 bytes.
+
+=================================================================================
+
+  2026-07-29
+  -Bump Version for Testing Libraries, Board Packages and IDE Updates
+  -Added "Serial.setRxBufferSize(1024)" in setup for ESP32 Devices, taken from Arrghus8 fork
+  -Fix error round(int) is amigious
+
+  ...bump...bump...bump
 
   2023-09-06
   -Bump Version for Testing Libraries and IDE Updates

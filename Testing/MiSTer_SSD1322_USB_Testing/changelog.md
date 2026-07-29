@@ -28,7 +28,7 @@ Global variables use 49572 bytes (15%) of dynamic memory, leaving 278108 bytes f
   2026-07-29
   -Bump Version for Testing Libraries, Board Packages and IDE Updates
   -Added "Serial.setRxBufferSize(1024)" in setup for ESP32 Devices, taken from Arrghus8 fork
-  -Fix error round(int) is amigious
+  -Fix error round(int) is amigious adding (float) br=round((float)(((0xF0...
 
   ...bump...bump...bump
 

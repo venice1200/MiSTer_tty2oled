@@ -1341,8 +1341,8 @@ void oled_showSmallCorePicture(int xpos, int ypos) {
           for (i=0; i<4; i++) {
             b1=logoBin[(px*4)+i+py*DispLineBytes4bpp];                                                  // Get Data Byte 1 for 2 Pixels
             b2=logoBin[(px*4)+i+(py+1)*DispLineBytes4bpp];                                              // Get Data Byte 2 for 2 Pixels
-            br=(((0xF0 & b1) >> 4) + (0x0F & b1) + ((0xF0 & b2) >> 4) + (0x0F & b2)) / 4;               // cutting
-            //br=round((((0xF0 & b1) >> 4) + (0x0F & b1) + ((0xF0 & b2) >> 4) + (0x0F & b2)) / 4);        // rounding
+            //br=(((0xF0 & b1) >> 4) + (0x0F & b1) + ((0xF0 & b2) >> 4) + (0x0F & b2)) / 4;               // cutting
+            br=round((float)(((0xF0 & b1) >> 4) + (0x0F & b1) + ((0xF0 & b2) >> 4) + (0x0F & b2)) / 4);        // rounding
             oled.drawPixel(xpos+x, ypos+y, br);   // Draw only Pixel 1, Left Nibble
             //Serial.printf("X: %d Y: %d\n",x,y);
             x++;

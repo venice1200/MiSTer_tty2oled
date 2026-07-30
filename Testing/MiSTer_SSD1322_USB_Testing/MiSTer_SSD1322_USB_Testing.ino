@@ -46,7 +46,7 @@
 */
 
 // Set Version
-#define BuildVersion "260729T"                    // "T" for Testing
+#define BuildVersion "260730T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>
@@ -1342,7 +1342,8 @@ void oled_showSmallCorePicture(int xpos, int ypos) {
             b1=logoBin[(px*4)+i+py*DispLineBytes4bpp];                                                  // Get Data Byte 1 for 2 Pixels
             b2=logoBin[(px*4)+i+(py+1)*DispLineBytes4bpp];                                              // Get Data Byte 2 for 2 Pixels
             //br=(((0xF0 & b1) >> 4) + (0x0F & b1) + ((0xF0 & b2) >> 4) + (0x0F & b2)) / 4;               // cutting
-            br=round((float)(((0xF0 & b1) >> 4) + (0x0F & b1) + ((0xF0 & b2) >> 4) + (0x0F & b2)) / 4);        // rounding
+            //br=round((float)(((0xF0 & b1) >> 4) + (0x0F & b1) + ((0xF0 & b2) >> 4) + (0x0F & b2)) / 4);        // rounding
+            br=round((((0xF0 & b1) >> 4) + (0x0F & b1) + ((0xF0 & b2) >> 4) + (0x0F & b2)) / 4.0);        // rounding fix 
             oled.drawPixel(xpos+x, ypos+y, br);   // Draw only Pixel 1, Left Nibble
             //Serial.printf("X: %d Y: %d\n",x,y);
             x++;

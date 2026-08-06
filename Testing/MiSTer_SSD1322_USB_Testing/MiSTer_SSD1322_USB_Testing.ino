@@ -46,7 +46,7 @@
 */
 
 // Set Version
-#define BuildVersion "260730T"                    // "T" for Testing
+#define BuildVersion "260806T"                    // "T" for Testing
 
 // Include Libraries
 #include <Arduino.h>

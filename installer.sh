@@ -118,6 +118,12 @@ case "${MCUtype}" in
     HWESP32S3)	echo -e "${fyellow}ESP32 selected/detected (ESP32-S3 DevKitC).${freset}" ;;
     HWLOLIN32)	echo -e "${fyellow}ESP32 selected/detected (Wemos/Lolin/DevKit_V4).${freset}" ;;
     HWESP8266)	echo -e "${fyellow}ESP8266 selected/detected.${freset}" ;;
+    HWGC9A01C)	echo -e "${fyellow}Third-party tty2oled-compatible display detected (ESP32-C3 + GC9A01 round display, firmware ${SWver}).${freset}"
+		echo -e "${fyellow}Its firmware is not distributed by this project and can't be flashed or updated here.${freset}"
+		echo -e "${fyellow}More info: ${fblue}https://github.com/doccaz/mister-tty2oled-gc9a01${freset}"
+		[ "${INITSTOPPED}" = "yes" ] && ! [ "${1}" = "UPDATER" ] && ${INITSCRIPT} start
+		rm -rf ${TMPDIR}
+		exit 0 ;;
 esac
 
 if [ "${1}" = "FORCE" ]; then
